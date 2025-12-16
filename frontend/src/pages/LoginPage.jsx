@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { Lock, LogIn, AlertCircle } from 'lucide-react';
 import { api, setToken } from '../utils/api';
 
-export default function LoginPage() {
+export default function LoginPage({ adminPath = 'admin' }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +23,8 @@ export default function LoginPage() {
       }
 
       setToken(response.token);
-      window.location.href = '/admin';
+      // 跳转到动态后台路径
+      window.location.href = `/${adminPath}`;
     } catch (err) {
       console.error('登录错误:', err);
       setError(err.message || '登录失败，请重试');

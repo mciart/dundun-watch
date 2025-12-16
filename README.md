@@ -82,8 +82,11 @@
 |------|-------|------|
 | `CLOUDFLARE_API_TOKEN` | 你的 Cloudflare Token | 是 |
 | `ADMIN_PASSWORD` | 自定义登录密码 | 否 |
+| `ADMIN_PATH` | 自定义管理后台地址 | 否 |
 
 > 不设置 `ADMIN_PASSWORD` 则使用默认密码：`admin123456`
+
+> 不设置 `ADMIN_PATH` 则使用默认地址：`/admin`
 
 ### 第四步：运行部署
 
@@ -139,7 +142,7 @@
 </details>
 
 <details>
-<summary><b>忘记登录密码？</b></summary>
+<summary><b>忘记登录地址？</b></summary>
 
 **方式一：直接修改（推荐，立即生效）**
 
@@ -159,6 +162,29 @@
 3. 重新运行 Actions
 
 </details>
+
+<details>
+<summary><b>忘记管理后台地址？</b></summary>
+
+**方式一：直接修改（推荐，立即生效）**
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. 进入 **Workers KV**
+3. 找到命名空间 `dundun-watch_MONITOR_DATA`
+4. 点击进入
+5. 添加或编辑键值：
+   - Key：`admin_path`
+   - Value：`你的新管理后台地址`
+6. 保存后立即生效，无需重新部署
+
+**方式二：重新部署**
+
+1. GitHub 项目 → Settings → Secrets → Actions
+2. 删除 `ADMIN_PATH`，重新添加新管理后台地址
+3. 重新运行 Actions
+
+</details>
+
 
 <details>
 <summary><b>监控间隔是多久？</b></summary>

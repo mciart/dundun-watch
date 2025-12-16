@@ -138,16 +138,9 @@ jobs:
             fi
           fi
 
-      - name: 配置 Pages Functions 绑定
+      - name: 配置 Pages Functions KV 绑定
         run: |
-          echo "配置 Pages Functions 的 KV 和环境变量绑定..."
-          CURRENT_ADMIN=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PAGES_PROJECT" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const o=JSON.parse(d);console.log(o?.result?.deployment_configs?.production?.env_vars?.ADMIN_PASSWORD?.value||'');}catch(e){console.log('');}})")
-          ADMIN_PW="${ADMIN_PASSWORD:-$CURRENT_ADMIN}"
-          if [ -z "$ADMIN_PW" ]; then ADMIN_PW="admin123456"; fi
-
-          ADMIN_PATH_VALUE="${ADMIN_PATH:-admin}"
+          echo "配置 Pages Functions 的 KV 绑定..."
           curl -s -X PATCH "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$PAGES_PROJECT" \
             -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
             -H "Content-Type: application/json" \
@@ -156,24 +149,16 @@ jobs:
                 \"production\": {
                   \"kv_namespaces\": {
                     \"MONITOR_DATA\": { \"namespace_id\": \"$KV_NAMESPACE_ID\" }
-                  },
-                  \"env_vars\": {
-                    \"ADMIN_PASSWORD\": null,
-                    \"ADMIN_PATH\": { \"type\": \"plain_text\", \"value\": \"$ADMIN_PATH_VALUE\" }
                   }
                 },
                 \"preview\": {
                   \"kv_namespaces\": {
                     \"MONITOR_DATA\": { \"namespace_id\": \"$KV_NAMESPACE_ID\" }
-                  },
-                  \"env_vars\": {
-                    \"ADMIN_PASSWORD\": null,
-                    \"ADMIN_PATH\": { \"type\": \"plain_text\", \"value\": \"$ADMIN_PATH_VALUE\" }
                   }
                 }
               }
             }"
-          echo "绑定配置完成"
+          echo "KV 绑定配置完成"
 
       - name: 部署到 Cloudflare Pages
         working-directory: frontend

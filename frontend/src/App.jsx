@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import SettingsPage from './pages/SettingsPage';
 import WebsiteSettingsPage from './pages/WebsiteSettingsPage';
 import IncidentsPage from './pages/IncidentsPage';
+import NotFoundPage from './pages/NotFoundPage';
 import { getToken, api } from './utils/api';
 import { HistoryProvider } from './context/HistoryContext';
 
@@ -39,6 +40,9 @@ function App() {
     return null;
   }
 
+  // 登录路径也使用动态路径
+  const loginPath = `/${adminPath}/login`;
+
   return (
     <HistoryProvider>
     <BrowserRouter
@@ -49,15 +53,18 @@ function App() {
       >
         <Routes>
         <Route path="/" element={<StatusPage />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/incidents" element={<IncidentsPage />} />
+        {/* 动态登录路径 */}
+        <Route path={loginPath} element={<LoginPage adminPath={adminPath} />} />
+        {/* 禁止直接访问 /login，重定向到首页 */}
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route 
           path={`/${adminPath}`}
           element={
             getToken() ? (
               <AdminPage />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to={loginPath} replace />
             )
           } 
         />
@@ -67,7 +74,7 @@ function App() {
             getToken() ? (
               <SettingsPage />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to={loginPath} replace />
             )
           } 
         />
@@ -77,10 +84,12 @@ function App() {
             getToken() ? (
               <WebsiteSettingsPage />
             ) : (
-              <Navigate to="/login" replace />
+              <Navigate to={loginPath} replace />
             )
           } 
         />
+        {/* 404 - 所有未匹配的路径 */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
     </HistoryProvider>

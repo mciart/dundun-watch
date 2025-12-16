@@ -117,7 +117,8 @@ export default function AdminPage() {
       if (token) {
         return true;
       }
-      navigate('/login', { replace: true });
+      // 未登录时跳转到首页，由路由自动处理跳转到登录页
+      navigate('/', { replace: true });
       return false;
     };
     
@@ -162,7 +163,8 @@ export default function AdminPage() {
 
   const handleLogout = () => {
     clearToken();
-    navigate('/login');
+    // 退出后跳转到首页
+    navigate('/');
   };
 
   const handleSaveSettings = async () => {
