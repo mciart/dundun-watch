@@ -62,15 +62,19 @@ jobs:
           fi
           echo "KV_NAMESPACE_ID=$KV_NAMESPACE_ID" >> $GITHUB_ENV
 
-      - name: 写入管理员密码到 KV
+      - name: 写入管理员密码和后台路径到 KV
         env:
           ADMIN_PASSWORD: ${{ env.ADMIN_PASSWORD }}
+          ADMIN_PATH: ${{ env.ADMIN_PATH }}
           CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
           KV_NAMESPACE_ID: ${{ env.KV_NAMESPACE_ID }}
         run: |
           echo "写入管理员密码到 KV..."
           ADMIN_PW=${ADMIN_PASSWORD:-admin123456}
           wrangler kv:key put --namespace-id $KV_NAMESPACE_ID admin_password "$ADMIN_PW"
+          echo "写入后台路径到 KV..."
+          ADMIN_PATH_VALUE=${ADMIN_PATH:-admin}
+          wrangler kv:key put --namespace-id $KV_NAMESPACE_ID admin_path "$ADMIN_PATH_VALUE"
 
       - name: 生成临时 wrangler 配置
         shell: bash

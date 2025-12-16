@@ -1455,7 +1455,9 @@ async function handleAPI(request, env) {
     }
 
     if (path === '/api/admin-path' && method === 'GET') {
-      const adminPath = env.ADMIN_PATH || 'admin';
+      // 优先从 KV 读取，没有则用环境变量，最后用默认值
+      const kvAdminPath = await env.MONITOR_DATA.get('admin_path');
+      const adminPath = kvAdminPath || env.ADMIN_PATH || 'admin';
       return jsonResponse({ path: adminPath });
     }
 
