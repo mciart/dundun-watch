@@ -302,9 +302,10 @@ export async function handleAPI(request, env, ctx) {
   if (path === '/api/incidents' && request.method === 'GET') {
     try {
       const state = await getState(env);
+      // 返回 incidentIndex 作为 incidents 数组，前端期望数组格式
+      const incidentList = Array.isArray(state.incidentIndex) ? state.incidentIndex : [];
       return jsonResponse({
-        incidents: state.incidents || {},
-        incidentIndex: state.incidentIndex || []
+        incidents: incidentList
       });
     } catch (error) {
       return errorResponse('获取事件失败: ' + error.message, 500);
