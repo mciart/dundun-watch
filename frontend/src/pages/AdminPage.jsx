@@ -1133,54 +1133,65 @@ export default function AdminPage() {
           </motion.div>
         )}
 
-        {/* 账户设置 */}
+        {/* 后台设置 */}
         {activeTab === 'account' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"
+            className="space-y-6"
           >
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <KeyRound className="w-5 h-5" />
-              修改密码
-            </h3>
+            {/* 修改密码 */}
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/20">
+                  <KeyRound className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    修改密码
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    修改后台登录密码
+                  </p>
+                </div>
+              </div>
             
-            <div className="max-w-md space-y-4">
+              <div className="ml-12 max-w-md space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   当前密码
                 </label>
                 <input
                   type="password"
                   value={passwordForm.oldPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                   placeholder="请输入当前密码"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   新密码
                 </label>
                 <input
                   type="password"
                   value={passwordForm.newPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                   placeholder="请输入新密码"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   确认新密码
                 </label>
                 <input
                   type="password"
                   value={passwordForm.confirmPassword}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                   placeholder="请再次输入新密码"
                 />
               </div>
@@ -1228,29 +1239,37 @@ export default function AdminPage() {
               <p className="text-xs text-slate-500 dark:text-slate-400 pt-2">
                 密码修改成功后需要重新登录。密码将使用 SHA-256 加密后存储。
               </p>
+              </div>
             </div>
 
-            {/* 分隔线 */}
-            <hr className="my-8 border-slate-200 dark:border-slate-700" />
-
             {/* 后台路径设置 */}
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Route className="w-5 h-5" />
-              后台路径
-            </h3>
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20">
+                  <Route className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    后台路径
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    自定义后台访问地址
+                  </p>
+                </div>
+              </div>
             
-            <div className="max-w-md space-y-4">
+              <div className="ml-12 max-w-md space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  当前后台路径
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  后台路径
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 max-w-xs">
                   <span className="text-slate-500 dark:text-slate-400">/</span>
                   <input
                     type="text"
                     value={newAdminPath}
                     onChange={(e) => setNewAdminPath(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
-                    className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                     placeholder="admin"
                   />
                 </div>
@@ -1301,6 +1320,7 @@ export default function AdminPage() {
               <p className="text-xs text-slate-500 dark:text-slate-400 pt-2">
                 修改后台路径后，当前页面将跳转到新地址。请牢记新的后台路径。
               </p>
+              </div>
             </div>
           </motion.div>
         )}
