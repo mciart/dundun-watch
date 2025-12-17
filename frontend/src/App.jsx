@@ -41,7 +41,7 @@ function App() {
   }
 
   // 登录路径也使用动态路径
-  const loginPath = `/${adminPath}/login`;
+  const loginPath = `/${adminPath}/console`;
 
   return (
     <HistoryProvider>
@@ -56,8 +56,8 @@ function App() {
         <Route path="/incidents" element={<IncidentsPage />} />
         {/* 动态登录路径 */}
         <Route path={loginPath} element={<LoginPage adminPath={adminPath} />} />
-        {/* 禁止直接访问 /login，重定向到首页 */}
-        <Route path="/login" element={<Navigate to="/" replace />} />
+        {/* 禁止直接访问 /console，重定向到首页 */}
+        <Route path="/console" element={<Navigate to="/" replace />} />
         <Route 
           path={`/${adminPath}`}
           element={

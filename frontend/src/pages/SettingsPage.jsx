@@ -28,7 +28,7 @@ export default function SettingsPage() {
 
     const token = getToken();
     if (!token) {
-      navigate('/login');
+      navigate('/console');
       return;
     }
 

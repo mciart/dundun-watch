@@ -740,6 +740,12 @@ export async function handleAPI(request, env, ctx) {
         return errorResponse('后台路径长度必须在2-32个字符之间', 400);
       }
 
+      // 保留路径，不能使用这些路径作为后台路径
+      const reservedPaths = ['api', 'console', 'incidents', 'assets', 'img', 'public', 'static'];
+      if (reservedPaths.includes(cleanPath.toLowerCase())) {
+        return errorResponse(`"${cleanPath}" 是系统保留路径，请使用其他名称`, 400);
+      }
+
       await env.MONITOR_DATA.put('admin_path', cleanPath);
       return jsonResponse({ success: true, message: '后台路径修改成功', newPath: cleanPath });
     } catch (error) {
