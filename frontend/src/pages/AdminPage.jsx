@@ -20,7 +20,9 @@ import {
   BellRing,
   Mail,
   Link,
-  Eye
+  Eye,
+  User,
+  KeyRound
 } from 'lucide-react';
 import { api, clearToken, getToken } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -57,6 +59,8 @@ export default function AdminPage() {
   const [testNotifType, setTestNotifType] = useState('down');
   const [testNotifSite, setTestNotifSite] = useState('');
   const [sendingTest, setSendingTest] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
   const navigate = useNavigate();
   const { dialog, closeDialog, showAlert, showConfirm, showSuccess, showError } = useDialog();
 
@@ -404,6 +408,19 @@ export default function AdminPage() {
               >
                 <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 通知设置
+              </button>
+              <button
+                onClick={() => setActiveTab('account')}
+                className={`
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  ${activeTab === 'account'
+                    ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
+                  }
+                `}
+              >
+                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                账户设置
               </button>
             </nav>
           </div>
@@ -1096,6 +1113,105 @@ export default function AdminPage() {
                 <Settings className="w-4 h-4" />
                 {saving ? '保存中...' : '保存通知设置'}
               </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* 账户设置 */}
+        {activeTab === 'account' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6"
+          >
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <KeyRound className="w-5 h-5" />
+              修改密码
+            </h3>
+            
+            <div className="max-w-md space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  当前密码
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.oldPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="请输入当前密码"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  新密码
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="请输入新密码"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  确认新密码
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="请再次输入新密码"
+                />
+              </div>
+              
+              <div className="pt-2">
+                <button
+                  onClick={async () => {
+                    if (!passwordForm.oldPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+                      showError('请填写所有密码字段');
+                      return;
+                    }
+                    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+                      showError('两次输入的新密码不一致');
+                      return;
+                    }
+                    if (passwordForm.newPassword.length < 6) {
+                      showError('新密码长度至少 6 位');
+                      return;
+                    }
+                    
+                    setChangingPassword(true);
+                    try {
+                      await api.changePassword(passwordForm.oldPassword, passwordForm.newPassword);
+                      showSuccess('密码修改成功，请重新登录');
+                      setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+                      // 清除 token，跳转到登录页
+                      setTimeout(() => {
+                        clearToken();
+                        navigate('/admin');
+                      }, 1500);
+                    } catch (error) {
+                      showError(error.message || '密码修改失败');
+                    } finally {
+                      setChangingPassword(false);
+                    }
+                  }}
+                  disabled={changingPassword}
+                  className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  {changingPassword ? '修改中...' : '修改密码'}
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-500 dark:text-slate-400 pt-2">
+                密码修改成功后需要重新登录。密码将使用 SHA-256 加密后存储。
+              </p>
             </div>
           </motion.div>
         )}
