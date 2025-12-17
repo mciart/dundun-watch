@@ -151,43 +151,63 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
       console.log(`⏸️  ${site.name} 处于pending状态，暂不写入历史记录`);
     }
 
-    cleanupOldData(state, site.id);
-
     if (site.status === 'online') {
       onlineCount++;
     }
   }
 
-  // SSL 证书检测 - 每次监控时同时检测
-  console.log('开始检测SSL证书...');
-  const certResults = await batchCheckSSLCertificates(state.sites);
-  for (const site of state.sites) {
-    if (site.url) {
-      try {
-        const domain = new URL(site.url).hostname;
-        if (certResults[domain]) {
-          const previousCert = site.sslCert;
-          const nextCert = certResults[domain];
-          site.sslCert = nextCert;
-          site.sslCertLastCheck = Date.now();
-          const inc = handleCertAlert(state, site, previousCert, nextCert);
-          try {
-            const cfg = state.config?.notifications;
-            if (inc && cfg?.enabled && !shouldThrottleAndMark(state, inc, cfg)) {
-              ctx && ctx.waitUntil(sendNotifications(env, inc, site, cfg));
-            }
-          } catch {}
-        } else {
-          // 检测失败或无证书，标记为已检测
-          site.sslCert = null;
-          site.sslCertLastCheck = Date.now();
+  // 批量清理旧数据（每小时执行一次，而不是每个站点每次都清理）
+  const CLEANUP_INTERVAL = 60 * 60 * 1000; // 1小时
+  const lastCleanup = state.lastCleanup || 0;
+  if (now - lastCleanup >= CLEANUP_INTERVAL) {
+    console.log('🧹 开始清理历史数据...');
+    for (const site of state.sites) {
+      cleanupOldData(state, site.id);
+    }
+    state.lastCleanup = now;
+    console.log('🧹 历史数据清理完成');
+  }
+
+  // SSL 证书检测 - 每小时检测一次（证书变化很慢，无需频繁检测）
+  const SSL_CHECK_INTERVAL = 60 * 60 * 1000; // 1小时
+  const lastSslCheck = state.lastSslCheck || 0;
+  const shouldCheckSsl = forceWrite || (now - lastSslCheck >= SSL_CHECK_INTERVAL);
+  
+  if (shouldCheckSsl) {
+    console.log('开始检测SSL证书...');
+    const certResults = await batchCheckSSLCertificates(state.sites);
+    for (const site of state.sites) {
+      if (site.url) {
+        try {
+          const domain = new URL(site.url).hostname;
+          if (certResults[domain]) {
+            const previousCert = site.sslCert;
+            const nextCert = certResults[domain];
+            site.sslCert = nextCert;
+            site.sslCertLastCheck = Date.now();
+            const inc = handleCertAlert(state, site, previousCert, nextCert);
+            try {
+              const cfg = state.config?.notifications;
+              if (inc && cfg?.enabled && !shouldThrottleAndMark(state, inc, cfg)) {
+                ctx && ctx.waitUntil(sendNotifications(env, inc, site, cfg));
+              }
+            } catch {}
+          } else {
+            // 检测失败或无证书，标记为已检测
+            site.sslCert = null;
+            site.sslCertLastCheck = Date.now();
+          }
+        } catch (e) {
+          console.log(`SSL检测 ${site.name} URL解析失败:`, e.message);
         }
-      } catch (e) {
-        console.log(`SSL检测 ${site.name} URL解析失败:`, e.message);
       }
     }
+    state.lastSslCheck = now;
+    console.log(`SSL证书检测完成，共 ${Object.keys(certResults).length} 个站点`);
+  } else {
+    const minutesUntilNext = Math.ceil((SSL_CHECK_INTERVAL - (now - lastSslCheck)) / 60000);
+    console.log(`⏭️ 跳过SSL检测，距下次检测 ${minutesUntilNext} 分钟`);
   }
-  console.log(`SSL证书检测完成，共 ${Object.keys(certResults).length} 个站点`);
 
   const retentionMs = state.config.retentionHours * 60 * 60 * 1000;
   cleanupIncidentIndex(state, retentionMs);
@@ -1016,58 +1036,56 @@ async function readTextWithCharset(response) {
 
 async function dnsResolveStatus(hostname, ua) {
   if (!hostname) return 'unknown';
+  
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
-    const url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A`;
-    const res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'accept': 'application/dns-json',
-        'user-agent': ua || 'Mozilla/5.0'
-      },
-      signal: controller.signal
-    });
+    
+    // 并行查询 A 和 AAAA 记录，减少等待时间
+    const headers = {
+      'accept': 'application/dns-json',
+      'user-agent': ua || 'Mozilla/5.0'
+    };
+    
+    const [resA, resAAAA] = await Promise.allSettled([
+      fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=A`, {
+        method: 'GET',
+        headers,
+        signal: controller.signal
+      }),
+      fetch(`https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=AAAA`, {
+        method: 'GET',
+        headers,
+        signal: controller.signal
+      })
+    ]);
+    
     clearTimeout(timer);
-    const data = await res.json();
-    if (!data || typeof data.Status !== 'number') return 'unknown';
-    if (data.Status === 0) {
-      const answers = Array.isArray(data.Answer) ? data.Answer : [];
-      if (answers.some(a => a && (a.type === 1 || a.type === 5))) return 'resolved';
-      try {
-        const controller6 = new AbortController();
-        const timer6 = setTimeout(() => controller6.abort(), 5000);
-        const url6 = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(hostname)}&type=AAAA`;
-        const res6 = await fetch(url6, {
-          method: 'GET',
-          headers: { 'accept': 'application/dns-json', 'user-agent': ua || 'Mozilla/5.0' },
-          signal: controller6.signal
-        });
-        clearTimeout(timer6);
-        const data6 = await res6.json();
-        if (data6 && data6.Status === 0 && Array.isArray(data6.Answer) && data6.Answer.some(a => a && a.type === 28)) {
-          return 'resolved';
-        }
-      } catch {}
-      return 'nodata';
-    }
-    if (data.Status === 3) return 'nxdomain';
-    if (data.Status === 2) return 'dns_error';
-    try {
-      const g = new URL(`https://dns.google/resolve?name=${encodeURIComponent(hostname)}&type=A`);
-      const resg = await fetch(g.toString(), { headers: { 'user-agent': ua || 'Mozilla/5.0' } });
-      const gog = await resg.json();
-      if (gog && typeof gog.Status === 'number') {
-        if (gog.Status === 0) {
-          const answers = Array.isArray(gog.Answer) ? gog.Answer : [];
+    
+    // 处理 A 记录结果
+    if (resA.status === 'fulfilled') {
+      const data = await resA.value.json();
+      if (data && typeof data.Status === 'number') {
+        if (data.Status === 0) {
+          const answers = Array.isArray(data.Answer) ? data.Answer : [];
           if (answers.some(a => a && (a.type === 1 || a.type === 5))) return 'resolved';
-          return 'nodata';
         }
-        if (gog.Status === 3) return 'nxdomain';
-        if (gog.Status === 2) return 'dns_error';
+        if (data.Status === 3) return 'nxdomain';
+        if (data.Status === 2) return 'dns_error';
       }
-    } catch {}
-    return 'unknown';
+    }
+    
+    // 处理 AAAA 记录结果
+    if (resAAAA.status === 'fulfilled') {
+      const data6 = await resAAAA.value.json();
+      if (data6 && data6.Status === 0 && Array.isArray(data6.Answer) && data6.Answer.some(a => a && a.type === 28)) {
+        return 'resolved';
+      }
+    }
+    
+    // 都没有有效记录
+    return 'nodata';
+    
   } catch (e) {
     return 'unknown';
   }
@@ -1193,13 +1211,18 @@ async function checkSite(site, checkTime) {
         } else if (!message || msgLower.includes('internal error') || msgLower.includes('fetch failed')) {
           message = '网络错误';
         }
+      } else {
+        // DNS 解析失败
+        if (dns === 'nxdomain') {
+          message = '域名不存在';
+        } else if (dns === 'dns_error') {
+          message = 'DNS服务器错误';
+        } else if (dns === 'nodata') {
+          message = '域名无A/AAAA记录';
+        } else {
+          message = '域名解析失败';
+        }
       }
-    }
-
-    if (responseTime <= 10000) {
-      message = '域名解析失败';
-    } else if (responseTime > 10000) {
-      message = '连接超时';
     }
 
     return {
