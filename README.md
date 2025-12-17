@@ -75,6 +75,8 @@
 2. 点击右上角 **Fork** 按钮
 3. 点击 **Create fork** 完成
 
+> 🔄 **更新版本**：如需同步原项目的最新更新，进入你 Fork 的项目页面，点击 **Sync fork** 按钮，然后点击 **Update branch** 即可。
+
 ### 第二步：获取 Cloudflare 凭据
 
 #### 2.1 获取 API Token
@@ -127,6 +129,8 @@
 3. 左侧选择 **Deploy to Cloudflare Workers**
 4. 点击 **Run workflow** → 再点击绿色 **Run workflow**
 5. 等待完成，看到绿色勾 ✅ 即部署成功
+
+> 🔁 **重新部署**：如果修改了 GitHub Secrets 配置（如更改密码、后台路径等），需要重新运行部署：进入 **Actions** 标签 → 左侧选择 **Deploy to Cloudflare Workers** → 点击 **Run workflow** → **Run workflow**。
 
 ### 第五步：访问网站
 
