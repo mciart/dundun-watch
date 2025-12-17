@@ -719,6 +719,34 @@ export async function handleAPI(request, env, ctx) {
     }
   }
 
+  // 修改后台路径
+  if (path === '/api/admin-path' && request.method === 'PUT') {
+    try {
+      const { newPath } = await request.json();
+      
+      if (!newPath || !newPath.trim()) {
+        return errorResponse('后台路径不能为空', 400);
+      }
+
+      // 验证路径格式：只允许字母、数字、连字符、下划线
+      const pathRegex = /^[a-zA-Z0-9_-]+$/;
+      const cleanPath = newPath.trim().replace(/^\/+/, '').replace(/\/+$/, '');
+      
+      if (!pathRegex.test(cleanPath)) {
+        return errorResponse('后台路径只能包含字母、数字、连字符和下划线', 400);
+      }
+
+      if (cleanPath.length < 2 || cleanPath.length > 32) {
+        return errorResponse('后台路径长度必须在2-32个字符之间', 400);
+      }
+
+      await env.MONITOR_DATA.put('admin_path', cleanPath);
+      return jsonResponse({ success: true, message: '后台路径修改成功', newPath: cleanPath });
+    } catch (error) {
+      return errorResponse('修改后台路径失败: ' + error.message, 500);
+    }
+  }
+
   // 添加分类
   if (path === '/api/groups' && request.method === 'POST') {
     try {

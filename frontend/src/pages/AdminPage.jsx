@@ -22,7 +22,9 @@ import {
   Link,
   Eye,
   User,
-  KeyRound
+  KeyRound,
+  Settings2,
+  Route
 } from 'lucide-react';
 import { api, clearToken, getToken } from '../utils/api';
 import { useNavigate } from 'react-router-dom';
@@ -61,6 +63,9 @@ export default function AdminPage() {
   const [sendingTest, setSendingTest] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [adminPath, setAdminPath] = useState('');
+  const [newAdminPath, setNewAdminPath] = useState('');
+  const [changingPath, setChangingPath] = useState(false);
   const navigate = useNavigate();
   const { dialog, closeDialog, showAlert, showConfirm, showSuccess, showError } = useDialog();
 
@@ -144,10 +149,21 @@ export default function AdminPage() {
           console.error('加载设置失败:', error);
         }
       };
+
+      const loadAdminPath = async () => {
+        try {
+          const data = await api.getAdminPath();
+          setAdminPath(data.path || 'admin');
+          setNewAdminPath(data.path || 'admin');
+        } catch (error) {
+          console.error('加载后台路径失败:', error);
+        }
+      };
       
       loadSettings();
       loadStats();
       loadGroups();
+      loadAdminPath();
 
       const timer = setTimeout(() => {
         loadSites();
@@ -419,8 +435,8 @@ export default function AdminPage() {
                   }
                 `}
               >
-                <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                账户设置
+                <Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                后台设置
               </button>
             </nav>
           </div>
@@ -1211,6 +1227,79 @@ export default function AdminPage() {
               
               <p className="text-xs text-slate-500 dark:text-slate-400 pt-2">
                 密码修改成功后需要重新登录。密码将使用 SHA-256 加密后存储。
+              </p>
+            </div>
+
+            {/* 分隔线 */}
+            <hr className="my-8 border-slate-200 dark:border-slate-700" />
+
+            {/* 后台路径设置 */}
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <Route className="w-5 h-5" />
+              后台路径
+            </h3>
+            
+            <div className="max-w-md space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  当前后台路径
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-500 dark:text-slate-400">/</span>
+                  <input
+                    type="text"
+                    value={newAdminPath}
+                    onChange={(e) => setNewAdminPath(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
+                    className="flex-1 px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="admin"
+                  />
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  只能包含字母、数字、连字符和下划线，长度 2-32 个字符
+                </p>
+              </div>
+              
+              <div className="pt-2">
+                <button
+                  onClick={async () => {
+                    if (!newAdminPath || newAdminPath.trim().length < 2) {
+                      showError('后台路径长度至少 2 个字符');
+                      return;
+                    }
+                    if (newAdminPath.trim().length > 32) {
+                      showError('后台路径长度不能超过 32 个字符');
+                      return;
+                    }
+                    if (newAdminPath === adminPath) {
+                      showError('新路径与当前路径相同');
+                      return;
+                    }
+                    
+                    setChangingPath(true);
+                    try {
+                      const result = await api.changeAdminPath(newAdminPath);
+                      showSuccess(`后台路径已修改为 /${result.newPath}，即将跳转...`);
+                      setAdminPath(result.newPath);
+                      // 跳转到新的后台路径
+                      setTimeout(() => {
+                        window.location.href = `/${result.newPath}`;
+                      }, 1500);
+                    } catch (error) {
+                      showError(error.message || '修改失败');
+                    } finally {
+                      setChangingPath(false);
+                    }
+                  }}
+                  disabled={changingPath || newAdminPath === adminPath}
+                  className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Route className="w-4 h-4" />
+                  {changingPath ? '修改中...' : '修改路径'}
+                </button>
+              </div>
+              
+              <p className="text-xs text-slate-500 dark:text-slate-400 pt-2">
+                修改后台路径后，当前页面将跳转到新地址。请牢记新的后台路径。
               </p>
             </div>
           </motion.div>

@@ -162,4 +162,10 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ oldPassword, newPassword }),
     }),
+
+  changeAdminPath: (newPath) =>
+    request('/api/admin-path', {
+      method: 'PUT',
+      body: JSON.stringify({ newPath }),
+    }),
 };
