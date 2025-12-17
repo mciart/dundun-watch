@@ -69,16 +69,18 @@ jobs:
           path: frontend/dist
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+
+      - name: Update KV Namespace ID
+        run: |
+          sed -i 's/YOUR_KV_NAMESPACE_ID/${{ secrets.KV_NAMESPACE_ID }}/g' wrangler.toml
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # 如果有生产环境的 KV namespace ID，可以在这里覆盖
-          # vars: |
-          #   ENVIRONMENT=production
+          wranglerVersion: '3'
 
   # PR 预览部署（可选）
   preview:
@@ -104,6 +106,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Update KV Namespace ID
+        run: |
+          sed -i 's/YOUR_KV_NAMESPACE_ID/${{ secrets.KV_NAMESPACE_ID }}/g' wrangler.toml
 
       - name: Deploy Preview
         uses: cloudflare/wrangler-action@v3

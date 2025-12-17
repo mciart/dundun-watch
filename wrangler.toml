@@ -12,11 +12,11 @@ html_handling = "auto-trailing-slash"
 not_found_handling = "single-page-application"
 
 # KV 命名空间绑定
-# 本地开发时会自动创建模拟 KV
+# 注意：实际部署时需要通过 GitHub Secrets 配置 KV_NAMESPACE_ID
+# 本地开发使用 --local 模式，会自动创建本地 KV
 [[kv_namespaces]]
 binding = "MONITOR_DATA"
-id = "local-kv-id"
-preview_id = "local-kv-id"
+id = "YOUR_KV_NAMESPACE_ID"
 
 # 定时任务
 [triggers]
