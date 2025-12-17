@@ -10,7 +10,7 @@
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
 [![GitHub Stars](https://img.shields.io/github/stars/mciart/dundun-watch?style=social)](https://github.com/mciart/dundun-watch)
 
-[演示站点](https://wzjk.de5.net/) · [快速部署](#-快速部署) · [功能介绍](#-功能特性) · [本地开发](#-本地开发)
+[演示站点](https://dundun-watch.mciart.workers.dev/) · [快速部署](#-快速部署) · [功能介绍](#-功能特性) · [本地开发](#-本地开发)
 
 ---
 
