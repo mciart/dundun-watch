@@ -25,6 +25,16 @@ function isValidUrl(string) {
   }
 }
 
+// 验证域名格式（用于 DNS 监控）
+function isValidDomain(string) {
+  if (!string || typeof string !== 'string') return false;
+  // 移除可能的协议前缀和路径
+  const domain = string.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+  // 域名正则：支持子域名、顶级域名
+  const domainRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/;
+  return domainRegex.test(domain) && domain.length <= 253;
+}
+
 function verifyPassword(password, correctPassword) {
   return password === correctPassword;
 }
@@ -376,8 +386,17 @@ export async function handleAPI(request, env, ctx) {
   if (path === '/api/sites' && request.method === 'POST') {
     try {
       const site = await request.json();
-      if (!site.url || !isValidUrl(site.url)) {
-        return errorResponse('无效的 URL', 400);
+      const isDns = site.monitorType === 'dns';
+      
+      // 根据监控类型验证输入
+      if (isDns) {
+        if (!site.url || !isValidDomain(site.url)) {
+          return errorResponse('无效的域名', 400);
+        }
+      } else {
+        if (!site.url || !isValidUrl(site.url)) {
+          return errorResponse('无效的 URL', 400);
+        }
       }
       
       const state = await getState(env);
@@ -389,11 +408,18 @@ export async function handleAPI(request, env, ctx) {
         responseTime: 0,
         lastCheck: 0,
         groupId: site.groupId || 'default',
+        // 监控类型
+        monitorType: site.monitorType || 'http',
+        // HTTP 相关
         method: site.method || 'GET',
         headers: site.headers || {},
         expectedCodes: site.expectedCodes || [200],
         responseKeyword: site.responseKeyword || '',
         responseForbiddenKeyword: site.responseForbiddenKeyword || '',
+        // DNS 相关
+        dnsRecordType: site.dnsRecordType || 'A',
+        dnsExpectedValue: site.dnsExpectedValue || '',
+        // 其他
         showUrl: site.showUrl || false,
         sortOrder: site.sortOrder || state.sites.length,
         createdAt: Date.now()
@@ -423,13 +449,28 @@ export async function handleAPI(request, env, ctx) {
       }
 
       const oldSite = state.sites[siteIndex];
+      const newMonitorType = updates.monitorType || oldSite.monitorType || 'http';
       const urlChanged = updates.url && updates.url !== oldSite.url;
+      const monitorTypeChanged = updates.monitorType && updates.monitorType !== oldSite.monitorType;
+      
+      // 如果提供了新 URL，验证格式
+      if (updates.url) {
+        if (newMonitorType === 'dns') {
+          if (!isValidDomain(updates.url)) {
+            return errorResponse('无效的域名', 400);
+          }
+        } else {
+          if (!isValidUrl(updates.url)) {
+            return errorResponse('无效的 URL', 400);
+          }
+        }
+      }
       
       // 合并更新
       state.sites[siteIndex] = { ...oldSite, ...updates };
       
-      // 如果 URL 改变了，重置检测状态（清除防抖状态，让下次检测立即生效）
-      if (urlChanged) {
+      // 如果 URL 或监控类型改变了，重置检测状态
+      if (urlChanged || monitorTypeChanged) {
         state.sites[siteIndex].status = 'unknown';
         state.sites[siteIndex].statusRaw = null;
         state.sites[siteIndex].statusPending = null;
@@ -437,14 +478,14 @@ export async function handleAPI(request, env, ctx) {
         state.sites[siteIndex].lastCheckTime = null;
         state.sites[siteIndex].responseTime = null;
         state.sites[siteIndex].message = null;
-        // 清除 SSL 证书信息（因为 URL 变了，证书也会不同）
+        // 清除 SSL 证书信息
         state.sites[siteIndex].sslCert = null;
         state.sites[siteIndex].sslCertLastCheck = null;
         // 清除历史记录
         if (state.history && state.history[siteId]) {
           state.history[siteId] = [];
         }
-        console.log(`🔄 站点 ${oldSite.name} URL 已变更，重置检测状态`);
+        console.log(`🔄 站点 ${oldSite.name} 配置已变更，重置检测状态`);
       }
       
       await updateState(env, state);

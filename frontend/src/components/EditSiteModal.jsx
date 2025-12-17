@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, AlertCircle } from 'lucide-react';
 
+const DNS_RECORD_TYPES = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT'];
+
 export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) {
   const [formData, setFormData] = useState({
     name: site.name,
     url: site.url,
     groupId: site.groupId || 'default',
     showUrl: site.showUrl || false,
+    // 监控类型
+    monitorType: site.monitorType || 'http',
+    // HTTP 相关
     method: site.method || 'GET',
     headers: site.headers && typeof site.headers === 'object'
       ? Object.entries(site.headers).map(([k, v]) => `${k}: ${v}`).join('\n')
@@ -22,7 +27,10 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
       return (str === '0' || !str) ? '' : str;
     })(),
     responseKeyword: site.responseKeyword || '',
-    responseForbiddenKeyword: site.responseForbiddenKeyword || ''
+    responseForbiddenKeyword: site.responseForbiddenKeyword || '',
+    // DNS 相关
+    dnsRecordType: site.dnsRecordType || 'A',
+    dnsExpectedValue: site.dnsExpectedValue || ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -80,15 +88,46 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                站点 URL *
+                {formData.monitorType === 'dns' ? '域名 *' : '站点 URL *'}
               </label>
               <input
-                type="url"
+                type={formData.monitorType === 'dns' ? 'text' : 'url'}
                 value={formData.url}
                 onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                 className="input-field"
+                placeholder={formData.monitorType === 'dns' ? 'example.com' : 'https://example.com'}
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                监控类型
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="monitorType"
+                    value="http"
+                    checked={formData.monitorType === 'http'}
+                    onChange={(e) => setFormData({ ...formData, monitorType: e.target.value })}
+                    className="w-4 h-4 text-primary-600"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">HTTP(S) 监控</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="monitorType"
+                    value="dns"
+                    checked={formData.monitorType === 'dns'}
+                    onChange={(e) => setFormData({ ...formData, monitorType: e.target.value })}
+                    className="w-4 h-4 text-primary-600"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">DNS 监控</span>
+                </label>
+              </div>
             </div>
 
             <div>
@@ -108,6 +147,49 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
               </select>
             </div>
 
+            {/* DNS 监控配置 */}
+            {formData.monitorType === 'dns' && (
+              <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-blue-50/50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 text-sm font-medium">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                  </svg>
+                  DNS 记录检测配置
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    记录类型
+                  </label>
+                  <select
+                    value={formData.dnsRecordType}
+                    onChange={(e) => setFormData({ ...formData, dnsRecordType: e.target.value })}
+                    className="input-field"
+                  >
+                    {DNS_RECORD_TYPES.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    期望值（可选）
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.dnsExpectedValue}
+                    onChange={(e) => setFormData({ ...formData, dnsExpectedValue: e.target.value })}
+                    className="input-field"
+                    placeholder="留空则仅检测记录是否存在，填写则验证记录值"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    示例：A 记录填 IP 地址，CNAME 填目标域名，MX 填邮件服务器
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* HTTP 监控配置 */}
+            {formData.monitorType === 'http' && (
             <div className="grid grid-cols-1 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
@@ -192,6 +274,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                 </div>
               </div>
             </div>
+            )}
 
             <div className="flex items-center justify-between">
               <div>

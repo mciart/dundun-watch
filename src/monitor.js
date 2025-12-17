@@ -56,7 +56,13 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
     resetDailyStats(state);
   }
 
-  const checkPromises = state.sites.map(site => checkSite(site, now));
+  // 根据监控类型分别检测
+  const checkPromises = state.sites.map(site => {
+    if (site.monitorType === 'dns') {
+      return checkDnsSite(site, now);
+    }
+    return checkSite(site, now);
+  });
   const results = await Promise.all(checkPromises);
 
   let confirmedChanges = [];
@@ -169,14 +175,16 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
   }
 
   // SSL 证书检测 - 每小时检测一次（证书变化很慢，无需频繁检测）
+  // 只检测 HTTP 类型的站点，DNS 类型跳过
   const SSL_CHECK_INTERVAL = 60 * 60 * 1000; // 1小时
   const lastSslCheck = state.lastSslCheck || 0;
   const shouldCheckSsl = forceWrite || (now - lastSslCheck >= SSL_CHECK_INTERVAL);
+  const httpSites = state.sites.filter(s => s.monitorType !== 'dns');
   
-  if (shouldCheckSsl) {
+  if (shouldCheckSsl && httpSites.length > 0) {
     console.log('开始检测SSL证书...');
-    const certResults = await batchCheckSSLCertificates(state.sites);
-    for (const site of state.sites) {
+    const certResults = await batchCheckSSLCertificates(httpSites);
+    for (const site of httpSites) {
       if (site.url) {
         try {
           const domain = new URL(site.url).hostname;
@@ -1031,6 +1039,151 @@ async function readTextWithCharset(response) {
     }
   } catch (_) {
     return '';
+  }
+}
+
+// DNS 记录类型映射
+const DNS_TYPE_MAP = {
+  'A': 1,
+  'AAAA': 28,
+  'CNAME': 5,
+  'MX': 15,
+  'NS': 2,
+  'TXT': 16,
+  'SOA': 6,
+  'SRV': 33,
+  'CAA': 257,
+  'PTR': 12
+};
+
+/**
+ * DNS 监控检测函数
+ * @param {Object} site - 站点配置
+ * @param {number} checkTime - 检测时间戳
+ */
+async function checkDnsSite(site, checkTime) {
+  const startTime = Date.now();
+  const domain = site.url.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim();
+  const recordType = site.dnsRecordType || 'A';
+  const expectedValue = site.dnsExpectedValue?.trim() || '';
+  
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    
+    const response = await fetch(
+      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=${recordType}`,
+      {
+        method: 'GET',
+        headers: {
+          'accept': 'application/dns-json',
+          'user-agent': 'Mozilla/5.0'
+        },
+        signal: controller.signal
+      }
+    );
+    
+    clearTimeout(timer);
+    const responseTime = Date.now() - startTime;
+    const data = await response.json();
+    
+    // DNS 状态码: 0=成功, 2=SERVFAIL, 3=NXDOMAIN
+    if (data.Status === 3) {
+      return {
+        timestamp: checkTime,
+        status: 'offline',
+        statusCode: 0,
+        responseTime,
+        message: `域名不存在 (NXDOMAIN)`,
+        dnsRecords: []
+      };
+    }
+    
+    if (data.Status === 2) {
+      return {
+        timestamp: checkTime,
+        status: 'offline',
+        statusCode: 0,
+        responseTime,
+        message: `DNS服务器错误 (SERVFAIL)`,
+        dnsRecords: []
+      };
+    }
+    
+    if (data.Status !== 0) {
+      return {
+        timestamp: checkTime,
+        status: 'offline',
+        statusCode: 0,
+        responseTime,
+        message: `DNS查询失败 (状态码: ${data.Status})`,
+        dnsRecords: []
+      };
+    }
+    
+    // 解析记录
+    const answers = Array.isArray(data.Answer) ? data.Answer : [];
+    const typeCode = DNS_TYPE_MAP[recordType] || 1;
+    const records = answers
+      .filter(a => a && a.type === typeCode)
+      .map(a => a.data);
+    
+    if (records.length === 0) {
+      return {
+        timestamp: checkTime,
+        status: 'offline',
+        statusCode: 0,
+        responseTime,
+        message: `无 ${recordType} 记录`,
+        dnsRecords: []
+      };
+    }
+    
+    // 如果设置了期望值，验证是否匹配
+    if (expectedValue) {
+      const normalizedExpected = expectedValue.toLowerCase().replace(/\.$/, '');
+      const matched = records.some(r => {
+        const normalizedRecord = String(r).toLowerCase().replace(/\.$/, '');
+        // 支持部分匹配（包含关系）
+        return normalizedRecord === normalizedExpected || 
+               normalizedRecord.includes(normalizedExpected) ||
+               normalizedExpected.includes(normalizedRecord);
+      });
+      
+      if (!matched) {
+        return {
+          timestamp: checkTime,
+          status: 'offline',
+          statusCode: 0,
+          responseTime,
+          message: `${recordType} 记录不匹配 (期望: ${expectedValue}, 实际: ${records.join(', ')})`,
+          dnsRecords: records
+        };
+      }
+    }
+    
+    // 检测成功
+    return {
+      timestamp: checkTime,
+      status: 'online',
+      statusCode: 200,
+      responseTime,
+      message: `${recordType}: ${records.slice(0, 3).join(', ')}${records.length > 3 ? '...' : ''}`,
+      dnsRecords: records
+    };
+    
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    const errMsg = error?.message || String(error);
+    
+    return {
+      timestamp: checkTime,
+      status: 'offline',
+      statusCode: 0,
+      responseTime,
+      message: errMsg.includes('abort') ? 'DNS查询超时' : `DNS查询失败: ${errMsg}`,
+      dnsRecords: []
+    };
   }
 }
 

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Shield, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Globe } from 'lucide-react';
 import { formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
 import StatusBar from './StatusBarCanvas';
 
 export default function SiteCard({ site, index }) {
   const daysLeft = typeof site?.sslCert?.daysLeft === 'number' ? site.sslCert.daysLeft : null;
   const certExpired = daysLeft !== null && daysLeft < 0;
+  const isDns = site.monitorType === 'dns';
 
   const handleSiteClick = () => {
     if (site.showUrl) {
@@ -70,8 +71,16 @@ export default function SiteCard({ site, index }) {
               </span>
             </h3>
             
-            {/* SSL证书状态 - 美化版 */}
-            {site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
+            {/* DNS 监控标识 */}
+            {isDns && (
+              <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 flex-shrink-0">
+                <Globe className="w-3 h-3 flex-shrink-0" />
+                <span>DNS {site.dnsRecordType || 'A'}</span>
+              </div>
+            )}
+            
+            {/* SSL证书状态 - 美化版 (仅 HTTP 监控显示) */}
+            {!isDns && site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
               <div className={`
                 inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
                 ${certExpired
@@ -96,8 +105,8 @@ export default function SiteCard({ site, index }) {
               </div>
             )}
             
-            {/* 无证书状态 */}
-            {site.sslCertLastCheck > 0 && !site.sslCert && (
+            {/* 无证书状态 (仅 HTTP 监控显示) */}
+            {!isDns && site.sslCertLastCheck > 0 && !site.sslCert && (
               <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 flex-shrink-0">
                 <ShieldAlert className="w-3 h-3 flex-shrink-0" />
                 <span>证书无效</span>
