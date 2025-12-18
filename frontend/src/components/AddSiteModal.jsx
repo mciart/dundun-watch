@@ -10,7 +10,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
     url: '',
     groupId: 'default',
     showUrl: false,
-    // 监控类型: http 或 dns
+    // 监控类型: http 或 dns 或 tcp
     monitorType: 'http',
     // HTTP 相关
     method: 'GET',
@@ -21,7 +21,10 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
     responseForbiddenKeyword: '',
     // DNS 相关
     dnsRecordType: 'A',
-    dnsExpectedValue: ''
+    dnsExpectedValue: '',
+    // TCP 相关
+    tcpHost: '',
+    tcpPort: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -82,14 +85,16 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                {formData.monitorType === 'dns' ? '域名 *' : '站点 URL *'}
+                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : '站点 URL *'}
               </label>
               <input
-                type={formData.monitorType === 'dns' ? 'text' : 'url'}
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                type="text"
+                value={formData.monitorType === 'tcp' ? formData.tcpHost : formData.url}
+                onChange={(e) => formData.monitorType === 'tcp' 
+                  ? setFormData({ ...formData, tcpHost: e.target.value })
+                  : setFormData({ ...formData, url: e.target.value })}
                 className="input-field"
-                placeholder={formData.monitorType === 'dns' ? 'example.com' : 'https://example.com'}
+                placeholder={formData.monitorType === 'dns' ? 'example.com' : formData.monitorType === 'tcp' ? 'example.com 或 192.168.1.1' : 'https://example.com'}
                 required
               />
             </div>
@@ -120,6 +125,17 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                     className="w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">DNS 监控</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="monitorType"
+                    value="tcp"
+                    checked={formData.monitorType === 'tcp'}
+                    onChange={(e) => setFormData({ ...formData, monitorType: e.target.value })}
+                    className="w-4 h-4 text-primary-600"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">TCP 端口</span>
                 </label>
               </div>
             </div>
@@ -177,6 +193,36 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                   />
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     示例：A 记录填 IP 地址，CNAME 填目标域名，MX 填邮件服务器
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* TCP 端口监控配置 */}
+            {formData.monitorType === 'tcp' && (
+              <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-purple-50/50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800">
+                <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 text-sm font-medium">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+                  </svg>
+                  TCP 端口检测配置
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    目标端口 *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="65535"
+                    value={formData.tcpPort}
+                    onChange={(e) => setFormData({ ...formData, tcpPort: e.target.value })}
+                    className="input-field"
+                    placeholder="例如：22、3306、6379"
+                    required
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    常见端口：SSH(22)、MySQL(3306)、Redis(6379)、PostgreSQL(5432)
                   </p>
                 </div>
               </div>

@@ -35,6 +35,20 @@ function isValidDomain(string) {
   return domainRegex.test(domain) && domain.length <= 253;
 }
 
+// 验证主机格式（域名或 IP 地址，用于 TCP 监控）
+function isValidHost(string) {
+  if (!string || typeof string !== 'string') return false;
+  const host = string.trim();
+  // IPv4 正则
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  // IPv6 简单正则（支持常见格式）
+  const ipv6Regex = /^(?:[a-fA-F0-9]{1,4}:){7}[a-fA-F0-9]{1,4}$|^::(?:[a-fA-F0-9]{1,4}:){0,6}[a-fA-F0-9]{1,4}$|^(?:[a-fA-F0-9]{1,4}:){1,7}:$|^(?:[a-fA-F0-9]{1,4}:){1,6}:[a-fA-F0-9]{1,4}$/;
+  // 如果是 IP 地址，直接返回
+  if (ipv4Regex.test(host) || ipv6Regex.test(host)) return true;
+  // 否则验证域名
+  return isValidDomain(host);
+}
+
 // 使用 SHA-256 哈希密码
 async function hashPassword(password) {
   const encoder = new TextEncoder();
@@ -400,11 +414,19 @@ export async function handleAPI(request, env, ctx) {
     try {
       const site = await request.json();
       const isDns = site.monitorType === 'dns';
+      const isTcp = site.monitorType === 'tcp';
       
       // 根据监控类型验证输入
       if (isDns) {
         if (!site.url || !isValidDomain(site.url)) {
           return errorResponse('无效的域名', 400);
+        }
+      } else if (isTcp) {
+        if (!site.tcpHost || !isValidHost(site.tcpHost)) {
+          return errorResponse('无效的主机名', 400);
+        }
+        if (!site.tcpPort || isNaN(parseInt(site.tcpPort)) || parseInt(site.tcpPort) < 1 || parseInt(site.tcpPort) > 65535) {
+          return errorResponse('无效的端口号（必须为 1-65535）', 400);
         }
       } else {
         if (!site.url || !isValidUrl(site.url)) {
@@ -416,7 +438,7 @@ export async function handleAPI(request, env, ctx) {
       const newSite = {
         id: generateId(),
         name: site.name || '未命名站点',
-        url: site.url,
+        url: isTcp ? '' : site.url,
         status: 'unknown',
         responseTime: 0,
         lastCheck: 0,
@@ -432,6 +454,9 @@ export async function handleAPI(request, env, ctx) {
         // DNS 相关
         dnsRecordType: site.dnsRecordType || 'A',
         dnsExpectedValue: site.dnsExpectedValue || '',
+        // TCP 相关
+        tcpHost: site.tcpHost || '',
+        tcpPort: site.tcpPort ? parseInt(site.tcpPort, 10) : 0,
         // 其他
         showUrl: site.showUrl || false,
         sortOrder: site.sortOrder || state.sites.length,
@@ -468,15 +493,17 @@ export async function handleAPI(request, env, ctx) {
       // 添加新检测类型时，只需在此列表中添加相关字段即可
       const criticalFields = [
         'url',                      // 监控目标地址
-        'monitorType',              // 监控类型 (http/dns/...)
+        'monitorType',              // 监控类型 (http/dns/tcp/...)
         'method',                   // HTTP 请求方法
         'expectedCodes',            // HTTP 期望状态码
         'responseKeyword',          // HTTP 期望关键词
         'responseForbiddenKeyword', // HTTP 禁止关键词
         'dnsRecordType',            // DNS 记录类型
         'dnsExpectedValue',         // DNS 期望值
+        'tcpHost',                  // TCP 主机名
+        'tcpPort',                  // TCP 目标端口
         // 未来添加新检测类型的字段，只需在这里添加即可
-        // 例如: 'tcpPort', 'icmpTimeout', 'sslExpectedIssuer' 等
+        // 例如: 'icmpTimeout', 'sslExpectedIssuer' 等
       ];
       
       // 检查是否有关键字段发生变化
@@ -491,8 +518,19 @@ export async function handleAPI(request, env, ctx) {
       
       const needReset = changedFields.length > 0;
       
-      // 如果提供了新 URL，验证格式
-      if (updates.url) {
+      // 如果提供了新 URL/主机，验证格式
+      if (newMonitorType === 'tcp') {
+        if (updates.tcpHost && !isValidHost(updates.tcpHost)) {
+          return errorResponse('无效的主机名', 400);
+        }
+        if (updates.tcpPort !== undefined) {
+          const port = parseInt(updates.tcpPort, 10);
+          if (isNaN(port) || port < 1 || port > 65535) {
+            return errorResponse('无效的端口号（必须为 1-65535）', 400);
+          }
+          updates.tcpPort = port;
+        }
+      } else if (updates.url) {
         if (newMonitorType === 'dns') {
           if (!isValidDomain(updates.url)) {
             return errorResponse('无效的域名', 400);
