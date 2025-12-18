@@ -60,7 +60,6 @@
 | MQTT/Kafka   | connect()                         | 只要在代码里集成对应的 JS 版客户端协议库。                    | 计划 |
 | gRPC         | 原生 fetch (HTTP/2)               | Worker 原生支持 H2，可做 gRPC 探测。                          | 计划 |
 | Push/手动    | Worker URL 路由                   | 直接给监控 Worker 挂个 Endpoint。                            | 计划 |
-| SSH深度登录检测 | cloudflare:sockets + SSH协议库   | 1. connect() 建立 TCP 连接 2. 密钥交换和身份验证 3. 执行 whoami/uptime 等命令 | 计划 |
 
 其他功能：
 
@@ -76,6 +75,8 @@
 - [ ] **加入更多自定义条件判定** - 比如通过正则表达式匹配响应内容
 - [ ] **加入自定义域名解析DOH** - 支持自定义 DNS-over-HTTPS 解析服务
 
+再未来：
+- [ ] **加入主机深度检测板块** - 使用SSH协议对主机运行简单命令进行深度探测
 
 ---
 
