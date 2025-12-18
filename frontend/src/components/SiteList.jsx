@@ -1,7 +1,102 @@
-import { useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, ChevronUp } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import { motion, AnimatePresence, Reorder } from 'framer-motion'; // 引入 Reorder
+import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react'; // 引入 GripVertical，移除 ChevronUp/Down
 import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
+
+// 提取一个内部组件来处理单个分组的拖拽逻辑
+const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete }) => {
+  const [items, setItems] = useState(sites);
+
+  // 当外部 sites 数据更新（如状态改变）时，同步更新内部状态
+  useEffect(() => {
+    setItems(sites);
+  }, [sites]);
+
+  const handleReorder = (newOrder) => {
+    setItems(newOrder);
+  };
+
+  const handleDragEnd = async () => {
+    const siteIds = items.map(site => site.id);
+    if (onReorderSites) {
+      await onReorderSites(siteIds);
+    }
+  };
+
+  return (
+    <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="divide-y divide-slate-100 dark:divide-slate-800">
+      {items.map((site) => (
+        <Reorder.Item
+          key={site.id}
+          value={site}
+          onDragEnd={handleDragEnd}
+          className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors bg-white dark:bg-transparent"
+        >
+          {/* 拖拽手柄 */}
+          <div className="flex flex-col gap-0.5 cursor-grab active:cursor-grabbing text-slate-300 hover:text-slate-500 dark:text-slate-600 dark:hover:text-slate-400">
+            <GripVertical className="w-4 h-4" />
+          </div>
+
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            site.status === 'online' ? 'bg-emerald-500' :
+            site.status === 'offline' ? 'bg-red-500' :
+            site.status === 'slow' ? 'bg-amber-500' : 'bg-slate-400'
+          }`} />
+
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-slate-900 dark:text-slate-100 truncate">
+              {site.name}
+            </div>
+            <a
+              href={site.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1 truncate"
+              // 防止点击链接时触发拖拽，虽然 GripVertical 已经隔离了，但这是好习惯
+              onPointerDown={(e) => e.stopPropagation()} 
+            >
+              {site.url.length > 50 ? site.url.substring(0, 50) + '...' : site.url}
+              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+            </a>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-4 text-sm">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(site.status)}`}>
+              {getStatusText(site.status)}
+            </span>
+            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 w-20">
+              <TrendingUp className="w-3 h-3" />
+              {formatResponseTime(site.responseTime)}
+            </div>
+            <div className="text-slate-500 dark:text-slate-400 w-20">
+              {site.stats?.uptime !== undefined ? `${site.stats.uptime}%` : '-'}
+            </div>
+            <div className="text-slate-400 dark:text-slate-500 w-24 text-xs">
+              {site.lastCheck ? formatTimeAgo(site.lastCheck) : '未检查'}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onEdit(site)}
+              className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+              title="编辑"
+            >
+              <Edit className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onDelete(site.id)}
+              className="p-1.5 rounded-lg bg-danger-100 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 hover:bg-danger-200 dark:hover:bg-danger-900/50 transition-colors"
+              title="删除"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </Reorder.Item>
+      ))}
+    </Reorder.Group>
+  );
+};
 
 export default function SiteList({ sites, groups = [], onEdit, onDelete, onReorder }) {
   const [expandedGroups, setExpandedGroups] = useState(() => {
@@ -45,22 +140,6 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
 
   const toggleGroup = (groupId) => {
     setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
-  };
-
-  const handleMoveSite = async (groupId, siteIndex, direction) => {
-    const sitesInGroup = groupedSites[groupId];
-    if (!sitesInGroup || sitesInGroup.length < 2) return;
-    
-    const newIndex = siteIndex + direction;
-    if (newIndex < 0 || newIndex >= sitesInGroup.length) return;
-
-    const newOrder = [...sitesInGroup];
-    [newOrder[siteIndex], newOrder[newIndex]] = [newOrder[newIndex], newOrder[siteIndex]];
-    
-    const siteIds = newOrder.map(s => s.id);
-    if (onReorder) {
-      await onReorder(siteIds);
-    }
   };
 
   if (sites.length === 0) {
@@ -112,87 +191,14 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                   transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {sitesInGroup.map((site, siteIndex) => (
-                      <div
-                        key={site.id}
-                        className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors"
-                      >
-                        <div className="flex flex-col gap-0.5">
-                          <button
-                            onClick={() => handleMoveSite(group.id, siteIndex, -1)}
-                            disabled={siteIndex === 0}
-                            className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="上移"
-                          >
-                            <ChevronUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => handleMoveSite(group.id, siteIndex, 1)}
-                            disabled={siteIndex === sitesInGroup.length - 1}
-                            className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="下移"
-                          >
-                            <ChevronDown className="w-3 h-3" />
-                          </button>
-                        </div>
-
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          site.status === 'online' ? 'bg-emerald-500' :
-                          site.status === 'offline' ? 'bg-red-500' :
-                          site.status === 'slow' ? 'bg-amber-500' : 'bg-slate-400'
-                        }`} />
-
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-slate-900 dark:text-slate-100 truncate">
-                            {site.name}
-                          </div>
-                          <a
-                            href={site.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1 truncate"
-                          >
-                            {site.url.length > 50 ? site.url.substring(0, 50) + '...' : site.url}
-                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                          </a>
-                        </div>
-
-                        <div className="hidden sm:flex items-center gap-4 text-sm">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusBgColor(site.status)}`}>
-                            {getStatusText(site.status)}
-                          </span>
-                          <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 w-20">
-                            <TrendingUp className="w-3 h-3" />
-                            {formatResponseTime(site.responseTime)}
-                          </div>
-                          <div className="text-slate-500 dark:text-slate-400 w-20">
-                            {site.stats?.uptime !== undefined ? `${site.stats.uptime}%` : '-'}
-                          </div>
-                          <div className="text-slate-400 dark:text-slate-500 w-24 text-xs">
-                            {site.lastCheck ? formatTimeAgo(site.lastCheck) : '未检查'}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => onEdit(site)}
-                            className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
-                            title="编辑"
-                          >
-                            <Edit className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => onDelete(site.id)}
-                            className="p-1.5 rounded-lg bg-danger-100 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 hover:bg-danger-200 dark:hover:bg-danger-900/50 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {/* 使用提取的 SortableSiteGroup 组件 */}
+                  <SortableSiteGroup 
+                    sites={sitesInGroup}
+                    groupId={group.id}
+                    onReorderSites={onReorder} // 直接透传 onReorder
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>

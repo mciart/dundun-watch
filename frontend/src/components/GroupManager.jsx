@@ -1,34 +1,33 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Plus, Edit2, Trash2, X, AlertCircle, ChevronUp, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { AnimatePresence, motion, Reorder } from 'framer-motion'; // 引入 Reorder
+import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, GripVertical } from 'lucide-react'; // 引入 GripVertical
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
 
 const MODAL_INITIAL = { name: '', icon: '', iconColor: '#3B82F6' };
 
 export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
-  const [modalMode, setModalMode] = useState(null); 
+  const [modalMode, setModalMode] = useState(null);
   const [currentGroupId, setCurrentGroupId] = useState(null);
   const [formData, setFormData] = useState(MODAL_INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { dialog, closeDialog, showAlert, showConfirm, showError } = useDialog();
 
-  const sortedGroups = useMemo(() => {
-    return [...groups].sort((a, b) => {
+  // 1. 初始化本地状态用于拖拽
+  const [localGroups, setLocalGroups] = useState(groups);
+
+  // 2. 当 props.groups 变化时，同步更新本地状态，并进行排序
+  useEffect(() => {
+    const sorted = [...groups].sort((a, b) => {
       const orderA = typeof a.order === 'number' ? a.order : 0;
       const orderB = typeof b.order === 'number' ? b.order : 0;
       if (orderA !== orderB) return orderA - orderB;
       return (a.createdAt || 0) - (b.createdAt || 0);
     });
+    setLocalGroups(sorted);
   }, [groups]);
-
-  const nextOrderValue = useMemo(() => {
-    if (!sortedGroups.length) return 0;
-    const maxOrder = Math.max(...sortedGroups.map(g => (typeof g.order === 'number' ? g.order : 0)));
-    return maxOrder + 1;
-  }, [sortedGroups]);
 
   const openAddModal = () => {
     setModalMode('add');
@@ -56,41 +55,27 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
     setError('');
   };
 
-  const handleMoveUp = async (group, index) => {
-    if (index === 0) return; 
-    
-    const prevGroup = sortedGroups[index - 1];
-    
-    try {
-      const tempOrder = -999;
-      
-      await Promise.all([
-        onEdit(group.id, { name: group.name, order: tempOrder }, false),
-        onEdit(prevGroup.id, { name: prevGroup.name, order: index }, false)
-      ]);
-      
-      await onEdit(group.id, { name: group.name, order: index - 1 }, true);
-    } catch (error) {
-      showError('移动失败: ' + error.message);
-    }
+  // 3. 处理拖拽排序更新
+  const handleReorder = (newOrder) => {
+    setLocalGroups(newOrder);
   };
 
-  const handleMoveDown = async (group, index) => {
-    if (index === sortedGroups.length - 1) return; 
-    
-    const nextGroup = sortedGroups[index + 1];
-    
+  // 4. 拖拽结束后保存顺序
+  // 注意：为了减少请求，实际项目中最好有批量更新接口。这里循环调用 onEdit。
+  const handleDragEnd = async () => {
     try {
-      const tempOrder = -999;
-      
-      await Promise.all([
-        onEdit(group.id, { name: group.name, order: tempOrder }, false),
-        onEdit(nextGroup.id, { name: nextGroup.name, order: index }, false)
-      ]);
-      
-      await onEdit(group.id, { name: group.name, order: index + 1 }, true);
+      // 创建更新队列
+      const updates = localGroups.map((group, index) => {
+        if (group.order !== index) {
+            // 只更新顺序变动的项
+            return onEdit(group.id, { ...group, order: index }, true); // 假设第三个参数是 silent（不显示通知）
+        }
+        return Promise.resolve();
+      });
+      await Promise.all(updates);
     } catch (error) {
-      showError('移动失败: ' + error.message);
+      console.error("排序保存失败", error);
+      showError('排序保存失败: ' + error.message);
     }
   };
 
@@ -132,6 +117,9 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
       };
 
       if (modalMode === 'add') {
+        // 新增时，自动设置 order 为当前最大值 + 1
+        const maxOrder = Math.max(...localGroups.map(g => g.order || 0), -1);
+        payload.order = maxOrder + 1;
         await onAdd(payload);
       } else if (modalMode === 'edit' && currentGroupId) {
         await onEdit(currentGroupId, payload);
@@ -158,74 +146,70 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
       </div>
 
       <div className="space-y-2">
-        {sortedGroups.map((group, index) => (
-          <div
-            key={group.id}
-            className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col">
-                <button
-                  onClick={() => handleMoveUp(group, index)}
-                  disabled={index === 0}
-                  className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="上移"
-                >
-                  <ChevronUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => handleMoveDown(group, index)}
-                  disabled={index === sortedGroups.length - 1}
-                  className="p-0.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                  title="下移"
-                >
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                {group.icon && (
-                  <i 
-                    className={`${group.icon} w-5 h-5 flex items-center justify-center flex-shrink-0`}
-                    style={{ color: group.iconColor || 'currentColor' }}
-                  />
-                )}
-                <span className="text-sm font-medium text-slate-900 dark:text-white">
-                  {group.name}
-                </span>
-                {group.id === 'default' && (
-                  <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
-                    (默认)
+        {/* 5. 使用 Reorder.Group 替换普通 map */}
+        <Reorder.Group axis="y" values={localGroups} onReorder={handleReorder} className="space-y-2">
+          {localGroups.map((group) => (
+            <Reorder.Item
+              key={group.id}
+              value={group}
+              onDragEnd={handleDragEnd} // 拖拽结束时触发保存
+              className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors select-none"
+            >
+              <div className="flex items-center gap-3">
+                {/* 拖拽手柄 */}
+                <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                  <GripVertical className="w-4 h-4" />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {group.icon && (
+                    <i 
+                      className={`${group.icon} w-5 h-5 flex items-center justify-center flex-shrink-0`}
+                      style={{ color: group.iconColor || 'currentColor' }}
+                    />
+                  )}
+                  <span className="text-sm font-medium text-slate-900 dark:text-white">
+                    {group.name}
                   </span>
+                  {group.id === 'default' && (
+                    <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                      (默认)
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-1">
+                <button
+                  onClick={() => openEditModal(group)}
+                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  title="编辑"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+                {group.id !== 'default' && (
+                  <button
+                    onClick={() => handleDelete(group)}
+                    className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    title="删除"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 )}
               </div>
-            </div>
-            <div className="flex gap-1">
-              <button
-                onClick={() => openEditModal(group)}
-                className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                title="编辑"
-              >
-                <Edit2 className="w-3.5 h-3.5" />
-              </button>
-              {group.id !== 'default' && (
-                <button
-                  onClick={() => handleDelete(group)}
-                  className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                  title="删除"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-        {sortedGroups.length === 0 && (
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
+        
+        {localGroups.length === 0 && (
           <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 text-center text-sm text-slate-500 dark:text-slate-400">
             还没有创建任何分类，点击右上角按钮添加。
           </div>
         )}
       </div>
+
       {modalMode && createPortal(
+        /* ... 模态框代码保持不变 ... */
         <AnimatePresence>
           <motion.div
             key="group-modal"
@@ -376,7 +360,6 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
         document.body
       )}
       
-      {/* 统一弹窗 */}
       <Dialog
         isOpen={dialog.isOpen}
         onClose={closeDialog}
