@@ -64,13 +64,14 @@
 
 ---
 
-## 🏗️ 模块化重构与迁移指南
+<details>
+<summary>**🏗️ 模块化重构与迁移指南（点击展开）**</summary>
 
 为提升长期可维护性，项目正在逐步重构为模块化架构（监控器、通知器、存储层、API 控制器等）。目前已完成的改动：
 
-- 抽取监控协议实现至 src/monitors/（支持 HTTP/DNS/TCP，便于扩展 MySQL/Redis/SSH 等）
-- 抽取通知渠道至 src/notifications/，分发器模式初步成型，便于后续集成短信/Webhook/Telegram
-- 增加 src/core/storage.js，初步实现存储层抽象
+- 抽取监控协议实现至 `src/monitors/`（支持 HTTP/DNS/TCP，便于扩展 MySQL/Redis/SSH 等）
+- 抽取通知渠道至 `src/notifications/`，分发器模式初步成型，便于后续集成短信/Webhook/Telegram
+- 增加 `src/core/storage.js`，初步实现存储层抽象
 - API 路由与控制器分离，部分接口已迁移，提升可维护性
 - 支持 mock 调试模式，便于本地开发与单元测试
 
@@ -84,6 +85,7 @@
 
 > 💡 本地调试提示：在站点配置中添加 `mock` 字段（例如 `{ mock: { forceStatus: 'offline', message: '模拟故障' } }`）以便测试告警与防抖流程。
 
+</details>
 
 ## 📋 计划更新
 
