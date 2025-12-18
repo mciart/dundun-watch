@@ -210,7 +210,7 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
 
       {modalMode && createPortal(
         /* ... 模态框代码保持不变 ... */
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           <motion.div
             key="group-modal"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"

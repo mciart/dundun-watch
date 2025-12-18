@@ -65,7 +65,7 @@ export default function Dialog({
   const isConfirm = type === 'confirm';
 
   return createPortal(
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       <motion.div
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
         initial={{ opacity: 0 }}
