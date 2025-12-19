@@ -67,8 +67,11 @@
 <details>
 <summary><b>🏗️ 模块化重构与迁移指南（点击展开）</b></summary>
 
+
 为提升长期可维护性，项目正在逐步重构为模块化架构（监控器、通知器、存储层、API 控制器等）。目前已完成的改动：
 
+- 通用工具函数（如 generateId、isValidUrl、isValidDomain、isValidHost）已统一迁移到 `src/utils.js`，所有相关模块均通过 import 使用，消除重复定义。
+- 监控历史统计逻辑（calculateStats）已迁移到 `src/core/stats.js`，避免 monitor.js 与 controller 之间的循环依赖，保持各层职责清晰。
 - 抽取监控协议实现至 `src/monitors/`（支持 HTTP/DNS/TCP，便于扩展 MySQL/Redis/SSH 等）
 - 抽取通知渠道至 `src/notifications/`，分发器模式初步成型，便于后续集成短信/Webhook/Telegram
 - 增加 `src/core/storage.js`，初步实现存储层抽象，未来如需能部署D1
