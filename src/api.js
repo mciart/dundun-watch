@@ -1,5 +1,5 @@
 // API 处理模块 - 从 Pages Functions 迁移
-import { jsonResponse, errorResponse, corsHeaders } from './utils.js';
+import { errorResponse, corsHeaders } from './utils.js';
 import { handleLogin, changePassword as changePasswordCtrl, requireAuth } from './api/controllers/auth.js';
 import * as sitesController from './api/controllers/sites.js';
 import * as configController from './api/controllers/config.js';

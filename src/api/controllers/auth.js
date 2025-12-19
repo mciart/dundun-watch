@@ -2,6 +2,9 @@
 import { jsonResponse, errorResponse } from '../../utils.js';
 import { getAdminPassword, putAdminPassword } from '../../core/storage.js';
 
+// 默认密码为 'admin' 的 SHA-256 哈希值
+const DEFAULT_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+
 async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -42,16 +45,7 @@ export async function handleLogin(request, env) {
     }
 
     const kvAdmin = await getAdminPassword(env);
-    // 默认密码为 'admin' 的 SHA-256 哈希值
-    const defaultPasswordHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
-    
-    let adminPassword = kvAdmin || defaultPasswordHash;
-
-    // 兼容旧版本的默认密码哈希 (ac0e7d037817094e9e0b4441f9bae3209d67b02fa484917065f71b16109a1a78)
-    // 如果 KV 中存储的是旧的默认哈希值，我们也将其视为默认情况
-    if (adminPassword === 'ac0e7d037817094e9e0b4441f9bae3209d67b02fa484917065f71b16109a1a78') {
-      adminPassword = defaultPasswordHash;
-    }
+    const adminPassword = kvAdmin || DEFAULT_PASSWORD_HASH;
 
     if (!await verifyPassword(password, adminPassword)) {
       return errorResponse('密码错误', 401);
@@ -75,9 +69,7 @@ export async function changePassword(request, env) {
     }
 
     const kvAdmin = await getAdminPassword(env);
-    // 默认密码为 'admin' 的 SHA-256 哈希值
-    const defaultPasswordHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
-    const adminPassword = kvAdmin || defaultPasswordHash;
+    const adminPassword = kvAdmin || DEFAULT_PASSWORD_HASH;
 
     if (!await verifyPassword(oldPassword, adminPassword)) {
       return errorResponse('旧密码错误', 401);
