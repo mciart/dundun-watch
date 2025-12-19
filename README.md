@@ -65,25 +65,27 @@
 ---
 
 <details>
-<summary><b>🏗️ 模块化重构与迁移指南（点击展开）</b></summary>
+<summary><b>🏗️ 模块化架构重构说明（点击展开）</b></summary>
 
+为提升系统的可扩展性与可维护性，本项目已完成深度模块化重构。新的架构将核心逻辑、业务实现与接口层进行了清晰的解耦：
 
-为提升长期可维护性，项目正在逐步重构为模块化架构（监控器、通知器、存储层、API 控制器等）。目前已完成的改动：
+#### 核心层 (Core & Utils)
+- **统一存储抽象 (`src/core/storage.js`)**：集中管理 KV 操作，屏蔽底层细节，为未来迁移至 D1 或其他数据库提供标准接口。
+- **状态管理中心 (`src/core/state.js`)**：标准化的状态读写流程，确保数据一致性。
+- **通用工具库 (`src/utils.js`)**：收敛所有基础工具函数，消除重复定义。
+- **统计引擎 (`src/core/stats.js`)**：独立的监控数据统计逻辑，解耦业务调度与数据分析。
 
-- 通用工具函数（如 generateId、isValidUrl、isValidDomain、isValidHost）已统一迁移到 `src/utils.js`，所有相关模块均通过 import 使用，消除重复定义。
-- 监控历史统计逻辑（calculateStats）已迁移到 `src/core/stats.js`，避免 monitor.js 与 controller 之间的循环依赖，保持各层职责清晰。
-- 抽取监控协议实现至 `src/monitors/`（支持 HTTP/DNS/TCP，便于扩展 MySQL/Redis/SSH 等）
-- 抽取通知渠道至 `src/notifications/`，分发器模式初步成型，便于后续集成短信/Webhook/Telegram
-- 增加 `src/core/storage.js`，初步实现存储层抽象，未来如需能部署D1
-- API 路由与控制器分离，部分接口已迁移，提升可维护性
-- 支持 mock 调试模式，便于本地开发与单元测试
+#### 业务逻辑层 (Services)
+- **多协议监控 (`src/monitors/`)**：采用工厂模式，原生支持 **HTTP/HTTPS**、**DNS** (1.1.1.1 DoH) 及 **TCP** (Cloudflare Sockets)。
+- **分发式通知 (`src/notifications/`)**：标准化的通知接口，便于集成 Telegram、Webhook、邮件等多种渠道。
 
-本次重构的好处：
-- 新增一种监控（如 MySQL、SSH）只需新增 `src/monitors/mysql.js` 并在工厂中注册；无需修改主调度逻辑。
-- 新增通知渠道只需在 `src/notifications/` 下实现 `send()` 并在分发器配置里注册。
-- 存储分层后便于将历史与配置分离，避免单一大 JSON 导致的 KV 性能问题。
+#### 接口与分发层 (API & Routing)
+- **控制器模式 (`src/api/controllers/`)**：将 `api.js` 拆分为 `auth` (认证)、`sites` (站点)、`config` (配置)、`dashboard` (仪表盘) 等独立模块。
+- **清晰的路由映射**：`src/api.js` 仅负责请求分发，业务逻辑完全下沉至控制器。
 
-> 💡 本地调试提示：在站点配置中添加 `mock` 字段（例如 `{ mock: { forceStatus: 'offline', message: '模拟故障' } }`）以便测试告警与防抖流程。
+#### 开发者友好
+- **内置 Mock 模式**：支持本地调试时模拟故障（在站点配置中添加 `mock` 字段），方便测试告警与防抖流程。
+- **本地模拟环境**：优化本地开发体验，KV 数据在内存中模拟运行。
 
 </details>
 
