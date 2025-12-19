@@ -656,23 +656,3 @@ async function batchCheckSSLCertificates(sites) {
     return {};
   }
 }
-
-
-
-export async function getHistory(env, siteId, hours = 24) {
-  const state = await getState(env);
-  
-  if (!state || !state.history || !state.history[siteId]) {
-    return [];
-  }
-
-  const history = state.history[siteId];
-  const cutoffTime = Date.now() - (hours * 60 * 60 * 1000);
-  
-
-  return history
-    .filter(record => record.timestamp >= cutoffTime)
-    .sort((a, b) => b.timestamp - a.timestamp);
-}
-
-// ...calculateStats 已迁移至 core/stats.js...
