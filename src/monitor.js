@@ -1,9 +1,8 @@
 
 
-import { formatTime, floorToMinute, formatDuration } from './utils';
-import { calculateStats } from './core/stats.js';
+import { floorToMinute } from './utils.js';
 import { getMonitorForSite } from './monitors/index.js';
-import { initializeState, shouldResetStats, resetDailyStats, getState, updateState } from './core/state.js';
+import { shouldResetStats, resetDailyStats, getState, updateState } from './core/state.js';
 export { sendNotifications } from './notifications/index.js';
 
 export async function handleMonitor(env, ctx, forceWrite = false) {
