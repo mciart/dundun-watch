@@ -3,7 +3,7 @@
 import { floorToMinute } from './utils.js';
 import { getMonitorForSite } from './monitors/index.js';
 import { shouldResetStats, resetDailyStats, getState, updateState } from './core/state.js';
-export { sendNotifications } from './notifications/index.js';
+import { sendNotifications } from './notifications/index.js';
 
 export async function handleMonitor(env, ctx, forceWrite = false) {
   const startTime = Date.now();
@@ -379,27 +379,6 @@ function updateHistory(state, siteId, result) {
     responseTime: result.responseTime,
     message: result.message
   });
-}
-
-export function getLatestIncidents(state, limit) {
-  if (!state || !Array.isArray(state.incidentIndex)) return [];
-  const list = [...state.incidentIndex];
-  const sliceLimit = (typeof limit === 'number' && Number.isFinite(limit) && limit > 0)
-    ? limit
-    : list.length;
-  return list.slice(0, sliceLimit).map(item => ({
-    id: item.id,
-    siteId: item.siteId,
-    siteName: item.siteName,
-    type: item.type,
-    title: item.title,
-    message: item.message,
-    createdAt: item.createdAt,
-    status: item.status,
-    previousStatus: item.previousStatus,
-    responseTime: item.responseTime,
-    daysLeft: item.daysLeft
-  }));
 }
 
 function cleanupOldData(state, siteId) {

@@ -1,7 +1,8 @@
 // Monitor controllers: trigger check, test notifications
 import { jsonResponse, errorResponse } from '../../utils.js';
 import { getState } from '../../core/state.js';
-import { handleMonitor, sendNotifications } from '../../monitor.js';
+import { handleMonitor } from '../../monitor.js';
+import { sendNotifications } from '../../notifications/index.js';
 
 export async function triggerCheck(request, env, ctx) {
   try {
