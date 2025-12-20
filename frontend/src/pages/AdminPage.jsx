@@ -804,7 +804,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* 网站检测间隔 */}
+            {/* KV 数据写入间隔 */}
             <div className="glass-card p-6">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/20">
@@ -812,10 +812,10 @@ export default function AdminPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                    网站检测间隔
+                    KV 数据写入间隔
                   </h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    无状态变化时，多久强制写入一次数据到 KV（影响 KV 写入次数）
+                    网站检测每分钟自动执行，此设置控制无状态变化时多久写入一次 KV
                   </p>
                 </div>
               </div>
@@ -842,7 +842,9 @@ export default function AdminPage() {
                   className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                   placeholder="1 - 60"
                 />
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">范围 1-60，数值越小刷新越频繁。</p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  范围 1-60 分钟。检测结果优先存内存，KV 写入仅用于持久化，设置较大值可节省 KV 配额。
+                </p>
               </div>
             </div>
 

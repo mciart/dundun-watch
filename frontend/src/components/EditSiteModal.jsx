@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, AlertCircle } from 'lucide-react';
+import { X, Save, AlertCircle, Server, Copy, RefreshCw } from 'lucide-react';
+import { api } from '../utils/api';
 
 const DNS_RECORD_TYPES = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT'];
 
@@ -33,10 +34,17 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     dnsExpectedValue: site.dnsExpectedValue || '',
     // TCP 相关
     tcpHost: site.tcpHost || '',
-    tcpPort: site.tcpPort || ''
+    tcpPort: site.tcpPort || '',
+    // Push 相关
+    pushTimeoutMinutes: site.pushTimeoutMinutes || 3,
+    showInHostPanel: site.showInHostPanel !== false  // 默认为 true
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [pushConfig, setPushConfig] = useState(null);
+  const [loadingPushConfig, setLoadingPushConfig] = useState(false);
+  const [selectedScript, setSelectedScript] = useState('bash');
+  const [copySuccess, setCopySuccess] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,6 +58,50 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
       setLoading(false);
     }
   };
+
+  // 加载 Push 配置
+  const loadPushConfig = async () => {
+    if (site.monitorType !== 'push') return;
+    setLoadingPushConfig(true);
+    try {
+      const data = await api.getPushConfig(site.id);
+      setPushConfig(data.config);
+    } catch (err) {
+      console.error('加载 Push 配置失败:', err);
+    } finally {
+      setLoadingPushConfig(false);
+    }
+  };
+
+  // 重新生成 Token
+  const handleRegenerateToken = async () => {
+    if (!confirm('确定要重新生成 Token 吗？旧 Token 将立即失效，需要更新主机端脚本。')) return;
+    try {
+      const data = await api.regeneratePushToken(site.id);
+      setPushConfig(prev => prev ? { ...prev, token: data.token, endpoint: prev.endpoint.replace(/\/[^/]+$/, `/${data.token}`) } : null);
+      alert('Token 已重新生成');
+    } catch (err) {
+      alert('生成失败: ' + err.message);
+    }
+  };
+
+  // 复制到剪贴板
+  const copyToClipboard = async (text, label) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopySuccess(label);
+      setTimeout(() => setCopySuccess(''), 2000);
+    } catch (err) {
+      alert('复制失败');
+    }
+  };
+
+  // 首次加载 Push 配置
+  useEffect(() => {
+    if (site.monitorType === 'push') {
+      loadPushConfig();
+    }
+  }, []);
 
   return (
     <AnimatePresence initial={false}>
@@ -91,8 +143,13 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : '站点 URL *'}
+                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : formData.monitorType === 'push' ? '主机名称 *' : '站点 URL *'}
               </label>
+              {formData.monitorType === 'push' ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Push 模式下，主机会主动向监控系统发送心跳，无需填写 URL
+                </p>
+              ) : (
               <input
                 type="text"
                 value={formData.monitorType === 'tcp' ? formData.tcpHost : formData.url}
@@ -103,6 +160,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                 placeholder={formData.monitorType === 'dns' ? 'example.com' : formData.monitorType === 'tcp' ? 'example.com 或 192.168.1.1' : 'https://example.com'}
                 required
               />
+              )}
             </div>
 
             <div>
@@ -142,6 +200,17 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     className="w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">TCP 端口</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="monitorType"
+                    value="push"
+                    checked={formData.monitorType === 'push'}
+                    onChange={(e) => setFormData({ ...formData, monitorType: e.target.value })}
+                    className="w-4 h-4 text-primary-600"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Push 心跳</span>
                 </label>
               </div>
             </div>
@@ -231,6 +300,163 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     常见端口：SSH(22)、MySQL(3306)、Redis(6379)、PostgreSQL(5432)
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Push 心跳监控配置 */}
+            {formData.monitorType === 'push' && (
+              <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300 text-sm font-medium">
+                  <Server className="w-4 h-4" />
+                  Push 心跳监控配置
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    超时时间（分钟）
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={formData.pushTimeoutMinutes}
+                    onChange={(e) => setFormData({ ...formData, pushTimeoutMinutes: parseInt(e.target.value) || 3 })}
+                    className="input-field"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    超过此时间未收到心跳，将判定主机离线
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-orange-200 dark:border-orange-800">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      显示在主机监控面板
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      关闭后仅在站点列表显示，不在主页主机监控区域展示
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, showInHostPanel: !formData.showInHostPanel })}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      formData.showInHostPanel 
+                        ? 'bg-orange-500' 
+                        : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      formData.showInHostPanel ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
+                </div>
+
+                {/* Push 配置和脚本 - 仅在原本就是 push 类型时显示 */}
+                {site.monitorType === 'push' && (
+                  <div className="space-y-4 pt-2 border-t border-orange-200 dark:border-orange-800">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        上报地址
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={pushConfig?.endpoint || '加载中...'}
+                          readOnly
+                          className="input-field flex-1 bg-slate-50 dark:bg-slate-800 font-mono text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(pushConfig?.endpoint, 'endpoint')}
+                          className="btn-secondary px-3"
+                          disabled={!pushConfig}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {copySuccess === 'endpoint' && (
+                        <p className="text-xs text-green-600 mt-1">已复制！</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Token
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={pushConfig?.token || site.pushToken || '加载中...'}
+                          readOnly
+                          className="input-field flex-1 bg-slate-50 dark:bg-slate-800 font-mono text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(pushConfig?.token || site.pushToken, 'token')}
+                          className="btn-secondary px-3"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRegenerateToken}
+                          className="btn-secondary px-3"
+                          title="重新生成 Token"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {copySuccess === 'token' && (
+                        <p className="text-xs text-green-600 mt-1">已复制！</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        部署脚本
+                      </label>
+                      <div className="flex gap-2 mb-2">
+                        {['bash', 'python', 'powershell', 'node', 'curl'].map(lang => (
+                          <button
+                            key={lang}
+                            type="button"
+                            onClick={() => {
+                              setSelectedScript(lang);
+                              if (!pushConfig) loadPushConfig();
+                            }}
+                            className={`px-3 py-1 text-xs rounded-lg transition-colors ${
+                              selectedScript === lang
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600'
+                            }`}
+                          >
+                            {lang === 'bash' ? 'Bash' : lang === 'python' ? 'Python' : lang === 'powershell' ? 'PowerShell' : lang === 'node' ? 'Node.js' : 'cURL'}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative">
+                        <pre className="bg-slate-900 text-slate-100 p-3 rounded-lg text-xs overflow-x-auto max-h-48 overflow-y-auto">
+                          {loadingPushConfig ? '加载中...' : (pushConfig?.scripts?.[selectedScript] || '请等待配置加载...')}
+                        </pre>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(pushConfig?.scripts?.[selectedScript], 'script')}
+                          className="absolute top-2 right-2 p-1.5 rounded bg-slate-700 hover:bg-slate-600 transition-colors"
+                          disabled={!pushConfig}
+                        >
+                          <Copy className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                      {copySuccess === 'script' && (
+                        <p className="text-xs text-green-600 mt-1">脚本已复制！</p>
+                      )}
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        将脚本保存到主机，然后添加到 crontab 定时执行（建议每分钟一次）
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

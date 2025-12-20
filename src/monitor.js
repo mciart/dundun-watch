@@ -1,15 +1,51 @@
 import { floorToMinute } from './utils.js';
 import { getMonitorForSite } from './monitors/index.js';
-import { shouldResetStats, resetDailyStats, getState, updateState } from './core/state.js';
+import { shouldResetStats, resetDailyStats, getState, updateState, flushState, updateSiteStatusCache, addHistoryRecord } from './core/state.js';
 import { sendNotifications } from './notifications/index.js';
+import { getPushHeartbeatCache, clearPushHeartbeatCache } from './api/controllers/push.js';
 
-export async function handleMonitor(env, ctx, forceWrite = false) {
+/**
+ * 执行监控检测
+ * @param {Object} env - 环境变量
+ * @param {Object} ctx - 上下文
+ * @param {boolean} forceWrite - 是否强制写入 KV（即使没到时间）
+ * @param {boolean} skipKV - 是否跳过 KV 写入（只更新内存）
+ */
+export async function handleMonitor(env, ctx, forceWrite = false, skipKV = false) {
   const startTime = Date.now();
   console.log(forceWrite ? '=== 开始监控检测（强制写入）===' : '=== 开始监控检测 ===');
 
   let state = await getState(env);
 
   const now = Date.now();
+
+  // 处理缓存的 Push 心跳数据
+  const pushCache = getPushHeartbeatCache();
+  if (pushCache.size > 0) {
+    console.log(`📡 处理 ${pushCache.size} 个 Push 心跳缓存...`);
+    for (const [siteId, heartbeatData] of pushCache.entries()) {
+      const site = state.sites.find(s => s.id === siteId);
+      if (site && site.monitorType === 'push') {
+        site.lastHeartbeat = heartbeatData.lastHeartbeat;
+        site.lastCheck = heartbeatData.lastHeartbeat;
+        site.status = heartbeatData.status;
+        site.pushData = heartbeatData.pushData;
+        site.responseTime = heartbeatData.responseTime;
+        
+        // 为 Push 站点写入历史记录（这样进度条才能显示）
+        updateHistory(state, siteId, {
+          timestamp: heartbeatData.lastHeartbeat,
+          status: heartbeatData.status,
+          statusCode: 200,
+          responseTime: heartbeatData.responseTime || 0,
+          message: 'OK'
+        });
+        
+        console.log(`  ✓ ${site.name}: 心跳已同步，历史已记录`);
+      }
+    }
+    clearPushHeartbeatCache();
+  }
 
   if (state.config.statusChangeDebounceCount !== undefined && state.config.statusChangeDebounceMinutes === undefined) {
     state.config.statusChangeDebounceMinutes = state.config.statusChangeDebounceCount;
@@ -117,6 +153,25 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
     site.responseTime = result.responseTime;
     site.lastCheck = now;
 
+    // 更新站点状态缓存，让 API 能实时读取
+    if (site.monitorType !== 'push') {
+      updateSiteStatusCache(site.id, {
+        status: site.status,
+        responseTime: site.responseTime,
+        lastCheck: site.lastCheck,
+        message: result.message || null
+      });
+      
+      // 同时添加历史记录缓存（用于实时显示进度条）
+      addHistoryRecord(site.id, {
+        timestamp: now,
+        status: site.status,
+        statusCode: result.statusCode,
+        responseTime: result.responseTime,
+        message: result.message
+      });
+    }
+
     if (!site.statusPending) {
 
       updateHistory(state, site.id, {
@@ -206,7 +261,7 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
     state.monitorNextDueAt = floorToMinute(baseline);
   }
   const shouldWriteByTime = now >= state.monitorNextDueAt;
-  const shouldWrite = forceWrite || statusChanged || shouldWriteByTime || pendingStateChanged;
+  const shouldWrite = !skipKV && (forceWrite || statusChanged || shouldWriteByTime || pendingStateChanged);
 
   if (shouldWrite) {
     state.stats.writes.total++;
@@ -234,10 +289,19 @@ export async function handleMonitor(env, ctx, forceWrite = false) {
 
     state.lastUpdate = now;
     state.monitorNextDueAt = floorToMinute(now + intervalMs);
+    // 更新内存缓存并立即写入 KV（Cron 周期结束时）
     await updateState(env, state);
+    await flushState(env, true);  // 强制写入
   } else {
-    const minutesRemain = Math.max(0, Math.ceil((state.monitorNextDueAt - now) / 60000));
-    console.log(`⏭️ 跳过写入，距下次 ${minutesRemain} 分钟 (间隔 ${state.config.checkInterval} 分钟)`);
+    // 即使不写入 KV，也更新内存缓存
+    await updateState(env, state);
+    
+    if (skipKV) {
+      console.log(`📦 仅更新内存缓存，跳过 KV 写入（手动刷新模式）`);
+    } else {
+      const minutesRemain = Math.max(0, Math.ceil((state.monitorNextDueAt - now) / 60000));
+      console.log(`⏭️ 跳过写入，距下次 ${minutesRemain} 分钟 (间隔 ${state.config.checkInterval} 分钟)`);
+    }
   }
 
   const elapsed = Date.now() - startTime;
@@ -279,6 +343,7 @@ export async function handleCertCheck(env, ctx) {
 
   state.lastUpdate = Date.now();
   await updateState(env, state);
+  await flushState(env, true);  // SSL 检测完成后强制写入
 
   const checkedCount = Object.keys(certResults).length;
   console.log(`SSL证书检测完成，检查了 ${checkedCount} 个HTTPS站点`);

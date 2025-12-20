@@ -6,9 +6,9 @@ import { sendNotifications } from '../../notifications/index.js';
 
 export async function triggerCheck(request, env, ctx) {
   try {
-    // 同步执行监控任务（等待完成后再返回）
-    await handleMonitor(env, ctx, true);
-    return jsonResponse({ success: true, message: '监控任务已完成' });
+    // 同步执行监控任务，只更新内存不写入 KV（skipKV = true）
+    await handleMonitor(env, ctx, false, true);
+    return jsonResponse({ success: true, message: '检测完成，数据已更新到内存' });
   } catch (error) {
     return errorResponse('触发监控失败: ' + error.message, 500);
   }
@@ -16,7 +16,8 @@ export async function triggerCheck(request, env, ctx) {
 
 export async function triggerCheckAsync(request, env, ctx) {
   try {
-    ctx.waitUntil(handleMonitor(env, ctx, true));
+    // 异步执行，只更新内存
+    ctx.waitUntil(handleMonitor(env, ctx, false, true));
     return jsonResponse({ success: true, message: '监控任务已触发' });
   } catch (error) {
     return errorResponse('触发监控失败: ' + error.message, 500);

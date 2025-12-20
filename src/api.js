@@ -5,6 +5,7 @@ import * as sitesController from './api/controllers/sites.js';
 import * as configController from './api/controllers/config.js';
 import * as dashboardController from './api/controllers/dashboard.js';
 import * as monitorController from './api/controllers/monitor.js';
+import * as pushController from './api/controllers/push.js';
 import { clearAllData } from './core/storage.js';
 
 // API 路由处理
@@ -22,6 +23,12 @@ export async function handleAPI(request, env, ctx) {
   // 登录接口
   if (path === '/api/login' && request.method === 'POST') {
     return handleLogin(request, env);
+  }
+
+  // Push 心跳上报接口（公开，通过 Token 验证）
+  if (path.startsWith('/api/push/') && (request.method === 'POST' || request.method === 'GET')) {
+    const token = path.split('/')[3];
+    return await pushController.handlePushReport(request, env, token);
   }
 
   // 获取后台路径（公开接口）
@@ -160,6 +167,19 @@ export async function handleAPI(request, env, ctx) {
   if (path.startsWith('/api/groups/') && request.method === 'DELETE') {
     const groupId = path.split('/')[3];
     return await configController.deleteGroup(request, env, groupId);
+  }
+
+  // Push 监控相关接口
+  // 重新生成 Push Token
+  if (path.match(/^\/api\/sites\/[^/]+\/regenerate-token$/) && request.method === 'POST') {
+    const siteId = path.split('/')[3];
+    return await pushController.regeneratePushToken(request, env, siteId);
+  }
+
+  // 获取 Push 配置和脚本
+  if (path.match(/^\/api\/sites\/[^/]+\/push-config$/) && request.method === 'GET') {
+    const siteId = path.split('/')[3];
+    return await pushController.getPushConfig(request, env, siteId);
   }
 
   return errorResponse('接口不存在', 404);

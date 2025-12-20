@@ -3,6 +3,109 @@
 import { getMonitorState, putMonitorState } from './storage.js';
 
 /**
+ * 内存缓存层
+ * 所有状态优先从内存读取，只在 Cron 或强制保存时才写入 KV
+ */
+let memoryCache = null;
+let isDirty = false;  // 标记是否有未保存的更改
+let lastKVRead = 0;   // 上次从 KV 读取的时间
+
+/**
+ * 站点状态缓存 - 存储最新的检测结果
+ * 与 Push 心跳缓存类似，确保 API 请求能读取到最新状态
+ */
+const siteStatusCache = new Map();
+
+/**
+ * 历史记录缓存 - 存储最新的历史记录（用于实时显示进度条）
+ */
+const historyCache = new Map();
+
+/**
+ * 更新站点状态缓存
+ */
+export function updateSiteStatusCache(siteId, statusData) {
+  siteStatusCache.set(siteId, {
+    ...statusData,
+    cachedAt: Date.now()
+  });
+}
+
+/**
+ * 获取站点状态缓存
+ */
+export function getSiteStatusCache() {
+  return siteStatusCache;
+}
+
+/**
+ * 清除站点状态缓存
+ */
+export function clearSiteStatusCache() {
+  siteStatusCache.clear();
+}
+
+/**
+ * 添加历史记录到缓存
+ */
+export function addHistoryRecord(siteId, record) {
+  if (!historyCache.has(siteId)) {
+    historyCache.set(siteId, []);
+  }
+  const records = historyCache.get(siteId);
+  records.push({
+    ...record,
+    cachedAt: Date.now()
+  });
+  // 限制缓存数量，避免内存溢出
+  if (records.length > 100) {
+    records.shift();
+  }
+}
+
+/**
+ * 获取历史记录缓存
+ */
+export function getHistoryCache() {
+  return historyCache;
+}
+
+/**
+ * 清除历史记录缓存
+ */
+export function clearHistoryCache() {
+  historyCache.clear();
+}
+
+/**
+ * 获取缓存是否有脏数据
+ */
+export function isCacheDirty() {
+  return isDirty;
+}
+
+/**
+ * 标记缓存为脏数据（需要保存）
+ */
+export function markCacheDirty() {
+  isDirty = true;
+}
+
+/**
+ * 清除脏标记（保存后调用）
+ */
+export function clearDirtyFlag() {
+  isDirty = false;
+}
+
+/**
+ * 获取内存缓存（供调试使用）
+ */
+export function getMemoryCache() {
+  return memoryCache;
+}
+
+/**
  * 获取北京日期字符串 (YYYY-MM-DD)
  * @returns {string}
  */
@@ -118,15 +221,24 @@ export function resetDailyStats(state) {
 }
 
 /**
- * 从 KV 获取状态，如果不存在则初始化
+ * 从 KV 获取状态，优先使用内存缓存
  * @param {Object} env 
+ * @param {boolean} forceRefresh - 是否强制从 KV 刷新
  * @returns {Promise<Object>}
  */
-export async function getState(env) {
+export async function getState(env, forceRefresh = false) {
   try {
+    // 如果内存缓存存在且不强制刷新，直接返回缓存
+    if (memoryCache && !forceRefresh) {
+      return memoryCache;
+    }
+    
     let data = await getMonitorState(env);
+    lastKVRead = Date.now();
+    
     if (!data) {
-      return initializeState();
+      memoryCache = initializeState();
+      return memoryCache;
     }
 
     const defaults = initializeState();
@@ -146,19 +258,67 @@ export async function getState(env) {
       if (!data.stats.sites) data.stats.sites = defaults.stats.sites;
     }
 
-    return data;
+    // 更新内存缓存
+    memoryCache = data;
+    return memoryCache;
   } catch (error) {
     console.error('获取状态失败:', error);
-    return initializeState();
+    if (!memoryCache) {
+      memoryCache = initializeState();
+    }
+    return memoryCache;
   }
 }
 
 /**
- * 将状态保存到 KV
+ * 更新内存缓存中的状态（不立即写入 KV）
  * @param {Object} env 
  * @param {Object} state 
  */
 export async function updateState(env, state) {
   state.lastUpdate = Date.now();
+  memoryCache = state;
+  isDirty = true;
+  // 不再立即写入 KV，等待 flushState 调用
+}
+
+/**
+ * 强制将内存缓存写入 KV（在 Cron 或关键操作时调用）
+ * @param {Object} env 
+ * @param {boolean} force - 是否强制写入（即使没有脏数据）
+ * @returns {Promise<boolean>} - 是否执行了写入
+ */
+export async function flushState(env, force = false) {
+  if (!memoryCache) {
+    return false;
+  }
+  
+  if (!isDirty && !force) {
+    console.log('📦 缓存无变更，跳过 KV 写入');
+    return false;
+  }
+  
+  try {
+    memoryCache.lastUpdate = Date.now();
+    await putMonitorState(env, memoryCache);
+    isDirty = false;
+    console.log('💾 状态已写入 KV');
+    return true;
+  } catch (error) {
+    console.error('写入 KV 失败:', error);
+    return false;
+  }
+}
+
+/**
+ * 立即保存状态到 KV（用于关键操作如添加/删除站点）
+ * @param {Object} env 
+ * @param {Object} state 
+ */
+export async function saveStateNow(env, state) {
+  state.lastUpdate = Date.now();
+  memoryCache = state;
   await putMonitorState(env, state);
+  isDirty = false;
+  console.log('💾 状态已立即写入 KV（关键操作）');
 }

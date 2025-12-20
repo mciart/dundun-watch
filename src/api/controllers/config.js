@@ -1,6 +1,6 @@
 // Config controllers: settings, groups, and admin path
 import { jsonResponse, errorResponse } from '../../utils.js';
-import { getState, updateState } from '../../core/state.js';
+import { getState, saveStateNow } from '../../core/state.js';
 import { getAdminPath as fetchAdminPath, putAdminPath as saveAdminPath } from '../../core/storage.js';
 
 export async function getSettings(request, env) {
@@ -17,7 +17,7 @@ export async function updateSettings(request, env) {
     const newSettings = await request.json();
     const state = await getState(env);
     state.config = { ...state.config, ...newSettings };
-    await updateState(env, state);
+    await saveStateNow(env, state);
     return jsonResponse({ success: true, config: state.config });
   } catch (error) {
     return errorResponse('更新设置失败: ' + error.message, 500);
@@ -62,7 +62,7 @@ export async function addGroup(request, env) {
     };
 
     state.config.groups.push(newGroup);
-    await updateState(env, state);
+    await saveStateNow(env, state);
 
     return jsonResponse({
       success: true,
@@ -105,7 +105,7 @@ export async function updateGroup(request, env, groupId) {
       state.config.groups[groupIndex].order = order;
     }
 
-    await updateState(env, state);
+    await saveStateNow(env, state);
 
     return jsonResponse({
       success: true,
@@ -141,7 +141,7 @@ export async function deleteGroup(request, env, groupId) {
     }
 
     state.config.groups.splice(groupIndex, 1);
-    await updateState(env, state);
+    await saveStateNow(env, state);
 
     return jsonResponse({
       success: true,

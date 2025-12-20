@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, ShieldAlert, ShieldCheck, Globe } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Globe, Server } from 'lucide-react';
 import { formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
 import StatusBar from './StatusBarCanvas';
 
@@ -7,6 +7,7 @@ export default function SiteCard({ site, index }) {
   const daysLeft = typeof site?.sslCert?.daysLeft === 'number' ? site.sslCert.daysLeft : null;
   const certExpired = daysLeft !== null && daysLeft < 0;
   const isDns = site.monitorType === 'dns';
+  const isPush = site.monitorType === 'push';
 
   const handleSiteClick = () => {
     if (site.showUrl) {
@@ -78,9 +79,17 @@ export default function SiteCard({ site, index }) {
                 <span>DNS {site.dnsRecordType || 'A'}</span>
               </div>
             )}
+
+            {/* Push 心跳监控标识 */}
+            {isPush && (
+              <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 flex-shrink-0">
+                <Server className="w-3 h-3 flex-shrink-0" />
+                <span>Push</span>
+              </div>
+            )}
             
             {/* SSL证书状态 - 美化版 (仅 HTTP 监控显示) */}
-            {!isDns && site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
+            {!isDns && !isPush && site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
               <div className={`
                 inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
                 ${certExpired
@@ -106,7 +115,7 @@ export default function SiteCard({ site, index }) {
             )}
             
             {/* 无证书状态 (仅 HTTP 监控显示) */}
-            {!isDns && site.sslCertLastCheck > 0 && !site.sslCert && (
+            {!isDns && !isPush && site.sslCertLastCheck > 0 && !site.sslCert && (
               <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 flex-shrink-0">
                 <ShieldAlert className="w-3 h-3 flex-shrink-0" />
                 <span>证书无效</span>

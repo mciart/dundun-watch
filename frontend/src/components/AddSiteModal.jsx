@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, AlertCircle } from 'lucide-react';
+import { X, Plus, AlertCircle, Server } from 'lucide-react';
 
 const DNS_RECORD_TYPES = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT'];
 
@@ -10,7 +10,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
     url: '',
     groupId: 'default',
     showUrl: false,
-    // 监控类型: http 或 dns 或 tcp
+    // 监控类型: http 或 dns 或 tcp 或 push
     monitorType: 'http',
     // HTTP 相关
     method: 'GET',
@@ -24,7 +24,10 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
     dnsExpectedValue: '',
     // TCP 相关
     tcpHost: '',
-    tcpPort: ''
+    tcpPort: '',
+    // Push 心跳相关
+    pushTimeoutMinutes: 3,
+    showInHostPanel: true  // 是否显示在主机监控面板
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -85,8 +88,13 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : '站点 URL *'}
+                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : formData.monitorType === 'push' ? '主机名称 *' : '站点 URL *'}
               </label>
+              {formData.monitorType === 'push' ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                  Push 模式下，主机会主动向监控系统发送心跳，无需填写 URL
+                </p>
+              ) : (
               <input
                 type="text"
                 value={formData.monitorType === 'tcp' ? formData.tcpHost : formData.url}
@@ -97,6 +105,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                 placeholder={formData.monitorType === 'dns' ? 'example.com' : formData.monitorType === 'tcp' ? 'example.com 或 192.168.1.1' : 'https://example.com'}
                 required
               />
+              )}
             </div>
 
             <div>
@@ -136,6 +145,17 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                     className="w-4 h-4 text-primary-600"
                   />
                   <span className="text-sm text-slate-700 dark:text-slate-300">TCP 端口</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="monitorType"
+                    value="push"
+                    checked={formData.monitorType === 'push'}
+                    onChange={(e) => setFormData({ ...formData, monitorType: e.target.value })}
+                    className="w-4 h-4 text-primary-600"
+                  />
+                  <span className="text-sm text-slate-700 dark:text-slate-300">Push 心跳</span>
                 </label>
               </div>
             </div>
@@ -224,6 +244,65 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     常见端口：SSH(22)、MySQL(3306)、Redis(6379)、PostgreSQL(5432)
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* Push 心跳监控配置 */}
+            {formData.monitorType === 'push' && (
+              <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-orange-50/50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800">
+                <div className="flex items-center gap-2 text-orange-700 dark:text-orange-300 text-sm font-medium">
+                  <Server className="w-4 h-4" />
+                  Push 心跳监控配置
+                </div>
+                <div className="text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                  <p>📡 <strong>Push 模式</strong>适用于：</p>
+                  <ul className="list-disc list-inside ml-2 space-y-1">
+                    <li>无公网 IP 的内网主机（NAS、家庭服务器）</li>
+                    <li>防火墙严格限制入站的服务器</li>
+                    <li>需要上报 CPU/内存/磁盘等详细指标的主机</li>
+                  </ul>
+                  <p className="mt-2">添加后会生成专属的上报地址和脚本，在主机上定时运行即可。</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    超时时间（分钟）
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={formData.pushTimeoutMinutes}
+                    onChange={(e) => setFormData({ ...formData, pushTimeoutMinutes: parseInt(e.target.value) || 3 })}
+                    className="input-field"
+                    placeholder="3"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    超过此时间未收到心跳，将判定主机离线（建议设置为心跳间隔的 2-3 倍）
+                  </p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-orange-200 dark:border-orange-800">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      显示在主机监控面板
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      关闭后仅在站点列表显示，不在主页主机监控区域展示
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, showInHostPanel: !formData.showInHostPanel })}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      formData.showInHostPanel 
+                        ? 'bg-orange-500' 
+                        : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      formData.showInHostPanel ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
                 </div>
               </div>
             )}

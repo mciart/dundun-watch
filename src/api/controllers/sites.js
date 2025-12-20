@@ -1,7 +1,8 @@
 // Sites controllers: CRUD and related helpers
 import { calculateStats } from '../../core/stats.js';
 import { generateId, isValidUrl, isValidDomain, isValidHost, jsonResponse, errorResponse } from '../../utils.js';
-import { getState, updateState } from '../../core/state.js';
+import { getState, saveStateNow } from '../../core/state.js';
+import { generatePushToken } from '../../monitors/push.js';
 
 export async function getSites(request, env) {
   try {
@@ -17,6 +18,7 @@ export async function addSite(request, env) {
     const site = await request.json();
     const isDns = site.monitorType === 'dns';
     const isTcp = site.monitorType === 'tcp';
+    const isPush = site.monitorType === 'push';
     
     if (isDns) {
       if (!site.url || !isValidDomain(site.url)) {
@@ -29,6 +31,11 @@ export async function addSite(request, env) {
       if (!site.tcpPort || isNaN(parseInt(site.tcpPort)) || parseInt(site.tcpPort) < 1 || parseInt(site.tcpPort) > 65535) {
         return errorResponse('无效的端口号（必须为 1-65535）', 400);
       }
+    } else if (isPush) {
+      // Push 类型不需要 URL 验证，只需要名称
+      if (!site.name || site.name.trim() === '') {
+        return errorResponse('请输入主机名称', 400);
+      }
     } else {
       if (!site.url || !isValidUrl(site.url)) {
         return errorResponse('无效的 URL', 400);
@@ -39,7 +46,7 @@ export async function addSite(request, env) {
     const newSite = {
       id: generateId(),
       name: site.name || '未命名站点',
-      url: isTcp ? '' : site.url,
+      url: (isTcp || isPush) ? '' : site.url,
       status: 'unknown',
       responseTime: 0,
       lastCheck: 0,
@@ -56,13 +63,19 @@ export async function addSite(request, env) {
       tcpPort: site.tcpPort ? parseInt(site.tcpPort, 10) : 0,
       showUrl: site.showUrl || false,
       sortOrder: site.sortOrder || (state.sites ? state.sites.length : 0),
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      // Push 监控相关字段
+      pushToken: isPush ? generatePushToken() : '',
+      pushTimeoutMinutes: isPush ? (site.pushTimeoutMinutes || 3) : 0,
+      showInHostPanel: isPush ? (site.showInHostPanel !== false) : false,  // 是否显示在主机监控面板
+      lastHeartbeat: 0,
+      pushData: null
     };
 
     state.sites.push(newSite);
     state.history = state.history || {};
     state.history[newSite.id] = [];
-    await updateState(env, state);
+    await saveStateNow(env, state);  // 添加站点立即保存
 
     return jsonResponse({ success: true, site: newSite });
   } catch (error) {
@@ -81,7 +94,7 @@ export async function updateSite(request, env, siteId) {
     const newMonitorType = updates.monitorType || oldSite.monitorType || 'http';
 
     const criticalFields = [
-      'url','monitorType','method','expectedCodes','responseKeyword','responseForbiddenKeyword','dnsRecordType','dnsExpectedValue','tcpHost','tcpPort'
+      'url','monitorType','method','expectedCodes','responseKeyword','responseForbiddenKeyword','dnsRecordType','dnsExpectedValue','tcpHost','tcpPort','pushTimeoutMinutes'
     ];
 
     const changedFields = criticalFields.filter(field => {
@@ -104,6 +117,20 @@ export async function updateSite(request, env, siteId) {
           return errorResponse('无效的端口号（必须为 1-65535）', 400);
         }
         updates.tcpPort = port;
+      }
+    } else if (newMonitorType === 'push') {
+      // Push 类型验证超时时间
+      if (updates.pushTimeoutMinutes !== undefined) {
+        const timeout = parseInt(updates.pushTimeoutMinutes, 10);
+        if (isNaN(timeout) || timeout < 1 || timeout > 60) {
+          return errorResponse('超时时间必须在 1-60 分钟之间', 400);
+        }
+        updates.pushTimeoutMinutes = timeout;
+      }
+      // 如果从其他类型切换到 push，生成新的 token
+      if (oldSite.monitorType !== 'push' && !oldSite.pushToken) {
+        const { generatePushToken } = await import('../../monitors/push.js');
+        updates.pushToken = generatePushToken();
       }
     } else if (updates.url) {
       if (newMonitorType === 'dns') {
@@ -134,7 +161,7 @@ export async function updateSite(request, env, siteId) {
       }
     }
 
-    await updateState(env, state);
+    await saveStateNow(env, state);  // 更新站点立即保存
 
     return jsonResponse({ success: true, site: state.sites[siteIndex], configChanged: needReset, changedFields });
   } catch (error) {
@@ -157,7 +184,7 @@ export async function deleteSite(request, env, siteId) {
         if (key.startsWith(`${siteId}:`)) delete state.lastNotifications[key];
       });
     }
-    await updateState(env, state);
+    await saveStateNow(env, state);  // 删除站点立即保存
     return jsonResponse({ success: true });
   } catch (error) {
     return errorResponse('删除站点失败: ' + error.message, 500);
@@ -173,7 +200,7 @@ export async function reorderSites(request, env) {
       const site = state.sites.find(s => s.id === id);
       if (site) site.sortOrder = index;
     });
-    await updateState(env, state);
+    await saveStateNow(env, state);  // 排序变更立即保存
     return jsonResponse({ success: true, message: '站点排序已更新' });
   } catch (error) {
     return errorResponse('更新排序失败: ' + error.message, 500);

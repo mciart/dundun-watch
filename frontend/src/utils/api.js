@@ -168,4 +168,13 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify({ newPath }),
     }),
+
+  // Push 监控相关 API
+  getPushConfig: (siteId) =>
+    request(`/api/sites/${siteId}/push-config`),
+
+  regeneratePushToken: (siteId) =>
+    request(`/api/sites/${siteId}/regenerate-token`, {
+      method: 'POST',
+    }),
 };

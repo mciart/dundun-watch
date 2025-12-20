@@ -19,6 +19,7 @@ import SiteCard from '../components/SiteCard';
 import StarryBackground from '../components/StarryBackground';
 import ThemeToggle from '../components/ThemeToggle';
 import IncidentCarousel from '../components/IncidentCarousel';
+import HostMonitorPanel from '../components/HostMonitorPanel';
 import { useHistory } from '../context/HistoryContext';
 
 export default function StatusPage() {
@@ -252,6 +253,9 @@ export default function StatusPage() {
         <div className="mb-8">
           <IncidentCarousel autoInterval={5000} initialIncidents={incidents} />
         </div>
+
+        {/* 主机监控面板 */}
+        <HostMonitorPanel sites={sites} />
 
         {/* 站点状态 */}
         {loading ? (
