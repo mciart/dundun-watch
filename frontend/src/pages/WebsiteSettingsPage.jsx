@@ -9,7 +9,7 @@ import ThemeToggle from '../components/ThemeToggle';
 
 export default function WebsiteSettingsPage() {
   const [settings, setSettings] = useState({
-    siteName: '炖炖守望',
+    siteName: '炖炖哨兵',
     siteSubtitle: '慢慢炖，网站不 "糊锅"',
     pageTitle: '网站监控'
   });
@@ -24,7 +24,7 @@ export default function WebsiteSettingsPage() {
       try {
         const data = await api.getSettings();
         setSettings({
-          siteName: data.siteName || '炖炖守望',
+          siteName: data.siteName || '炖炖哨兵',
           siteSubtitle: data.siteSubtitle || '慢慢炖，网站不 "糊锅"',
           pageTitle: data.pageTitle || '网站监控'
         });
@@ -129,7 +129,7 @@ export default function WebsiteSettingsPage() {
                 value={settings.siteName}
                 onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 text-lg font-medium"
-                placeholder="例如：炖炖守望"
+                placeholder="例如：炖炖哨兵"
               />
             </div>
 

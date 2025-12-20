@@ -44,7 +44,7 @@ export async function getDashboardData(request, env) {
       sites: publicSites, 
       groups: formattedGroups, 
       settings: {
-        siteName: settings.siteName || '炖炖守望',
+        siteName: settings.siteName || '炖炖哨兵',
         siteSubtitle: settings.siteSubtitle || '慢慢炖，网站不 "糊锅"',
         pageTitle: settings.pageTitle || '网站监控'
       }, 

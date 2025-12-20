@@ -1,7 +1,7 @@
 {
   "name": "dundun-sentinel-frontend",
   "version": "1.0.0",
-  "description": "炖炖守望 - 前端界面",
+  "description": "炖炖哨兵 - 前端界面",
   "private": true,
   "type": "module",
   "scripts": {

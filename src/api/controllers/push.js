@@ -164,7 +164,7 @@ curl -X POST "${endpoint}" \\
 
 function generateBashScript(endpoint) {
   return `#!/bin/bash
-# 炖炖守望 - 主机心跳脚本
+# 炖炖哨兵 - 主机心跳脚本
 # 建议添加到 crontab: */1 * * * * /path/to/heartbeat.sh
 
 # 获取 CPU 使用率
@@ -212,7 +212,7 @@ curl -s -X POST "${endpoint}" \\
 
 function generatePythonScript(endpoint) {
   return `#!/usr/bin/env python3
-# 炖炖守望 - 主机心跳脚本 (Python)
+# 炖炖哨兵 - 主机心跳脚本 (Python)
 # 使用: python3 heartbeat.py
 # 定时: crontab -e 添加 */1 * * * * /usr/bin/python3 /path/to/heartbeat.py
 
@@ -281,7 +281,7 @@ if __name__ == '__main__':
 }
 
 function generatePowerShellScript(endpoint) {
-  return `# 炖炖守望 - 主机心跳脚本 (PowerShell)
+  return `# 炖炖哨兵 - 主机心跳脚本 (PowerShell)
 # Windows 定时任务设置方法:
 # 1. 打开 任务计划程序
 # 2. 创建基本任务 -> 每天/触发器选择"重复任务"间隔1分钟
@@ -321,7 +321,7 @@ try {
 
 function generateNodeScript(endpoint) {
   return `#!/usr/bin/env node
-// 炖炖守望 - 主机心跳脚本 (Node.js)
+// 炖炖哨兵 - 主机心跳脚本 (Node.js)
 // 使用: node heartbeat.js
 // 定时: crontab -e 添加 */1 * * * * /usr/bin/node /path/to/heartbeat.js
 

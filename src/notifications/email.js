@@ -1,7 +1,7 @@
 import { formatDuration } from '../utils.js';
 
 function stateSiteName(cfg) {
-  return (cfg && cfg.siteName) || '炖炖守望';
+  return (cfg && cfg.siteName) || '炖炖哨兵';
 }
 
 export async function sendEmailNotification(env, cfg, incident, site) {
@@ -97,7 +97,7 @@ export async function sendEmailNotification(env, cfg, incident, site) {
     return;
   }
 
-  const subject = `炖炖守望 - ${site.name} ${prefix}`;
+  const subject = `炖炖哨兵 - ${site.name} ${prefix}`;
   
   let dataRowsHtml = '';
   dataRows.forEach((row, i) => {

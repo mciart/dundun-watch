@@ -49,7 +49,7 @@ export default function AdminPage() {
   });
   const [stats, setStats] = useState(null);
   const [websiteSettings, setWebsiteSettings] = useState({
-    siteName: '炖炖守望',
+    siteName: '炖炖哨兵',
     siteSubtitle: '慢慢炖，网站不 "糊锅"',
     pageTitle: '网站监控'
   });
@@ -142,7 +142,7 @@ export default function AdminPage() {
           const apiSettings = await api.getSettings();
           setSettings(apiSettings);
           setWebsiteSettings({
-            siteName: apiSettings.siteName || '炖炖守望',
+            siteName: apiSettings.siteName || '炖炖哨兵',
             siteSubtitle: apiSettings.siteSubtitle || '慢慢炖，网站不 "糊锅"',
             pageTitle: apiSettings.pageTitle || '网站监控'
           });
@@ -655,7 +655,7 @@ export default function AdminPage() {
                   value={websiteSettings.siteName}
                   onChange={(e) => setWebsiteSettings({ ...websiteSettings, siteName: e.target.value })}
                   className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
-                  placeholder="例如：炖炖守望"
+                  placeholder="例如：炖炖哨兵"
                 />
               </div>
             </div>

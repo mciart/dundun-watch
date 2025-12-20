@@ -30,7 +30,7 @@ export default function StatusPage() {
   const [incidents, setIncidents] = useState([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [siteSettings, setSiteSettings] = useState({
-    siteName: '炖炖守望',
+    siteName: '炖炖哨兵',
     siteSubtitle: '慢慢炖，网站不 "糊锅"',
     pageTitle: '网站监控'
   });
@@ -56,7 +56,7 @@ export default function StatusPage() {
       setSites(sitesList);
       setGroups(groupList);
       const settings = {
-        siteName: cfg.siteName || '炖炖守望',
+        siteName: cfg.siteName || '炖炖哨兵',
         siteSubtitle: cfg.siteSubtitle || '慢慢炖，网站不 "糊锅"',
         pageTitle: cfg.pageTitle || '网站监控'
       };
@@ -92,7 +92,7 @@ export default function StatusPage() {
     try {
       const data = await api.getSettings();
       const settings = {
-        siteName: data.siteName || '炖炖守望',
+        siteName: data.siteName || '炖炖哨兵',
         siteSubtitle: data.siteSubtitle || '慢慢炖，网站不 "糊锅"',
         pageTitle: data.pageTitle || '网站监控'
       };

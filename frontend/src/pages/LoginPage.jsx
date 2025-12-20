@@ -46,7 +46,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
               <img src="/img/favicon.ico" alt="Logo" className="w-16 h-16" />
             </div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent">
-              炖炖守望
+              炖炖哨兵
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2">
               管理后台登录

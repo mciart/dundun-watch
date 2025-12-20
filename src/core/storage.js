@@ -38,7 +38,7 @@ export async function setConfig(env, key, value) {
 export async function getSettings(env) {
   const result = await getConfig(env, 'settings');
   return result || {
-    siteName: '炖炖守望',
+    siteName: '炖炖哨兵',
     siteSubtitle: '慢慢炖，网站不"糊锅"',
     pageTitle: '网站监控',
     historyHours: 24,
