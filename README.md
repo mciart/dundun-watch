@@ -193,13 +193,19 @@
 #### 2.1 获取 API Token
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. 点击右上角头像 → **My Profile** → **API Tokens**
-3. 点击 **Create Token**
-4. 选择 **Edit Cloudflare Workers** 模板
-5. Account Resources 选择 **Include - All accounts**
-6. Zone Resources 选择 **Include - All zones**
-7. 点击 **Continue to summary** → **Create Token**
-8. **复制 Token**（只显示一次！）
+2. 点击右上角头像 → **配置文件** → **API 令牌**
+3. 点击 **创建令牌**
+4. 点击最底部的 **创建自定义令牌** → **开始使用**
+5. **名称**: 填写 `炖炖哨兵`
+6. **权限** (权限配置 - 重要！):
+   - `账户` - `Workers 脚本` - `编辑`
+   - `账户` - `D1` - `编辑`
+   - `账户` - `帐户设置` - `读取`
+   - `区域` - `Workers 路由` - `编辑`
+7. **账户资源**: 选择 `包括` - `所有账户`
+8. **区域资源**: 选择 `包括` - `所有区域`
+9. 点击 **继续以显示摘要** → **创建令牌**
+10. **复制 Token**（只显示一次！）
 
 #### 2.2 获取 Account ID
 
