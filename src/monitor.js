@@ -7,8 +7,11 @@ import { sendNotifications } from './notifications/index.js';
  * 执行监控检测 - D1 版本
  * @param {Object} env - 环境变量
  * @param {Object} ctx - 上下文
+ * @param {Object} options - 选项
+ * @param {boolean} options.forceSSL - 强制检测SSL证书
  */
-export async function handleMonitor(env, ctx) {
+export async function handleMonitor(env, ctx, options = {}) {
+  const { forceSSL = false } = options;
   const startTime = Date.now();
   console.log('=== 开始监控检测 (D1) ===');
 
@@ -124,12 +127,13 @@ export async function handleMonitor(env, ctx) {
     await db.setConfig(env, 'lastCleanup', now);
   }
 
-  // SSL 证书检测 - 每小时检测一次
+  // SSL 证书检测 - 每小时检测一次，或强制检测
   const lastSslCheck = await db.getConfig(env, 'lastSslCheck') || 0;
-  if (now - lastSslCheck >= 60 * 60 * 1000) {
+  const shouldCheckSSL = forceSSL || (now - lastSslCheck >= 60 * 60 * 1000);
+  if (shouldCheckSSL) {
     const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
     if (httpSites.length > 0) {
-      console.log('🔒 开始检测SSL证书...');
+      console.log('🔒 开始检测SSL证书...' + (forceSSL ? '（手动触发）' : ''));
       await checkSSLCertificates(env, ctx, httpSites, settings);
       await db.setConfig(env, 'lastSslCheck', now);
     }

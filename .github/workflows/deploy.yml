@@ -79,8 +79,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🔄 执行数据库迁移..."
-          # 迁移脚本使用 ALTER TABLE，如果列已存在会报错但不影响部署
-          npx wrangler d1 execute dundun-sentinel-db --file=./migrations.sql --remote --yes || echo "⚠️ 部分迁移可能已执行，继续部署..."
+          # 添加新列（如果已存在会报错但不影响部署）
+          npx wrangler d1 execute dundun-sentinel-db --command "ALTER TABLE sites ADD COLUMN tcp_host TEXT;" --remote --yes 2>/dev/null || true
+          npx wrangler d1 execute dundun-sentinel-db --command "ALTER TABLE incidents ADD COLUMN type TEXT DEFAULT 'down';" --remote --yes 2>/dev/null || true
+          echo "✅ 迁移检查完成"
 
       - name: Deploy to Cloudflare Workers
         env:

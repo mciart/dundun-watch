@@ -6,8 +6,8 @@ import { sendNotifications } from '../../notifications/index.js';
 
 export async function triggerCheck(request, env, ctx) {
   try {
-    // 同步执行监控任务
-    await handleMonitor(env, ctx);
+    // 同步执行监控任务，强制检测SSL证书
+    await handleMonitor(env, ctx, { forceSSL: true });
     return jsonResponse({ success: true, message: '检测完成，数据已更新' });
   } catch (error) {
     return errorResponse('触发监控失败: ' + error.message, 500);
