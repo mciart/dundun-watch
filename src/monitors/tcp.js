@@ -1,4 +1,31 @@
-import { connect } from 'cloudflare:sockets';
+// TCP 监控模块
+// 使用 Node.js net 模块进行 TCP 端口检测
+
+import net from 'net';
+
+// Node.js TCP 连接
+function connectTcp(host, port, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const socket = new net.Socket();
+    
+    const timeoutId = setTimeout(() => {
+      socket.destroy();
+      reject(new Error('TCP_TIMEOUT'));
+    }, timeoutMs);
+    
+    socket.connect(port, host, () => {
+      clearTimeout(timeoutId);
+      socket.destroy();
+      resolve(true);
+    });
+    
+    socket.on('error', (err) => {
+      clearTimeout(timeoutId);
+      socket.destroy();
+      reject(err);
+    });
+  });
+}
 
 export async function checkTcpSite(site, checkTime) {
   const startTime = Date.now();
@@ -28,26 +55,9 @@ export async function checkTcpSite(site, checkTime) {
   }
 
   try {
-    // 设置超时
     const timeoutMs = 15000; // 15秒超时
-    let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error('TCP_TIMEOUT')), timeoutMs);
-    });
     
-    // 使用 Cloudflare 原生 connect() API 建立 TCP 连接
-    const connectPromise = (async () => {
-      const socket = connect({ hostname: host, port: port });
-      // 等待连接建立
-      await socket.opened;
-      // 连接成功，关闭 socket
-      await socket.close();
-      return true;
-    })();
-    
-    // 竞争：连接成功 vs 超时
-    await Promise.race([connectPromise, timeoutPromise]);
-    clearTimeout(timeoutId);
+    await connectTcp(host, port, timeoutMs);
     
     const responseTime = Date.now() - startTime;
     

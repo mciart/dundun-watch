@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Workers
+name: Deploy to Vercel
 
 on:
   push:
@@ -9,49 +9,16 @@ on:
     branches:
       - main
       - master
-  workflow_dispatch:  # 支持手动触发
+  workflow_dispatch:
 
 env:
-  NODE_VERSION: '20'
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
-  # 构建和测试
-  build:
-    name: Build & Test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install frontend dependencies
-        run: cd frontend && npm ci
-
-      - name: Build frontend
-        run: npm run build:frontend
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-          retention-days: 1
-
-  # 部署到 Cloudflare Workers
   deploy:
-    name: Deploy to Cloudflare
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
-    needs: build
-    # 只在 push 到主分支或手动触发时部署
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,179 +26,49 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '20'
           cache: 'npm'
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Setup KV Namespace
-        id: kv_setup
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          # 自动获取 Account ID
-          CLOUDFLARE_ACCOUNT_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts?per_page=1" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id')
-          
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ "$CLOUDFLARE_ACCOUNT_ID" = "null" ]; then
-            echo "无法获取 Account ID，请检查 API Token 权限"
-            exit 1
-          fi
-          
-          echo "获取到 Account ID: $CLOUDFLARE_ACCOUNT_ID"
-          echo "account_id=$CLOUDFLARE_ACCOUNT_ID" >> $GITHUB_OUTPUT
-          
-          KV_ID="${{ secrets.KV_NAMESPACE_ID }}"
-          
-          # 如果没有提供 KV_NAMESPACE_ID，自动创建
-          if [ -z "$KV_ID" ] || [ "$KV_ID" = "" ]; then
-            echo "KV_NAMESPACE_ID 未设置，正在自动创建..."
-            
-            # 检查是否已存在同名 KV
-            EXISTING=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces?per_page=100" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: application/json" | jq -r '.result[] | select(.title=="dundun-watch-MONITOR_DATA") | .id')
-            
-            if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
-              echo "找到已存在的 KV 命名空间: $EXISTING"
-              KV_ID="$EXISTING"
-            else
-              # 创建新的 KV 命名空间
-              RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces" \
-                -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-                -H "Content-Type: application/json" \
-                --data '{"title":"dundun-watch-MONITOR_DATA"}')
-              
-              KV_ID=$(echo $RESPONSE | jq -r '.result.id')
-              
-              if [ -z "$KV_ID" ] || [ "$KV_ID" = "null" ]; then
-                echo "创建 KV 命名空间失败: $RESPONSE"
-                exit 1
-              fi
-              
-              echo "成功创建 KV 命名空间: $KV_ID"
-            fi
-          else
-            echo "使用已配置的 KV_NAMESPACE_ID: $KV_ID"
-          fi
-          
-          echo "kv_id=$KV_ID" >> $GITHUB_OUTPUT
-
-      - name: Update KV Namespace ID
-        run: |
-          sed -i 's/YOUR_KV_NAMESPACE_ID/${{ steps.kv_setup.outputs.kv_id }}/g' wrangler.toml
-
-      - name: Deploy to Cloudflare Workers
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ steps.kv_setup.outputs.account_id }}
-
-      - name: Configure Admin Settings
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ steps.kv_setup.outputs.account_id }}
-          KV_ID: ${{ steps.kv_setup.outputs.kv_id }}
-          ADMIN_PATH: ${{ secrets.ADMIN_PATH }}
-          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
-        run: |
-          # 设置自定义后台路径
-          if [ -n "$ADMIN_PATH" ] && [ "$ADMIN_PATH" != "" ]; then
-            echo "设置自定义后台路径: $ADMIN_PATH"
-            curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$KV_ID/values/admin_path" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: text/plain" \
-              --data "$ADMIN_PATH"
-          fi
-          
-          # 设置自定义密码（使用 SHA-256 哈希存储）
-          if [ -n "$ADMIN_PASSWORD" ] && [ "$ADMIN_PASSWORD" != "" ]; then
-            echo "设置自定义后台密码（哈希存储）"
-            # 计算密码的 SHA-256 哈希
-            PASSWORD_HASH=$(echo -n "$ADMIN_PASSWORD" | sha256sum | cut -d' ' -f1)
-            curl -s -X PUT "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces/$KV_ID/values/admin_password" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: text/plain" \
-              --data "$PASSWORD_HASH"
-          fi
-          
-          echo "管理员配置完成"
-
-  # PR 预览部署（可选）
-  preview:
-    name: Preview Deployment
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup KV Namespace (Preview)
-        id: kv_setup_preview
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          # 自动获取 Account ID
-          CLOUDFLARE_ACCOUNT_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts?per_page=1" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id')
-          
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ "$CLOUDFLARE_ACCOUNT_ID" = "null" ]; then
-            echo "无法获取 Account ID"
-            exit 1
-          fi
-          
-          echo "account_id=$CLOUDFLARE_ACCOUNT_ID" >> $GITHUB_OUTPUT
-          
-          KV_ID="${{ secrets.KV_NAMESPACE_ID }}"
-          
-          if [ -z "$KV_ID" ] || [ "$KV_ID" = "" ]; then
-            # 检查是否已存在同名 KV
-            EXISTING=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/storage/kv/namespaces?per_page=100" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: application/json" | jq -r '.result[] | select(.title=="dundun-watch-MONITOR_DATA") | .id')
-            
-            if [ -n "$EXISTING" ] && [ "$EXISTING" != "null" ]; then
-              KV_ID="$EXISTING"
-            else
-              # 预览模式不创建，使用占位符
-              KV_ID="preview-placeholder"
-            fi
-          fi
-          
-          echo "kv_id=$KV_ID" >> $GITHUB_OUTPUT
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Update KV Namespace ID
-        run: |
-          sed -i 's/YOUR_KV_NAMESPACE_ID/${{ steps.kv_setup_preview.outputs.kv_id }}/g' wrangler.toml
+      - name: Build Project
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Deploy Preview
-        uses: cloudflare/wrangler-action@v3
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # Preview deployment for PRs
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          else
+            # Production deployment
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          fi
+          echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with deployment URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ steps.kv_setup_preview.outputs.account_id }}
-          command: deploy --dry-run
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ Preview deployed to: ${{ steps.deploy.outputs.url }}`
+            })
+
+      - name: Deployment Summary
+        run: |
+          echo "### 🚀 Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.deploy.outputs.url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}" >> $GITHUB_STEP_SUMMARY

@@ -9,12 +9,6 @@ dist/
 build/
 .output/
 .vercel/
-.netlify/
-
-# Wrangler
-.wrangler/
-.mf/
-.dev.vars
 
 # Environment
 .env
@@ -41,14 +35,3 @@ coverage/
 # Cache
 .cache/
 .parcel-cache/
-
-# Local wrangler config (do not commit)
-worker/wrangler.toml
-frontend/wrangler.toml
-worker/.dev.vars.local
-worker/.dev.vars
-worker/.dev.vars.example
-dev.ps1
-test_resend.py
-.env.example
-LICENSE
