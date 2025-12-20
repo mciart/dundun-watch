@@ -2,7 +2,7 @@
   "name": "dundun_sentinel",
   "version": "1.0.0",
   "build": {
-    "command": "cd frontend && npm install && npm run build",
-    "output": "frontend/dist"
+    "command": "cd frontend && npm install && npm run build && cd .. && cp -r frontend/dist ./dist",
+    "output": "dist"
   }
 }
