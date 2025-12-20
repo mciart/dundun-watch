@@ -123,6 +123,37 @@ export async function getIncidents(request, env) {
   }
 }
 
+export async function getPushHistory(request, env, siteId) {
+  try {
+    if (!siteId) {
+      return errorResponse('站点 ID 不能为空', 400);
+    }
+    
+    const url = new URL(request.url);
+    const hours = parseInt(url.searchParams.get('hours')) || 24;
+    
+    // 验证站点存在且是 Push 类型
+    const site = await db.getSite(env, siteId);
+    if (!site) {
+      return errorResponse('站点不存在', 404);
+    }
+    if (site.monitorType !== 'push') {
+      return errorResponse('该站点不是 Push 监控类型', 400);
+    }
+    
+    const history = await db.getPushHistory(env, siteId, hours);
+    
+    return jsonResponse({ 
+      siteId,
+      siteName: site.name,
+      history,
+      hours
+    });
+  } catch (error) {
+    return errorResponse('获取 Push 历史数据失败: ' + error.message, 500);
+  }
+}
+
 export async function getStatus(request, env) {
   try {
     const sites = await db.getAllSites(env);

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Server, 
   Cpu, 
@@ -10,8 +10,12 @@ import {
   WifiOff,
   Thermometer,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  X,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
+import { api } from '../utils/api';
 
 /**
  * 主机监控面板组件
@@ -19,21 +23,17 @@ import {
  */
 export default function HostMonitorPanel({ sites = [] }) {
   const [expanded, setExpanded] = useState(true);
+  const [selectedHost, setSelectedHost] = useState(null);
   
   // 过滤出 Push 类型且设置为在主机面板显示的站点
   const pushSites = useMemo(() => {
     const filtered = sites.filter(site => 
       site.monitorType === 'push' && site.showInHostPanel !== false
     );
-    // 调试日志
-    if (sites.length > 0) {
-      console.log('HostMonitorPanel - 所有站点:', sites.map(s => ({ name: s.name, type: s.monitorType, showInHostPanel: s.showInHostPanel })));
-      console.log('HostMonitorPanel - 主机面板站点:', filtered);
-    }
     return filtered;
   }, [sites]);
 
-  // 统计数据 - 必须在条件返回之前调用所有 hooks
+  // 统计数据
   const stats = useMemo(() => {
     const online = pushSites.filter(s => s.status === 'online').length;
     const offline = pushSites.filter(s => s.status === 'offline').length;
@@ -75,9 +75,21 @@ export default function HostMonitorPanel({ sites = [] }) {
       {expanded && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {pushSites.map((site) => (
-            <HostCard key={site.id} site={site} />
+            <HostCard 
+              key={site.id} 
+              site={site} 
+              onClick={() => setSelectedHost(site)}
+            />
           ))}
         </div>
+      )}
+
+      {/* 详情弹窗 */}
+      {selectedHost && (
+        <HostDetailModal 
+          site={selectedHost} 
+          onClose={() => setSelectedHost(null)} 
+        />
       )}
     </div>
   );
@@ -86,7 +98,7 @@ export default function HostMonitorPanel({ sites = [] }) {
 /**
  * 单个主机卡片
  */
-function HostCard({ site }) {
+function HostCard({ site, onClick }) {
   const pushData = site.pushData || {};
   const isOnline = site.status === 'online';
   const isOffline = site.status === 'offline';
@@ -131,8 +143,10 @@ function HostCard({ site }) {
 
   return (
     <div
+      onClick={onClick}
       className={`
-        glass-card p-4 relative overflow-hidden
+        glass-card p-4 relative overflow-hidden cursor-pointer
+        hover:shadow-lg hover:scale-[1.02] transition-all duration-200
         ${isOffline ? 'border-red-200 dark:border-red-800' : ''}
       `}
     >
@@ -160,19 +174,21 @@ function HostCard({ site }) {
             </p>
           </div>
         </div>
-        <div className={`
-          px-2 py-0.5 rounded-full text-xs font-medium
-          ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
-            isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}
-        `}>
-          {isOnline ? '在线' : isOffline ? '离线' : '等待'}
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-4 h-4 text-slate-400" />
+          <div className={`
+            px-2 py-0.5 rounded-full text-xs font-medium
+            ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
+              isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+              'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}
+          `}>
+            {isOnline ? '在线' : isOffline ? '离线' : '等待'}
+          </div>
         </div>
       </div>
 
       {/* 指标网格 */}
       <div className="grid grid-cols-2 gap-3">
-        {/* CPU */}
         <MetricItem
           icon={<Cpu className="w-4 h-4" />}
           label="CPU"
@@ -181,8 +197,6 @@ function HostCard({ site }) {
           getColor={getUsageColor}
           getProgressColor={getProgressColor}
         />
-
-        {/* 内存 */}
         <MetricItem
           icon={<MemoryStick className="w-4 h-4" />}
           label="内存"
@@ -191,8 +205,6 @@ function HostCard({ site }) {
           getColor={getUsageColor}
           getProgressColor={getProgressColor}
         />
-
-        {/* 磁盘 */}
         <MetricItem
           icon={<HardDrive className="w-4 h-4" />}
           label="磁盘"
@@ -201,8 +213,6 @@ function HostCard({ site }) {
           getColor={getUsageColor}
           getProgressColor={getProgressColor}
         />
-
-        {/* 负载/运行时间 */}
         {pushData.load !== null && pushData.load !== undefined ? (
           <MetricItem
             icon={<Activity className="w-4 h-4" />}
@@ -239,7 +249,411 @@ function HostCard({ site }) {
           </span>
         </div>
       )}
+
+      {/* 点击提示 */}
+      <div className="absolute bottom-2 right-2 text-xs text-slate-400 dark:text-slate-500">
+        点击查看详情
+      </div>
     </div>
+  );
+}
+
+/**
+ * 主机详情弹窗
+ */
+function HostDetailModal({ site, onClose }) {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [hours, setHours] = useState(24);
+  const [activeMetric, setActiveMetric] = useState('cpu');
+
+  const pushData = site.pushData || {};
+
+  // 加载历史数据
+  useEffect(() => {
+    const fetchHistory = async () => {
+      setLoading(true);
+      try {
+        const data = await api.getPushHistory(site.id, hours);
+        setHistory(data.history || []);
+      } catch (err) {
+        console.error('加载 Push 历史失败:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
+  }, [site.id, hours]);
+
+  // 可用的指标列表
+  const metrics = useMemo(() => {
+    const base = [
+      { key: 'cpu', label: 'CPU', unit: '%', icon: Cpu, color: '#10b981' },
+      { key: 'memory', label: '内存', unit: '%', icon: MemoryStick, color: '#3b82f6' },
+      { key: 'disk', label: '磁盘', unit: '%', icon: HardDrive, color: '#f59e0b' },
+      { key: 'load', label: '负载', unit: '', icon: Activity, color: '#8b5cf6' },
+      { key: 'temperature', label: '温度', unit: '°C', icon: Thermometer, color: '#ef4444' },
+      { key: 'latency', label: '延迟', unit: 'ms', icon: TrendingUp, color: '#06b6d4' },
+    ];
+    
+    // 检查自定义字段
+    if (pushData.custom && typeof pushData.custom === 'object') {
+      Object.keys(pushData.custom).forEach(key => {
+        const customField = pushData.custom[key];
+        // 支持 showHistory 参数控制是否显示历史
+        if (typeof customField === 'object' && customField.showHistory !== false) {
+          base.push({
+            key: `custom.${key}`,
+            label: customField.label || key,
+            unit: customField.unit || '',
+            icon: Activity,
+            color: customField.color || '#64748b',
+            isCustom: true
+          });
+        } else if (typeof customField === 'number') {
+          // 数字类型直接显示
+          base.push({
+            key: `custom.${key}`,
+            label: key,
+            unit: '',
+            icon: Activity,
+            color: '#64748b',
+            isCustom: true
+          });
+        }
+      });
+    }
+    
+    return base;
+  }, [pushData.custom]);
+
+  // 获取指标数据
+  const getMetricValue = useCallback((record, metricKey) => {
+    if (metricKey.startsWith('custom.')) {
+      const customKey = metricKey.replace('custom.', '');
+      const custom = record.custom;
+      if (!custom) return null;
+      const value = custom[customKey];
+      if (typeof value === 'object' && value !== null) {
+        return value.value ?? null;
+      }
+      return value ?? null;
+    }
+    return record[metricKey] ?? null;
+  }, []);
+
+  // 计算图表数据
+  const chartData = useMemo(() => {
+    if (!history.length) return [];
+    
+    // 采样数据点，最多显示 100 个点
+    const maxPoints = 100;
+    const step = Math.max(1, Math.floor(history.length / maxPoints));
+    const sampled = history.filter((_, i) => i % step === 0);
+    
+    return sampled.map(record => ({
+      timestamp: record.timestamp,
+      value: getMetricValue(record, activeMetric)
+    })).filter(d => d.value !== null);
+  }, [history, activeMetric, getMetricValue]);
+
+  // 计算统计数据
+  const stats = useMemo(() => {
+    const values = chartData.map(d => d.value).filter(v => v !== null && !isNaN(v));
+    if (!values.length) return null;
+    
+    return {
+      min: Math.min(...values).toFixed(1),
+      max: Math.max(...values).toFixed(1),
+      avg: (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1),
+      current: values[values.length - 1]?.toFixed(1) || '-'
+    };
+  }, [chartData]);
+
+  const activeMetricInfo = metrics.find(m => m.key === activeMetric);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div 
+        className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* 头部 */}
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-xl ${
+                site.status === 'online' 
+                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+              }`}>
+                <Server className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+                  {site.name}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  主机监控详情 · 历史数据走势
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* 内容区 */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+          {/* 时间范围选择 */}
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-sm text-slate-600 dark:text-slate-400">时间范围:</span>
+            {[6, 12, 24, 48, 72, 168].map(h => (
+              <button
+                key={h}
+                onClick={() => setHours(h)}
+                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                  hours === h
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {h < 24 ? `${h}小时` : `${h / 24}天`}
+              </button>
+            ))}
+          </div>
+
+          {/* 指标选择 */}
+          <div className="flex flex-wrap gap-2 mb-6">
+            {metrics.map(metric => {
+              const Icon = metric.icon;
+              const isActive = activeMetric === metric.key;
+              return (
+                <button
+                  key={metric.key}
+                  onClick={() => setActiveMetric(metric.key)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {metric.label}
+                  {metric.isCustom && (
+                    <span className="text-xs opacity-60">(自定义)</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 统计摘要 */}
+          {stats && (
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <div className="glass-card p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">当前</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                  {stats.current}{activeMetricInfo?.unit}
+                </p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">平均</p>
+                <p className="text-2xl font-bold text-blue-500">
+                  {stats.avg}{activeMetricInfo?.unit}
+                </p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">最高</p>
+                <p className="text-2xl font-bold text-red-500">
+                  {stats.max}{activeMetricInfo?.unit}
+                </p>
+              </div>
+              <div className="glass-card p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">最低</p>
+                <p className="text-2xl font-bold text-emerald-500">
+                  {stats.min}{activeMetricInfo?.unit}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 图表区域 */}
+          <div className="glass-card p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-slate-500" />
+              <h3 className="font-medium text-slate-800 dark:text-slate-200">
+                {activeMetricInfo?.label} 走势图
+              </h3>
+            </div>
+            
+            {loading ? (
+              <div className="h-64 flex items-center justify-center text-slate-500">
+                加载中...
+              </div>
+            ) : chartData.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-slate-500">
+                暂无历史数据
+              </div>
+            ) : (
+              <SimpleLineChart 
+                data={chartData} 
+                color={activeMetricInfo?.color || '#10b981'}
+                unit={activeMetricInfo?.unit || ''}
+              />
+            )}
+          </div>
+
+          {/* 自定义字段说明 */}
+          <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              💡 自定义字段上传示例
+            </h4>
+            <pre className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 p-3 rounded-lg overflow-x-auto">
+{`curl -X POST "https://your-worker/api/push/TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "cpu": 25.5,
+    "memory": 60.2,
+    "custom": {
+      "gpu": { "value": 45, "label": "GPU", "unit": "%", "showHistory": true },
+      "connections": { "value": 128, "label": "连接数", "showHistory": true },
+      "queue_size": 42  // 简单数值也会被记录
+    }
+  }'`}
+            </pre>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+              设置 <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">showHistory: false</code> 可以隐藏某个字段的历史走势
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 简单折线图组件
+ */
+function SimpleLineChart({ data, color, unit }) {
+  if (!data || data.length === 0) return null;
+
+  const values = data.map(d => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  // SVG 尺寸
+  const width = 800;
+  const height = 200;
+  const padding = { top: 20, right: 20, bottom: 30, left: 50 };
+  const chartWidth = width - padding.left - padding.right;
+  const chartHeight = height - padding.top - padding.bottom;
+
+  // 计算点坐标
+  const points = data.map((d, i) => {
+    const x = padding.left + (i / (data.length - 1 || 1)) * chartWidth;
+    const y = padding.top + chartHeight - ((d.value - min) / range) * chartHeight;
+    return { x, y, ...d };
+  });
+
+  // 生成路径
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  
+  // 生成区域填充路径
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`;
+
+  // Y 轴刻度
+  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => ({
+    value: (min + range * ratio).toFixed(1),
+    y: padding.top + chartHeight * (1 - ratio)
+  }));
+
+  // X 轴时间标签
+  const xTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
+    const index = Math.floor(ratio * (data.length - 1));
+    const point = data[index];
+    return {
+      label: new Date(point.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }),
+      x: padding.left + ratio * chartWidth
+    };
+  });
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-64">
+      {/* 网格线 */}
+      {yTicks.map((tick, i) => (
+        <line
+          key={i}
+          x1={padding.left}
+          y1={tick.y}
+          x2={width - padding.right}
+          y2={tick.y}
+          stroke="currentColor"
+          strokeOpacity={0.1}
+          strokeDasharray="4 4"
+        />
+      ))}
+
+      {/* Y 轴标签 */}
+      {yTicks.map((tick, i) => (
+        <text
+          key={i}
+          x={padding.left - 10}
+          y={tick.y}
+          textAnchor="end"
+          dominantBaseline="middle"
+          className="text-xs fill-slate-500"
+        >
+          {tick.value}
+        </text>
+      ))}
+
+      {/* X 轴标签 */}
+      {xTicks.map((tick, i) => (
+        <text
+          key={i}
+          x={tick.x}
+          y={height - 5}
+          textAnchor="middle"
+          className="text-xs fill-slate-500"
+        >
+          {tick.label}
+        </text>
+      ))}
+
+      {/* 区域填充 */}
+      <path
+        d={areaD}
+        fill={color}
+        fillOpacity={0.1}
+      />
+
+      {/* 折线 */}
+      <path
+        d={pathD}
+        fill="none"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* 数据点 */}
+      {points.length <= 50 && points.map((p, i) => (
+        <circle
+          key={i}
+          cx={p.x}
+          cy={p.y}
+          r={3}
+          fill={color}
+        />
+      ))}
+    </svg>
   );
 }
 

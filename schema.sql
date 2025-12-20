@@ -117,3 +117,24 @@ CREATE TABLE IF NOT EXISTS certificate_alerts (
   alert_type TEXT,
   FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
 );
+
+-- Push 指标历史表：存储主机监控的历史指标数据
+CREATE TABLE IF NOT EXISTS push_history (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  cpu REAL,
+  memory REAL,
+  disk REAL,
+  load REAL,
+  temperature REAL,
+  latency INTEGER,
+  uptime INTEGER,
+  custom TEXT,  -- JSON，存储自定义字段
+  created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
+  
+  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
+);
+
+-- Push 历史索引
+CREATE INDEX IF NOT EXISTS idx_push_history_site_time ON push_history(site_id, timestamp DESC);

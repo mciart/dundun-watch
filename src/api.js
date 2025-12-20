@@ -66,6 +66,12 @@ export async function handleAPI(request, env, ctx) {
     return await dashboardController.getIncidents(request, env);
   }
 
+  // 获取 Push 历史数据（公开接口）
+  if (path.startsWith('/api/push-history/') && request.method === 'GET') {
+    const siteId = path.split('/api/push-history/')[1];
+    return await dashboardController.getPushHistory(request, env, siteId);
+  }
+
   if (path === '/api/dev/reset-kv' && request.method === 'POST') {
     if (env.ENVIRONMENT !== 'development') {
       return errorResponse('当前环境不允许重置数据', 403);

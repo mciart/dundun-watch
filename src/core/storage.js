@@ -631,6 +631,7 @@ export const putAdminPassword = setAdminPassword;
  */
 export async function updatePushHeartbeat(env, siteId, heartbeatData) {
   const now = Date.now();
+  const pushData = heartbeatData.pushData || {};
   
   await env.DB.prepare(`
     UPDATE sites SET 
@@ -641,7 +642,7 @@ export async function updatePushHeartbeat(env, siteId, heartbeatData) {
     WHERE id = ?
   `).bind(
     now,
-    JSON.stringify(heartbeatData.pushData),
+    JSON.stringify(pushData),
     heartbeatData.responseTime || 0,
     siteId
   ).run();
@@ -655,7 +656,80 @@ export async function updatePushHeartbeat(env, siteId, heartbeatData) {
     message: 'OK'
   });
   
+  // 添加 Push 指标历史记录
+  await addPushHistory(env, siteId, {
+    timestamp: now,
+    cpu: pushData.cpu,
+    memory: pushData.memory,
+    disk: pushData.disk,
+    load: pushData.load,
+    temperature: pushData.temperature,
+    latency: pushData.latency,
+    uptime: pushData.uptime,
+    custom: pushData.custom
+  });
+  
   console.log(`📡 Push 心跳已写入 D1: ${siteId}`);
+}
+
+/**
+ * 添加 Push 指标历史记录
+ */
+export async function addPushHistory(env, siteId, data) {
+  const now = Date.now();
+  await env.DB.prepare(`
+    INSERT INTO push_history (site_id, timestamp, cpu, memory, disk, load, temperature, latency, uptime, custom, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    siteId,
+    data.timestamp || now,
+    data.cpu ?? null,
+    data.memory ?? null,
+    data.disk ?? null,
+    data.load ?? null,
+    data.temperature ?? null,
+    data.latency ?? null,
+    data.uptime ?? null,
+    data.custom ? JSON.stringify(data.custom) : null,
+    now
+  ).run();
+}
+
+/**
+ * 获取 Push 指标历史记录
+ */
+export async function getPushHistory(env, siteId, hours = 24) {
+  const cutoff = Date.now() - hours * 60 * 60 * 1000;
+  const results = await env.DB.prepare(`
+    SELECT * FROM push_history 
+    WHERE site_id = ? AND timestamp > ?
+    ORDER BY timestamp ASC
+  `).bind(siteId, cutoff).all();
+  
+  return (results.results || []).map(row => ({
+    timestamp: row.timestamp,
+    cpu: row.cpu,
+    memory: row.memory,
+    disk: row.disk,
+    load: row.load,
+    temperature: row.temperature,
+    latency: row.latency,
+    uptime: row.uptime,
+    custom: row.custom ? JSON.parse(row.custom) : null
+  }));
+}
+
+/**
+ * 清理旧的 Push 历史记录
+ */
+export async function cleanupOldPushHistory(env, retentionHours = 168) {
+  const cutoff = Date.now() - retentionHours * 60 * 60 * 1000;
+  const result = await env.DB.prepare(
+    'DELETE FROM push_history WHERE timestamp < ?'
+  ).bind(cutoff).run();
+  
+  console.log(`🧹 清理了 ${result.meta?.changes || 0} 条旧 Push 历史记录`);
+  return result.meta?.changes || 0;
 }
 
 // ==================== 证书告警操作 ====================
@@ -699,6 +773,8 @@ export async function initDatabase(env) {
     ).first();
     
     if (check) {
+      // 表已存在，执行迁移检查
+      await runMigrations(env);
       return false; // 已初始化
     }
   } catch (e) {
@@ -736,6 +812,7 @@ export async function initDatabase(env) {
         body TEXT,
         dns_record_type TEXT DEFAULT 'A',
         dns_expected_value TEXT,
+        tcp_host TEXT,
         tcp_port INTEGER,
         push_token TEXT,
         push_interval INTEGER DEFAULT 60,
@@ -765,6 +842,7 @@ export async function initDatabase(env) {
         id TEXT PRIMARY KEY,
         site_id TEXT NOT NULL,
         site_name TEXT NOT NULL,
+        type TEXT DEFAULT 'down',
         start_time INTEGER NOT NULL,
         end_time INTEGER,
         status TEXT DEFAULT 'ongoing',
@@ -800,11 +878,90 @@ export async function initDatabase(env) {
         last_alert_time INTEGER,
         alert_type TEXT
       )
-    `)
+    `),
+    env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS push_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        site_id TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        cpu REAL,
+        memory REAL,
+        disk REAL,
+        load REAL,
+        temperature REAL,
+        latency INTEGER,
+        uptime INTEGER,
+        custom TEXT,
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+      )
+    `),
+    env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_push_history_site_time ON push_history(site_id, timestamp DESC)')
   ]);
   
   console.log('✅ D1 数据库初始化完成');
   return true;
+}
+
+/**
+ * 执行数据库迁移
+ * 自动添加缺失的列和表
+ */
+async function runMigrations(env) {
+  console.log('🔄 检查数据库迁移...');
+  
+  // 获取现有列信息
+  const sitesColumns = await env.DB.prepare("PRAGMA table_info(sites)").all();
+  const incidentsColumns = await env.DB.prepare("PRAGMA table_info(incidents)").all();
+  
+  const sitesCols = new Set((sitesColumns.results || []).map(c => c.name));
+  const incidentsCols = new Set((incidentsColumns.results || []).map(c => c.name));
+  
+  const migrations = [];
+  
+  // 检查 sites 表缺失的列
+  if (!sitesCols.has('tcp_host')) {
+    migrations.push(env.DB.prepare('ALTER TABLE sites ADD COLUMN tcp_host TEXT'));
+    console.log('  + 添加 sites.tcp_host 列');
+  }
+  
+  // 检查 incidents 表缺失的列
+  if (!incidentsCols.has('type')) {
+    migrations.push(env.DB.prepare("ALTER TABLE incidents ADD COLUMN type TEXT DEFAULT 'down'"));
+    console.log('  + 添加 incidents.type 列');
+  }
+  
+  // 检查 push_history 表是否存在
+  const pushHistoryCheck = await env.DB.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='push_history'"
+  ).first();
+  
+  if (!pushHistoryCheck) {
+    migrations.push(env.DB.prepare(`
+      CREATE TABLE IF NOT EXISTS push_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        site_id TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        cpu REAL,
+        memory REAL,
+        disk REAL,
+        load REAL,
+        temperature REAL,
+        latency INTEGER,
+        uptime INTEGER,
+        custom TEXT,
+        created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+      )
+    `));
+    migrations.push(env.DB.prepare('CREATE INDEX IF NOT EXISTS idx_push_history_site_time ON push_history(site_id, timestamp DESC)'));
+    console.log('  + 创建 push_history 表');
+  }
+  
+  if (migrations.length > 0) {
+    await env.DB.batch(migrations);
+    console.log(`✅ 完成 ${migrations.length} 项迁移`);
+  } else {
+    console.log('✅ 数据库已是最新');
+  }
 }
 
 // ==================== 兼容性导出（旧 KV 接口） ====================

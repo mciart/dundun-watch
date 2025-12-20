@@ -124,6 +124,8 @@ export async function handleMonitor(env, ctx, options = {}) {
   if (now - lastCleanup >= 60 * 60 * 1000) {
     console.log('🧹 清理旧历史记录...');
     await db.cleanupOldHistory(env, retentionHours);
+    // Push 历史保留 7 天
+    await db.cleanupOldPushHistory(env, 168);
     await db.setConfig(env, 'lastCleanup', now);
   }
 

@@ -122,6 +122,9 @@ export const api = {
   getStats: () => 
     request('/api/stats', { auth: false }),
 
+  getPushHistory: (siteId, hours = 24) =>
+    request(`/api/push-history/${siteId}?hours=${hours}`, { auth: false }),
+
   getGroups: () =>
     request('/api/groups', { auth: false }),
 

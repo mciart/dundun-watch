@@ -6,6 +6,7 @@ import { generatePushToken } from '../../monitors/push.js';
 
 export async function getSites(request, env) {
   try {
+    await db.initDatabase(env);  // 确保数据库已初始化和迁移
     const sites = await db.getAllSites(env);
     return jsonResponse(sites || []);
   } catch (e) {
@@ -15,6 +16,7 @@ export async function getSites(request, env) {
 
 export async function addSite(request, env) {
   try {
+    await db.initDatabase(env);  // 确保数据库已初始化和迁移
     const site = await request.json();
     const isDns = site.monitorType === 'dns';
     const isTcp = site.monitorType === 'tcp';
