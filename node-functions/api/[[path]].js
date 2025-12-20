@@ -6,25 +6,25 @@ import { handleAPI } from '../../src/api.js';
 // 创建兼容的环境对象
 function createEnv(context) {
   // 1. 优先尝试 context.env 中的绑定 (标准方式)
-  let kv = context.env?.MONITOR_DATA;
+  let redisUrl = context.env?.REDIS_URL;
   
   // 2. 如果没有，尝试 process.env (Node.js 兼容方式)
-  if (!kv && process.env && process.env.MONITOR_DATA) {
-    kv = process.env.MONITOR_DATA;
+  if (!redisUrl && process.env && process.env.REDIS_URL) {
+    redisUrl = process.env.REDIS_URL;
   }
   
-  // 3. 调试日志：部署后查看函数日志可确认 KV 是否获取成功
-  if (!kv) {
-    console.error('❌ CRITICAL ERROR: MONITOR_DATA is missing!');
+  // 3. 调试日志：部署后查看函数日志可确认 Redis 是否配置成功
+  if (!redisUrl) {
+    console.error('❌ CRITICAL ERROR: REDIS_URL is missing!');
     console.log('Available context keys:', Object.keys(context.env || {}));
     console.log('Available process keys:', Object.keys(process.env || {}).filter(k => !k.includes('PATH')).slice(0, 20));
   } else {
-    console.log('✅ MONITOR_DATA linked successfully. Type:', typeof kv);
+    console.log('✅ REDIS_URL configured successfully');
   }
 
   return {
     ENVIRONMENT: process.env.NODE_ENV || 'production',
-    MONITOR_DATA: kv,
+    REDIS_URL: redisUrl,
     // 透传其他环境变量
     ...context.env
   };
