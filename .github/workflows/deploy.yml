@@ -74,6 +74,14 @@ jobs:
           echo "📦 初始化 D1 数据库..."
           npx wrangler d1 execute dundun-sentinel-db --file=./schema.sql --remote --yes || echo "⚠️ Schema 初始化失败（可能已存在），继续部署..."
 
+      - name: Run D1 Migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "🔄 执行数据库迁移..."
+          # 迁移脚本使用 ALTER TABLE，如果列已存在会报错但不影响部署
+          npx wrangler d1 execute dundun-sentinel-db --file=./migrations.sql --remote --yes || echo "⚠️ 部分迁移可能已执行，继续部署..."
+
       - name: Deploy to Cloudflare Workers
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

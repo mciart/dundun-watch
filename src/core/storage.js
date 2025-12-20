@@ -456,18 +456,20 @@ export async function deleteGroup(env, groupId) {
  */
 export async function createIncident(env, incident) {
   await env.DB.prepare(`
-    INSERT INTO incidents (id, site_id, site_name, start_time, end_time, status, reason, resolved_reason, duration)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO incidents (id, site_id, site_name, type, start_time, end_time, status, reason, resolved_reason, duration, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     incident.id,
     incident.siteId,
     incident.siteName,
+    incident.type || 'down',
     incident.startTime,
     incident.endTime || null,
     incident.status || 'ongoing',
     incident.reason || null,
     incident.resolvedReason || null,
-    incident.duration || null
+    incident.duration || null,
+    incident.createdAt || Date.now()
   ).run();
   await incrementStats(env, 'writes');
 }
@@ -501,12 +503,14 @@ export async function getAllIncidents(env, limit = 100) {
     id: row.id,
     siteId: row.site_id,
     siteName: row.site_name,
+    type: row.type || 'down',
     startTime: row.start_time,
     endTime: row.end_time,
     status: row.status,
     reason: row.reason,
     resolvedReason: row.resolved_reason,
-    duration: row.duration
+    duration: row.duration,
+    createdAt: row.created_at || row.start_time
   }));
 }
 
@@ -524,12 +528,14 @@ export async function getOngoingIncident(env, siteId) {
     id: row.id,
     siteId: row.site_id,
     siteName: row.site_name,
+    type: row.type || 'down',
     startTime: row.start_time,
     endTime: row.end_time,
     status: row.status,
     reason: row.reason,
     resolvedReason: row.resolved_reason,
-    duration: row.duration
+    duration: row.duration,
+    createdAt: row.created_at || row.start_time
   };
 }
 

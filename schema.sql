@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS incidents (
   id TEXT PRIMARY KEY,
   site_id TEXT NOT NULL,
   site_name TEXT NOT NULL,
+  type TEXT DEFAULT 'down',  -- down, recovered, cert_warning
   start_time INTEGER NOT NULL,
   end_time INTEGER,
   status TEXT DEFAULT 'ongoing',  -- ongoing, resolved

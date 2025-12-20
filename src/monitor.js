@@ -206,9 +206,11 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
       id: `${site.id}_${now}_down`,
       siteId: site.id,
       siteName: site.name,
+      type: 'down',
       startTime: now,
       status: 'ongoing',
-      reason: result.message || '站点离线'
+      reason: result.message || '站点离线',
+      createdAt: now
     };
     
     await db.createIncident(env, incident);
@@ -241,6 +243,20 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
         resolvedReason: '自动恢复',
         duration
       });
+      
+      // 创建恢复事件记录
+      const recoveredIncident = {
+        id: `${site.id}_${now}_recovered`,
+        siteId: site.id,
+        siteName: site.name,
+        type: 'recovered',
+        startTime: now,
+        status: 'resolved',
+        reason: `站点恢复，故障时长 ${Math.round(duration / 1000 / 60)} 分钟`,
+        duration,
+        createdAt: now
+      };
+      await db.createIncident(env, recoveredIncident);
     }
     
     // 发送通知
@@ -275,6 +291,24 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
   
   for (const threshold of thresholds) {
     if (daysLeft <= threshold && lastAlertType !== `${threshold}days`) {
+      const now = Date.now();
+      const message = daysLeft < 0 
+        ? `证书已过期 ${Math.abs(daysLeft)} 天`
+        : `证书剩余 ${daysLeft} 天`;
+      
+      // 创建证书告警事件记录
+      const certIncident = {
+        id: `${site.id}_${now}_cert`,
+        siteId: site.id,
+        siteName: site.name,
+        type: 'cert_warning',
+        startTime: now,
+        status: 'resolved',
+        reason: message,
+        createdAt: now
+      };
+      await db.createIncident(env, certIncident);
+      
       // 发送告警
       if (settings.notifications?.enabled) {
         const cfg = settings.notifications;
@@ -282,9 +316,7 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
           ctx && ctx.waitUntil(sendNotifications(env, {
             type: 'cert_warning',
             title: '证书到期提醒',
-            message: daysLeft < 0 
-              ? `证书已过期 ${Math.abs(daysLeft)} 天`
-              : `证书剩余 ${daysLeft} 天`,
+            message,
             siteName: site.name,
             siteId: site.id,
             daysLeft
@@ -292,7 +324,7 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
         }
       }
       
-      await db.setCertificateAlert(env, site.id, Date.now(), `${threshold}days`);
+      await db.setCertificateAlert(env, site.id, now, `${threshold}days`);
       console.log(`⚠️ ${site.name} 证书告警: 剩余 ${daysLeft} 天`);
       break;
     }
