@@ -49,13 +49,23 @@ jobs:
             exit 1
           fi
           
-          echo "✅ 配置 D1 Database ID..."
+          echo "✅ 配置 D1 Database ID: $D1_DATABASE_ID"
           sed -i "s/YOUR_D1_DATABASE_ID/$D1_DATABASE_ID/g" wrangler.toml
+          echo "📄 wrangler.toml 内容："
+          cat wrangler.toml
+
+      - name: Initialize D1 Schema
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: d1 execute dundun-sentinel-db --file=./schema.sql --remote
+        continue-on-error: true
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
 
       - name: Deployment Success
         run: |
