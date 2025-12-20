@@ -1,27 +1,7 @@
-// Push/心跳监控 API 控制器
+// Push/心跳监控 API 控制器 - D1 版本（直接写入数据库，无内存缓存）
 import { getAllSites, getSite, updatePushHeartbeat } from '../../core/storage.js';
 import { jsonResponse, errorResponse, corsHeaders } from '../../utils.js';
 import { generatePushToken, isValidPushToken } from '../../monitors/push.js';
-
-/**
- * 内存缓存：存储心跳数据，用于同一实例内快速读取
- * D1 版本中，数据会立即写入数据库，内存缓存仅作为补充
- */
-const pushHeartbeatCache = new Map();
-
-/**
- * 获取缓存的心跳数据（供 monitor.js 使用）
- */
-export function getPushHeartbeatCache() {
-  return pushHeartbeatCache;
-}
-
-/**
- * 清除已处理的缓存数据
- */
-export function clearPushHeartbeatCache() {
-  pushHeartbeatCache.clear();
-}
 
 /**
  * 处理心跳上报 - 公开接口，通过 Token 验证
@@ -76,13 +56,6 @@ export async function handlePushReport(request, env, token) {
       },
       responseTime: pushData.latency || 0
     };
-
-    // 同时更新内存缓存（供同一实例内快速读取）
-    pushHeartbeatCache.set(site.id, {
-      lastHeartbeat: now,
-      status: 'online',
-      ...heartbeatData
-    });
 
     // 直接写入 D1 数据库（包含站点状态和历史记录）
     await updatePushHeartbeat(env, site.id, heartbeatData);

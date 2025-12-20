@@ -220,7 +220,18 @@
 |------|-------|------|
 | `CLOUDFLARE_API_TOKEN` | 你的 API Token | **必填** |
 
-> 💡 **提示**：D1 数据库会在首次部署时自动创建，无需手动配置！
+### 第三步（新增）：创建 D1 数据库
+
+⚠️ **重要**：首次部署前需要手动创建 D1 数据库！
+
+1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. 进入 **Workers & Pages** → **D1 SQL Database**
+3. 点击 **Create** 按钮
+4. 数据库名称填写：`dundun-sentinel-db`
+5. 点击 **Create** 完成创建
+6. 记下创建后显示的 **Database ID**（后续会自动配置）
+
+> 💡 **说明**：GitHub Actions 会自动检测并使用名为 `dundun-sentinel-db` 的数据库。
 > 
 > 🔒 **安全建议**：部署成功后，请立即登录后台修改默认密码和后台路径。在后台修改的设置不会被后续更新部署覆盖。
 

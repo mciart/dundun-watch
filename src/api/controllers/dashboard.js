@@ -2,7 +2,6 @@
 import { jsonResponse, errorResponse } from '../../utils.js';
 import * as db from '../../core/storage.js';
 import { calculateStats } from '../../core/stats.js';
-import { getPushHeartbeatCache } from './push.js';
 
 export async function getDashboardData(request, env) {
   try {
@@ -13,42 +12,27 @@ export async function getDashboardData(request, env) {
     const groups = await db.getAllGroups(env);
     const settings = await db.getSettings(env);
     const incidents = await db.getAllIncidents(env, 50);
-    
-    // 获取内存缓存中的心跳数据（Push 类型，同一实例内）
-    const heartbeatCache = getPushHeartbeatCache();
 
-    const publicSites = sites.map(site => {
-      const siteData = {
-        id: site.id,
-        name: site.name,
-        status: site.status || 'unknown',
-        responseTime: site.responseTime || 0,
-        lastCheck: site.lastCheck || 0,
-        groupId: site.groupId || 'default',
-        showUrl: site.showUrl || false,
-        url: site.showUrl ? site.url : undefined,
-        sslCert: site.sslCert || null,
-        sslCertLastCheck: site.sslCertLastCheck || 0,
-        sortOrder: site.sortOrder || 0,
-        createdAt: site.createdAt || 0,
-        monitorType: site.monitorType || 'http',
-        lastHeartbeat: site.lastHeartbeat || 0,
-        pushData: site.pushData || null,
-        showInHostPanel: site.showInHostPanel !== false,
-        dnsRecordType: site.dnsRecordType || 'A'
-      };
-      
-      // 如果是 Push 类型且内存缓存中有更新的数据，使用缓存数据
-      if (site.monitorType === 'push' && heartbeatCache.has(site.id)) {
-        const cached = heartbeatCache.get(site.id);
-        siteData.status = cached.status || siteData.status;
-        siteData.lastHeartbeat = cached.lastHeartbeat || siteData.lastHeartbeat;
-        siteData.pushData = cached.pushData || siteData.pushData;
-        siteData.responseTime = cached.pushData?.latency || siteData.responseTime;
-      }
-      
-      return siteData;
-    });
+    // D1 版本：直接从数据库读取，无需内存缓存
+    const publicSites = sites.map(site => ({
+      id: site.id,
+      name: site.name,
+      status: site.status || 'unknown',
+      responseTime: site.responseTime || 0,
+      lastCheck: site.lastCheck || 0,
+      groupId: site.groupId || 'default',
+      showUrl: site.showUrl || false,
+      url: site.showUrl ? site.url : undefined,
+      sslCert: site.sslCert || null,
+      sslCertLastCheck: site.sslCertLastCheck || 0,
+      sortOrder: site.sortOrder || 0,
+      createdAt: site.createdAt || 0,
+      monitorType: site.monitorType || 'http',
+      lastHeartbeat: site.lastHeartbeat || 0,
+      pushData: site.pushData || null,
+      showInHostPanel: site.showInHostPanel !== false,
+      dnsRecordType: site.dnsRecordType || 'A'
+    }));
 
     const formattedGroups = groups.map(g => ({
       id: g.id,

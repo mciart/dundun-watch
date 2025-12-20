@@ -2,7 +2,6 @@ import { floorToMinute } from './utils.js';
 import { getMonitorForSite } from './monitors/index.js';
 import * as db from './core/storage.js';
 import { sendNotifications } from './notifications/index.js';
-import { getPushHeartbeatCache, clearPushHeartbeatCache } from './api/controllers/push.js';
 
 /**
  * 执行监控检测 - D1 版本
@@ -30,14 +29,7 @@ export async function handleMonitor(env, ctx) {
   
   console.log(`📋 配置: 检测间隔=${checkInterval}分钟, 防抖时间=${debounceMinutes}分钟`);
 
-  // 处理缓存的 Push 心跳数据（同一实例内的快速读取）
-  const pushCache = getPushHeartbeatCache();
-  if (pushCache.size > 0) {
-    console.log(`📡 处理 ${pushCache.size} 个 Push 心跳缓存...`);
-    clearPushHeartbeatCache();
-  }
-
-  // 根据监控类型分别检测（排除 Push 类型，Push 通过心跳上报）
+  // 根据监控类型分别检测（排除 Push 类型，Push 通过心跳上报直接写入 D1）
   const sitesToCheck = sites.filter(s => s.monitorType !== 'push');
   const checkPromises = sitesToCheck.map(site => {
     const checker = getMonitorForSite(site);

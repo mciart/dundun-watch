@@ -345,18 +345,3 @@ export function initializeState() {
     stats: {}
   };
 }
-
-export function isCacheDirty() { return false; }
-export function markCacheDirty() {}
-export function clearDirtyFlag() {}
-export function getMemoryCache() { return null; }
-
-// 这些内存缓存函数在 D1 版本中不再需要，但保留接口兼容性
-export function updateSiteStatusCache() {}
-export function getSiteStatusCache() { return new Map(); }
-export function clearSiteStatusCache() {}
-export function addHistoryRecord() {}
-export function getHistoryCache() { return new Map(); }
-export function clearHistoryCache() {}
-export function shouldResetStats() { return false; }
-export function resetDailyStats() {}
