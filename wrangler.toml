@@ -13,7 +13,7 @@ html_handling = "auto-trailing-slash"
 not_found_handling = "single-page-application"
 
 # D1 数据库绑定（主要数据存储）
-# 注意：需要先创建 D1 数据库：npx wrangler d1 create dundun-sentinel-db
+# 首次部署请在 Cloudflare 控制面板创建 D1 数据库，然后将 ID 添加到 GitHub Secrets
 [[d1_databases]]
 binding = "DB"
 database_name = "dundun-sentinel-db"

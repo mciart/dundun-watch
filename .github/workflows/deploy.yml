@@ -5,19 +5,15 @@ on:
     branches:
       - main
       - master
-  pull_request:
-    branches:
-      - main
-      - master
   workflow_dispatch:  # 支持手动触发
 
 env:
   NODE_VERSION: '20'
 
 jobs:
-  # 构建和测试
-  build:
-    name: Build & Test
+  # 构建并部署
+  deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -29,127 +25,37 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install root dependencies
-        run: npm ci
-
-      - name: Install frontend dependencies
-        run: cd frontend && npm ci
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd frontend && npm ci
 
       - name: Build frontend
         run: npm run build:frontend
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-          retention-days: 1
-
-  # 部署到 Cloudflare Workers
-  deploy:
-    name: Deploy to Cloudflare
-    runs-on: ubuntu-latest
-    needs: build
-    # 只在 push 到主分支或手动触发时部署
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Setup D1 Database
-        id: d1_setup
+      - name: Configure D1 Database ID
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
         run: |
-          # 自动获取 Account ID
-          CLOUDFLARE_ACCOUNT_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts?per_page=1" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id')
-          
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ "$CLOUDFLARE_ACCOUNT_ID" = "null" ]; then
-            echo "无法获取 Account ID，请检查 API Token 权限"
+          if [ -z "$D1_DATABASE_ID" ]; then
+            echo "❌ 错误：D1_DATABASE_ID 未配置"
+            echo ""
+            echo "请按以下步骤配置："
+            echo "1. 登录 Cloudflare Dashboard"
+            echo "2. 进入 Workers & Pages → D1 SQL Database"
+            echo "3. 创建数据库，名称为 dundun-sentinel-db"
+            echo "4. 复制数据库 ID"
+            echo "5. 在 GitHub 仓库 Settings → Secrets → Actions 添加 D1_DATABASE_ID"
             exit 1
           fi
           
-          echo "获取到 Account ID: $CLOUDFLARE_ACCOUNT_ID"
-          echo "account_id=$CLOUDFLARE_ACCOUNT_ID" >> $GITHUB_OUTPUT
-          
-          # 检查是否已存在同名 D1 数据库
-          echo "检查 D1 数据库..."
-          EXISTING_DB=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | jq -r '.result[] | select(.name=="dundun-sentinel-db") | .uuid')
-          
-          if [ -n "$EXISTING_DB" ] && [ "$EXISTING_DB" != "null" ]; then
-            echo "找到已存在的 D1 数据库: $EXISTING_DB"
-            D1_ID="$EXISTING_DB"
-          else
-            echo "D1 数据库不存在，正在创建..."
-            # 创建新的 D1 数据库
-            RESPONSE=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database" \
-              -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              -H "Content-Type: application/json" \
-              --data '{"name":"dundun-sentinel-db"}')
-            
-            D1_ID=$(echo $RESPONSE | jq -r '.result.uuid')
-            
-            if [ -z "$D1_ID" ] || [ "$D1_ID" = "null" ]; then
-              echo "创建 D1 数据库失败: $RESPONSE"
-              exit 1
-            fi
-            
-            echo "成功创建 D1 数据库: $D1_ID"
-          fi
-          
-          echo "d1_id=$D1_ID" >> $GITHUB_OUTPUT
-
-      - name: Update D1 Database ID in wrangler.toml
-        run: |
-          sed -i 's/database_id = ".*"/database_id = "${{ steps.d1_setup.outputs.d1_id }}"/g' wrangler.toml
-          cat wrangler.toml
-
-      - name: Initialize D1 Schema
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ steps.d1_setup.outputs.account_id }}
-          D1_ID: ${{ steps.d1_setup.outputs.d1_id }}
-        run: |
-          echo "初始化 D1 数据库 schema..."
-          # 检查是否已有表
-          CHECK_RESULT=$(curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/d1/database/$D1_ID/query" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" \
-            --data '{"sql":"SELECT name FROM sqlite_master WHERE type=\"table\" AND name=\"sites\""}')
-          
-          TABLE_EXISTS=$(echo $CHECK_RESULT | jq -r '.result[0].results | length')
-          
-          if [ "$TABLE_EXISTS" = "0" ] || [ "$TABLE_EXISTS" = "null" ]; then
-            echo "数据库表不存在，执行 schema 初始化..."
-            npx wrangler d1 execute dundun-sentinel-db --file=./schema.sql --remote
-          else
-            echo "数据库表已存在，跳过 schema 初始化"
-          fi
+          echo "✅ 配置 D1 Database ID..."
+          sed -i "s/YOUR_D1_DATABASE_ID/$D1_DATABASE_ID/g" wrangler.toml
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ steps.d1_setup.outputs.account_id }}
 
       - name: Deployment Success
         run: |
@@ -160,51 +66,3 @@ jobs:
           echo "2. 默认后台路径: /admin"
           echo "3. 默认密码: admin"
           echo "4. 请立即登录后台修改默认密码！"
-
-  # PR 预览部署（可选）
-  preview:
-    name: Preview Deployment
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: frontend/dist
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Get Account ID
-        id: account_setup
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          CLOUDFLARE_ACCOUNT_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts?per_page=1" \
-            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-            -H "Content-Type: application/json" | jq -r '.result[0].id')
-          
-          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ "$CLOUDFLARE_ACCOUNT_ID" = "null" ]; then
-            echo "无法获取 Account ID"
-            exit 1
-          fi
-          
-          echo "account_id=$CLOUDFLARE_ACCOUNT_ID" >> $GITHUB_OUTPUT
-
-      - name: Deploy Preview (Dry Run)
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ steps.account_setup.outputs.account_id }}
-          command: deploy --dry-run

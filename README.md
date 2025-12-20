@@ -208,19 +208,7 @@
 3. 在右侧栏找到 **Account ID**
 4. 复制该 ID
 
-### 第三步：配置 GitHub Secrets
-
-打开你 Fork 的项目 → **Settings** → **Secrets and variables** → **Actions**
-
-点击 **New repository secret**，添加以下密钥：
-
-#### 必填配置
-
-| Name | Value | 说明 |
-|------|-------|------|
-| `CLOUDFLARE_API_TOKEN` | 你的 API Token | **必填** |
-
-### 第三步（新增）：创建 D1 数据库
+### 第三步：创建 D1 数据库
 
 ⚠️ **重要**：首次部署前需要手动创建 D1 数据库！
 
@@ -229,13 +217,22 @@
 3. 点击 **Create** 按钮
 4. 数据库名称填写：`dundun-sentinel-db`
 5. 点击 **Create** 完成创建
-6. 记下创建后显示的 **Database ID**（后续会自动配置）
+6. **复制创建后显示的 Database ID**（类似 `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`）
 
-> 💡 **说明**：GitHub Actions 会自动检测并使用名为 `dundun-sentinel-db` 的数据库。
-> 
+### 第四步：配置 GitHub Secrets
+
+打开你 Fork 的项目 → **Settings** → **Secrets and variables** → **Actions**
+
+点击 **New repository secret**，添加以下密钥：
+
+| Name | Value | 说明 |
+|------|-------|------|
+| `CLOUDFLARE_API_TOKEN` | 你的 API Token | **必填** |
+| `D1_DATABASE_ID` | 你的 D1 数据库 ID | **必填**（上一步复制的） |
+
 > 🔒 **安全建议**：部署成功后，请立即登录后台修改默认密码和后台路径。在后台修改的设置不会被后续更新部署覆盖。
 
-### 第四步：运行部署
+### 第五步：运行部署
 
 1. 进入项目 → **Actions** 标签
 2. 如有提示，点击 **I understand my workflows, go ahead and enable them**
