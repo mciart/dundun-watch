@@ -127,9 +127,15 @@
 
 ## 🚀 快速部署
 
+> 📌 **重要提示**：Vercel 已将 KV 数据库移至 **Marketplace**，不再在 Storage 页面直接显示。
+> 
+> 详细图文教程请查看：[VERCEL_DEPLOY.md](VERCEL_DEPLOY.md)
+
 ### 一键部署
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmciart%2Fdundun-sentinel&env=CRON_SECRET&envDescription=Cron%20%E4%BB%BB%E5%8A%A1%E5%AF%86%E9%92%A5%EF%BC%8C%E7%94%A8%E4%BA%8E%E4%BF%9D%E6%8A%A4%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1&project-name=dundun-sentinel&repository-name=dundun-sentinel)
+
+⚠️ **一键部署后还需要手动创建并连接 KV 数据库！** 请继续阅读下方步骤。
 
 ### 手动部署步骤
 
@@ -144,9 +150,12 @@
 #### 第二步：创建 Vercel KV 数据库
 
 1. 登录 [Vercel Dashboard](https://vercel.com/dashboard)
-2. 点击 **Storage** → **Create Database**
-3. 选择 **KV** → 点击 **Create**
-4. 命名为 `dundun-sentinel-kv`
+2. 点击顶部导航栏的 **Marketplace**
+3. 在搜索框搜索 **KV**，或直接访问 [Vercel KV 市场页面](https://vercel.com/marketplace/kv)
+4. 点击 **Install** 或 **Add**
+5. 选择你的团队/账户
+6. 为数据库命名（如 `dundun-sentinel-kv`）
+7. 点击 **Create** 完成创建
 
 #### 第三步：导入项目到 Vercel
 
@@ -154,28 +163,26 @@
 2. 选择你 Fork 的 `dundun-sentinel` 仓库
 3. 点击 **Import**
 
-#### 第四步：配置环境变量
+#### 第四步：连接 KV 数据库到项目
 
-在项目设置中添加以下环境变量：
+1. 在项目页面，点击 **Settings** → **Storage**
+2. 点击 **Connect Database**
+3. 选择刚创建的 `dundun-sentinel-kv` 数据库
+4. 点击 **Connect**
+
+这会自动配置 `KV_REST_API_URL` 和 `KV_REST_API_TOKEN` 环境变量。
+
+#### 第五步：配置额外的环境变量
+
+在项目 **Settings** → **Environment Variables** 中添加：
 
 | Name | Value | 说明 |
 |------|-------|------|
-| `KV_REST_API_URL` | 你的 KV URL | 从 Vercel KV 复制 |
-| `KV_REST_API_TOKEN` | 你的 KV Token | 从 Vercel KV 复制 |
-| `CRON_SECRET` | 随机字符串 | 保护定时任务，自己生成一个 |
-
-> 💡 **提示**：在 Vercel KV 页面点击 **Connect to Project** 可自动配置 KV 环境变量！
-
-#### 第五步：连接 KV 数据库
-
-1. 进入项目设置 → **Storage**
-2. 点击 **Connect Database**
-3. 选择刚创建的 KV 数据库
-4. 点击 **Connect**
+| `CRON_SECRET` | 随机字符串 | 保护定时任务，自己生成一个（如 `openssl rand -base64 32`） |
 
 #### 第六步：部署
 
-点击 **Deploy** 开始部署，等待完成即可访问。
+点击 **Deployments** → **Redeploy** 重新部署项目。
 
 **默认后台地址：** `你的域名/admin`  
 **默认密码：** `admin`
