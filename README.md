@@ -17,23 +17,49 @@
 *慢慢炖，网站不"糊锅"*
 
 </div>
+
+---
+
+## 预览截图
+
+<div align="center">
+
+| 主页 - 浅色模式 | 主页 - 深色模式 |
+|:---:|:---:|
+| <img src="docs/1.png" alt="主页浅色模式" width="400"> | <img src="docs/2.png" alt="主页深色模式" width="400"> |
+
+| 后台站点管理 - 浅色模式 | 后台站点管理 - 深色模式 |
+|:---:|:---:|
+| <img src="docs/3.png" alt="后台站点管理浅色模式" width="400"> | <img src="docs/4.png" alt="后台站点管理深色模式" width="400"> |
+
+| 后台设置 - 浅色模式 | 后台通知 - 深色模式 |
+|:---:|:---:|
+| <img src="docs/5.png" alt="后台设置浅色模式" width="400"> | <img src="docs/6.png" alt="后台通知深色模式" width="400"> |
+
+</div>
+
 <details>
-<summary><b>🏗️ 模块化架构重构说明（点击展开）</b></summary>
+<summary><b>重要模块化架构重构说明（点击展开）</b></summary>
 
 为提升系统的可扩展性与可维护性，本项目已完成深度模块化重构。新的架构将核心逻辑、业务实现与接口层进行了清晰的解耦：
 
 #### 核心层 (Core & Utils)
 - **D1 数据库存储 (`src/core/storage.js`)**：使用 Cloudflare D1 SQL 数据库，提供 100,000 次/天的写入配额。
 - **状态管理中心 (`src/core/state.js`)**：标准化的状态读写流程，确保数据一致性。
-- **通用工具库 (`src/utils.js`)**：收敛所有基础工具函数，消除重复定义。
 - **统计引擎 (`src/core/stats.js`)**：独立的监控数据统计逻辑，解耦业务调度与数据分析。
+- **通用工具库 (`src/utils.js`)**：收敛所有基础工具函数，消除重复定义。
+
+#### 配置中心 (Config)
+- **默认配置 (`src/config/defaults.js`)**：品牌、认证、分组、设置、通知、Push、监控默认值。
+- **超时配置 (`src/config/timeouts.js`)**：HTTP/TCP/SMTP/DNS 超时、检测间隔、证书预警天数。
+- **阈值配置 (`src/config/thresholds.js`)**：响应时间阈值、状态颜色、指标颜色。
 
 #### 业务逻辑层 (Services)
-- **多协议监控 (`src/monitors/`)**：采用工厂模式，原生支持 **HTTP/HTTPS**、**DNS** (1.1.1.1 DoH)、**TCP** (Cloudflare Sockets) 及 **Push 心跳**。
+- **多协议监控 (`src/monitors/`)**：采用工厂模式，原生支持 **HTTP/HTTPS**、**DNS** (1.1.1.1 DoH)、**TCP** (Cloudflare Sockets)、**SMTP** 及 **Push 心跳**。
 - **分发式通知 (`src/notifications/`)**：标准化的通知接口，便于集成 Telegram、Webhook、邮件等多种渠道。
 
 #### 接口与分发层 (API & Routing)
-- **控制器模式 (`src/api/controllers/`)**：将 `api.js` 拆分为 `auth` (认证)、`sites` (站点)、`config` (配置)、`dashboard` (仪表盘) 等独立模块。
+- **控制器模式 (`src/api/controllers/`)**：将 `api.js` 拆分为 `auth` (认证)、`sites` (站点)、`config` (配置)、`dashboard` (仪表盘)、`monitor` (监控)、`push` (心跳) 等独立模块。
 - **清晰的路由映射**：`src/api.js` 仅负责请求分发，业务逻辑完全下沉至控制器。
 
 #### 开发者友好
@@ -42,7 +68,7 @@
 
 </details>
 
-## 📋 计划更新
+## 计划更新
 
 以下功能正在计划中，欢迎提交 Issue 或 PR：
 
@@ -80,27 +106,7 @@
 
 ---
 
-## 📸 预览截图
-
-<div align="center">
-
-| 主页 - 浅色模式 | 主页 - 深色模式 |
-|:---:|:---:|
-| <img src="docs/1.png" alt="主页浅色模式" width="400"> | <img src="docs/2.png" alt="主页深色模式" width="400"> |
-
-| 后台站点管理 - 浅色模式 | 后台站点管理 - 深色模式 |
-|:---:|:---:|
-| <img src="docs/3.png" alt="后台站点管理浅色模式" width="400"> | <img src="docs/4.png" alt="后台站点管理深色模式" width="400"> |
-
-| 后台设置 - 浅色模式 | 后台通知 - 深色模式 |
-|:---:|:---:|
-| <img src="docs/5.png" alt="后台设置浅色模式" width="400"> | <img src="docs/6.png" alt="后台通知深色模式" width="400"> |
-
-</div>
-
----
-
-## 🚀 快速部署
+## 快速部署
 
 整个过程约 **5 分钟**，无需编程知识。
 
@@ -180,7 +186,7 @@
 
 ---
 
-## 🔄 更新与重新部署
+## 更新与重新部署
 
 ### 同步最新版本
 
@@ -204,7 +210,7 @@ Fork 项目后，如果原项目有更新，你可以同步最新代码：
 
 ---
 
-## 🌐 自定义域名配置
+## 自定义域名配置
 
 Cloudflare Workers 支持多种域名绑定方式：
 
@@ -245,7 +251,7 @@ Cloudflare Workers 支持多种域名绑定方式：
 
 ---
 
-## 📖 使用说明
+## 使用说明
 
 ### 添加监控站点
 
@@ -269,7 +275,7 @@ Cloudflare Workers 支持多种域名绑定方式：
 
 ---
 
-## 💻 本地开发
+## 本地开发
 
 ### 环境要求
 
@@ -309,30 +315,48 @@ npm run dev
 dundun-sentinel/
 ├── src/                          # Worker 源代码（模块化）
 │   ├── index.js                  # 主入口
-│   ├── core/
+│   ├── api.js                    # API 路由分发
+│   ├── monitor.js                # 监控调度器
+│   ├── utils.js                  # 通用工具函数
+│   ├── config/                   # 配置中心
+│   │   ├── index.js              # 配置导出
+│   │   ├── defaults.js           # 默认配置（品牌、认证、分组等）
+│   │   ├── timeouts.js           # 超时配置
+│   │   └── thresholds.js         # 阈值配置
+│   ├── core/                     # 核心层
 │   │   ├── storage.js            # D1 数据库存储层
-│   │   └── utils.js              # 通用工具函数
-│   ├── monitors/                 # 各协议监控实现与工厂
+│   │   ├── state.js              # 状态管理中心
+│   │   └── stats.js              # 统计引擎
+│   ├── monitors/                 # 各协议监控实现
 │   │   ├── index.js              # 监控工厂
-│   │   ├── http.js
-│   │   ├── dns.js
-│   │   ├── tcp.js
-│   │   └── mock.js               # 本地调试/单元测试 mock 支持
-│   ├── notifications/            # 通知渠道实现与分发器
-│   │   ├── index.js
-│   │   ├── wecom.js
-│   │   └── email.js
-│   └── api/                      # 路由 + 控制器
-│       ├── router.js
+│   │   ├── http.js               # HTTP/HTTPS 监控
+│   │   ├── dns.js                # DNS 监控
+│   │   ├── tcp.js                # TCP 端口监控
+│   │   ├── smtp.js               # SMTP 监控
+│   │   └── push.js               # Push 心跳监控
+│   ├── notifications/            # 通知渠道实现
+│   │   ├── index.js              # 通知分发器
+│   │   ├── wecom.js              # 企业微信通知
+│   │   └── email.js              # 邮件通知
+│   └── api/                      # API 控制器
 │       └── controllers/
-│           ├── auth.js
-│           └── sites.js
+│           ├── auth.js           # 认证控制器
+│           ├── sites.js          # 站点管理
+│           ├── config.js         # 配置管理
+│           ├── dashboard.js      # 仪表盘数据
+│           ├── monitor.js        # 监控操作
+│           └── push.js           # Push 心跳 API
 ├── frontend/                      # 前端项目 (React + Vite)
-│   ├── src/                       # 前端源码
-│   ├── public/
-│   └── dist/                      # 构建产物
-├── docs/                          # 截图与文档
-├── tests/                         # 单元测试（含 monitors 的 mock 测试）
+│   ├── src/
+│   │   ├── components/           # React 组件
+│   │   ├── pages/                # 页面组件
+│   │   ├── context/              # React Context
+│   │   ├── hooks/                # 自定义 Hooks
+│   │   ├── utils/                # 前端工具函数
+│   │   └── config.js             # 前端配置
+│   ├── public/                   # 静态资源
+│   └── dist/                     # 构建产物
+├── docs/                          # 文档与截图
 ├── .github/workflows/
 │   └── deploy.yml                 # 自动部署工作流
 ├── wrangler.toml                  # Cloudflare Worker 配置
@@ -342,7 +366,7 @@ dundun-sentinel/
 
 ---
 
-## ❓ 常见问题
+## 常见问题
 
 <details>
 <summary><b>部署失败怎么办？</b></summary>
@@ -383,7 +407,7 @@ Cloudflare Workers 免费版每天 10 万次请求，个人使用完全够用。
 
 ---
 
-## 🛠️ 技术栈
+## 技术栈
 
 | 类型 | 技术 |
 |------|------|
@@ -394,7 +418,7 @@ Cloudflare Workers 免费版每天 10 万次请求，个人使用完全够用。
 
 ---
 
-## 📏 监控规则与缓存机制
+## 监控规则与缓存机制
 
 ### 检测周期
 
@@ -410,19 +434,19 @@ Cloudflare Workers 免费版每天 10 万次请求，个人使用完全够用。
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     数据流向                                 │
+│                            数据流向                          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────┐    ┌──────────────┐    ┌─────────────────┐    │
-│  │ Cron    │───▶│ 检测站点状态  │───▶│   D1 数据库       │    │
-│  │ (每10分钟) │    └──────────────┘    │  (实时写入)       │    │
-│  └─────────┘                         └────────┬────────┘    │
-│                                               │             │
-│  ┌─────────┐    ┌──────────────┐              │             │
-│  │ Push    │───▶│ 接收心跳数据  │───▶  D1 数据库               │
-│  │ (实时)  │    └──────────────┘    (实时写入)                │
-│  └─────────┘                                  │             │
-│                                               ▼             │
+│  ┌─────────┐    ┌──────────────┐    ┌──────────────────┐    │
+│  │ Cron    │───▶│ 检测站点状态   │───▶│   D1 数据库       │    │
+│  │(每10分钟)│    └──────────────┘    │  （实时写入）      │    │
+│  └─────────┘                        └────────┬─────────┘    │
+│                                              │              │
+│  ┌─────────┐    ┌──────────────┐             │              │
+│  │ Push    │───▶│ 接收心跳数据   │───▶  D1 数据库              │
+│  │  (实时） │    └──────────────┘    （实时写入）              │
+│  └─────────┘                                 │              │
+│                                              ▼              │
 │                    ┌──────────────────────────────────┐     │
 │                    │        前端 API 请求              │     │
 │                    │      (从 D1 数据库读取)            │     │
@@ -531,7 +555,7 @@ Cloudflare D1 免费版每天 **100,000 次写入**，相比 KV 的 1,000 次提
 
 ---
 
-## 📄 开源协议
+## 开源协议
 
 本项目基于 [MIT](LICENSE) 协议开源。
 
