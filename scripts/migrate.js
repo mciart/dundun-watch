@@ -3,6 +3,11 @@
  * 解析 schema.sql，对比现有数据库结构：
  * - 自动添加缺失的列
  * - 自动删除废弃的表（schema.sql 中不存在的表）
+ * 
+ * 用法:
+ *   node scripts/migrate.js          # 本地数据库（默认）
+ *   node scripts/migrate.js --local  # 本地数据库
+ *   node scripts/migrate.js --remote # 远程数据库
  */
 
 import { execSync } from 'child_process';
@@ -15,11 +20,17 @@ const __dirname = path.dirname(__filename);
 
 const DB_NAME = 'dundun-sentinel-db';
 
+// 解析命令行参数，默认使用本地数据库
+const args = process.argv.slice(2);
+const isRemote = args.includes('--remote');
+const TARGET = isRemote ? '--remote' : '--local';
+const TARGET_NAME = isRemote ? '远程' : '本地';
+
 // 获取数据库中所有表名
 function getExistingTables() {
   try {
     const result = execSync(
-      `npx wrangler d1 execute ${DB_NAME} --command "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name NOT LIKE 'd1_%';" --remote --json`,
+      `npx wrangler d1 execute ${DB_NAME} --command "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name NOT LIKE 'd1_%';" ${TARGET} --json`,
       { encoding: 'utf-8' }
     );
     const data = JSON.parse(result);
@@ -37,7 +48,7 @@ function getExistingTables() {
 function wranglerExec(command, silent = false) {
   try {
     const result = execSync(
-      `npx wrangler d1 execute ${DB_NAME} --command "${command}" --remote --json`,
+      `npx wrangler d1 execute ${DB_NAME} --command "${command}" ${TARGET} --json`,
       { encoding: 'utf-8', stdio: silent ? 'pipe' : 'inherit' }
     );
     return JSON.parse(result);
@@ -51,7 +62,7 @@ function wranglerExec(command, silent = false) {
 function getExistingColumns(tableName) {
   try {
     const result = execSync(
-      `npx wrangler d1 execute ${DB_NAME} --command "PRAGMA table_info(${tableName});" --remote --json`,
+      `npx wrangler d1 execute ${DB_NAME} --command "PRAGMA table_info(${tableName});" ${TARGET} --json`,
       { encoding: 'utf-8' }
     );
     const data = JSON.parse(result);
@@ -116,7 +127,7 @@ function parseSchema(schemaPath) {
 
 // 主迁移逻辑
 async function migrate() {
-  console.log('🔄 开始自动数据库迁移...\n');
+  console.log(`🔄 开始自动数据库迁移（${TARGET_NAME}数据库）...\n`);
   
   const schemaPath = path.join(__dirname, '..', 'schema.sql');
   if (!fs.existsSync(schemaPath)) {
@@ -137,7 +148,7 @@ async function migrate() {
       console.log(`   🗑️ 删除废弃表: ${tableName}`);
       try {
         execSync(
-          `npx wrangler d1 execute ${DB_NAME} --command "DROP TABLE IF EXISTS ${tableName};" --remote --yes`,
+          `npx wrangler d1 execute ${DB_NAME} --command "DROP TABLE IF EXISTS ${tableName};" ${TARGET} --yes`,
           { encoding: 'utf-8', stdio: 'pipe' }
         );
         migrationsRun++;
@@ -167,7 +178,7 @@ async function migrate() {
         console.log(`   ➕ 添加列: ${colName} (${colDef})`);
         try {
           execSync(
-            `npx wrangler d1 execute ${DB_NAME} --command "ALTER TABLE ${tableName} ADD COLUMN ${colName} ${colDef};" --remote --yes`,
+            `npx wrangler d1 execute ${DB_NAME} --command "ALTER TABLE ${tableName} ADD COLUMN ${colName} ${colDef};" ${TARGET} --yes`,
             { encoding: 'utf-8', stdio: 'pipe' }
           );
           migrationsRun++;
@@ -194,7 +205,7 @@ async function migrate() {
   for (const idx of indexes) {
     try {
       execSync(
-        `npx wrangler d1 execute ${DB_NAME} --command "${idx};" --remote --yes`,
+        `npx wrangler d1 execute ${DB_NAME} --command "${idx};" ${TARGET} --yes`,
         { encoding: 'utf-8', stdio: 'pipe' }
       );
     } catch (e) {

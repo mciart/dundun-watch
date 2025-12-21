@@ -11,7 +11,8 @@
     "deploy": "npm run build && wrangler deploy",
     "tail": "wrangler tail",
     "test:local": "wrangler dev --local",
-    "migrate": "node scripts/migrate.js"
+    "migrate": "node scripts/migrate.js",
+    "migrate:remote": "node scripts/migrate.js --remote"
   },
   "keywords": [
     "cloudflare",

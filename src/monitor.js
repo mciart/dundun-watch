@@ -415,7 +415,17 @@ async function batchCheckSSLCertificates(sites) {
       return {};
     }
     
-    const domains = validUrls.map(site => new URL(site.url).hostname);
+    // 安全解析域名，过滤掉格式异常的 URL
+    const domains = validUrls
+      .map(site => {
+        try {
+          return new URL(site.url).hostname;
+        } catch {
+          console.warn(`SSL检测: 跳过无效URL - ${site.url}`);
+          return null;
+        }
+      })
+      .filter(Boolean);
     console.log(`批量检测 ${domains.length} 个域名的SSL证书...`);
     
     const response = await fetch('https://zssl.com/api/ssl/check', {

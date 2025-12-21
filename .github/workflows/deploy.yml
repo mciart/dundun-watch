@@ -79,7 +79,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           echo "🔄 执行自动数据库迁移..."
-          node scripts/migrate.js
+          node scripts/migrate.js --remote
           echo "✅ 迁移完成"
 
       - name: Deploy to Cloudflare Workers
