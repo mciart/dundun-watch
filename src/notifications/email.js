@@ -213,10 +213,20 @@ async function sendViaSMTP(emailCfg, from, subject, html) {
   
   console.log(`📧 连接 SMTP 服务器: ${smtpHost}:${smtpPort} (加密: ${smtpSecure})`);
   
+  // Cloudflare Sockets 要求：
+  // - ssl: secureTransport: 'on' (直接 TLS)
+  // - starttls: secureTransport: 'starttls' (先明文后升级)
+  // - none: 不设置 (明文)
+  const socketOptions = useDirectTLS 
+    ? { secureTransport: 'on' } 
+    : useSTARTTLS 
+      ? { secureTransport: 'starttls' } 
+      : {};
+  
   const socket = connect({
     hostname: smtpHost,
     port: smtpPort
-  }, useDirectTLS ? { secureTransport: 'on' } : {});
+  }, socketOptions);
   
   const writer = socket.writable.getWriter();
   const reader = socket.readable.getReader();
