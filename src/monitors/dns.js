@@ -123,7 +123,8 @@ export async function checkDnsSite(site, checkTime) {
   const recordType = site.dnsRecordType || 'A';
   const expectedValue = site.dnsExpectedValue?.trim() || '';
   const dnsServer = site.dnsServer || 'cloudflare';
-  const dohUrl = getDohUrl(dnsServer);
+  const dnsServerCustom = site.dnsServerCustom || '';
+  const dohUrl = getDohUrl(dnsServer, dnsServerCustom);
   
   try {
     const controller = new AbortController();

@@ -101,6 +101,7 @@ export async function getAllSites(env) {
     dnsRecordType: row.dns_record_type,
     dnsExpectedValue: row.dns_expected_value,
     dnsServer: row.dns_server || 'cloudflare',
+    dnsServerCustom: row.dns_server_custom || '',
     // TCP
     tcpHost: row.tcp_host,
     tcpPort: row.tcp_port,
@@ -157,6 +158,7 @@ export async function getSite(env, siteId) {
     dnsRecordType: row.dns_record_type,
     dnsExpectedValue: row.dns_expected_value,
     dnsServer: row.dns_server || 'cloudflare',
+    dnsServerCustom: row.dns_server_custom || '',
     tcpHost: row.tcp_host,
     tcpPort: row.tcp_port,
     smtpHost: row.smtp_host,
@@ -185,12 +187,12 @@ export async function createSite(env, site) {
       id, name, url, monitor_type, status, response_time, last_check,
       group_id, sort_order, show_url, created_at,
       method, expected_status, timeout, headers, body,
-      dns_record_type, dns_expected_value, dns_server,
+      dns_record_type, dns_expected_value, dns_server, dns_server_custom,
       tcp_host, tcp_port,
       smtp_host, smtp_port, smtp_security,
       push_token, push_interval, last_heartbeat, push_data, show_in_host_panel,
       ssl_cert, ssl_cert_last_check, notify_enabled, inverted, last_message
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     site.id,
     site.name,
@@ -211,6 +213,7 @@ export async function createSite(env, site) {
     site.dnsRecordType || 'A',
     site.dnsExpectedValue || null,
     site.dnsServer || 'cloudflare',
+    site.dnsServerCustom || null,
     site.tcpHost || null,
     site.tcpPort || null,
     site.smtpHost || null,
@@ -244,7 +247,7 @@ export async function updateSite(env, siteId, updates) {
       name = ?, url = ?, monitor_type = ?, status = ?, response_time = ?, last_check = ?,
       group_id = ?, sort_order = ?, host_sort_order = ?, show_url = ?,
       method = ?, expected_status = ?, timeout = ?, headers = ?, body = ?,
-      dns_record_type = ?, dns_expected_value = ?, dns_server = ?,
+      dns_record_type = ?, dns_expected_value = ?, dns_server = ?, dns_server_custom = ?,
       tcp_host = ?, tcp_port = ?,
       smtp_host = ?, smtp_port = ?, smtp_security = ?,
       push_token = ?, push_interval = ?, last_heartbeat = ?, push_data = ?, show_in_host_panel = ?,
@@ -269,6 +272,7 @@ export async function updateSite(env, siteId, updates) {
     merged.dnsRecordType,
     merged.dnsExpectedValue,
     merged.dnsServer || 'cloudflare',
+    merged.dnsServerCustom || null,
     merged.tcpHost,
     merged.tcpPort,
     merged.smtpHost,
@@ -832,6 +836,7 @@ export async function initDatabase(env) {
         dns_record_type TEXT DEFAULT 'A',
         dns_expected_value TEXT,
         dns_server TEXT DEFAULT 'cloudflare',
+        dns_server_custom TEXT,
         tcp_host TEXT,
         tcp_port INTEGER,
         push_token TEXT,

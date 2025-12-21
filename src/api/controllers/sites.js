@@ -73,6 +73,7 @@ export async function addSite(request, env) {
       dnsRecordType: site.dnsRecordType || 'A',
       dnsExpectedValue: site.dnsExpectedValue || '',
       dnsServer: site.dnsServer || 'cloudflare',
+      dnsServerCustom: site.dnsServerCustom || '',
       tcpHost: site.tcpHost || '',
       tcpPort: site.tcpPort ? parseInt(site.tcpPort, 10) : 0,
       // SMTP 监控相关字段
@@ -164,7 +165,7 @@ export async function updateSite(request, env, siteId) {
 
     // 检查关键字段是否变化，需要重置状态
     const criticalFields = [
-      'url', 'monitorType', 'method', 'expectedStatus', 'dnsRecordType', 'dnsExpectedValue', 'dnsServer',
+      'url', 'monitorType', 'method', 'expectedStatus', 'dnsRecordType', 'dnsExpectedValue', 'dnsServer', 'dnsServerCustom',
       'tcpHost', 'tcpPort', 'smtpHost', 'smtpPort', 'smtpSecurity', 'inverted'
     ];
 

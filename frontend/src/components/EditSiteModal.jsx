@@ -12,6 +12,7 @@ const DOH_SERVERS = [
   { value: 'quad9', label: 'Quad9', description: '9.9.9.9' },
   { value: 'alidns', label: '阿里 DNS', description: '223.5.5.5' },
   { value: 'dnspod', label: '腾讯 DNSPod', description: '119.29.29.29' },
+  { value: 'custom', label: '自定义', description: '输入自定义 DoH 地址' },
 ];
 
 // 监控类型配置
@@ -60,6 +61,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     dnsRecordType: site.dnsRecordType || 'A',
     dnsExpectedValue: site.dnsExpectedValue || '',
     dnsServer: site.dnsServer || 'cloudflare',
+    dnsServerCustom: site.dnsServerCustom || '',
     // TCP 相关
     tcpHost: site.tcpHost || '',
     tcpPort: site.tcpPort || '',
@@ -298,6 +300,24 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     选择用于 DNS 查询的 DoH（DNS over HTTPS）服务器
                   </p>
                 </div>
+                {formData.dnsServer === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      自定义 DoH 地址 *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.dnsServerCustom}
+                      onChange={(e) => setFormData({ ...formData, dnsServerCustom: e.target.value })}
+                      className="input-field"
+                      placeholder="https://dns.example.com/dns-query"
+                      required
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      输入支持 DNS-JSON 格式的 DoH 服务器地址
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 

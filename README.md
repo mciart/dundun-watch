@@ -114,7 +114,7 @@
 | Push/心跳    | Worker URL 路由                   | 被动接收主机心跳，支持 CPU/内存/磁盘/延迟等指标上报        | 完成 |
 | MySQL/PSQL   | 官方驱动 + connect()              | 直接从 Worker 连数据库握手（只要数据库公网可达）            | 计划 |
 | Redis        | connect() + Redis 协议            | 可以实现简单的 PING/PONG 握手                               | 计划 |
-| SMTP         | connect()                         | 模拟 SMTP 握手（HELO/EHLO）                                 | 支持 |
+| SMTP         | connect()                         | 模拟 SMTP 握手（HELO/EHLO）                                 | 完成 |
 | Browser Engine | Browser Rendering                | Cloudflare 自家的渲染引擎（需在后台开启）                   | 计划 |
 | MQTT/Kafka   | connect()                         | 只要在代码里集成对应的 JS 版客户端协议库                    | 计划 |
 | gRPC         | 原生 fetch (HTTP/2)               | Worker 原生支持 H2，可做 gRPC 探测                          | 计划 |
