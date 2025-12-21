@@ -22,9 +22,8 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
   const blocksRef = useRef([]);
   const hoveredIndexRef = useRef(null);
   const touchActiveRef = useRef(false);
-  const fetchAttemptRef = useRef(false);
 
-  const { getHistory: getCachedHistory, fetchAllHistory: fetchHistoryBatch, loading: historyLoading, historyCache } = useHistory();
+  const { getHistory: getCachedHistory, historyCache } = useHistory();
 
   const getBlockColors = useCallback((record, isDark = false) => {
     if (!record || record.status === 'empty') {
@@ -234,35 +233,14 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
   }, [measureVisible]);
 
 
+  // 加载历史数据 - 只在 siteId 变化或 historyCache 有新数据时更新
   useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const cachedData = getCachedHistory(siteId);
-        const historyList = Array.isArray(cachedData?.history) ? cachedData.history : [];
-
-        if (historyList.length === 0 && !historyLoading && !fetchAttemptRef.current) {
-          fetchAttemptRef.current = true;
-          try {
-            await fetchHistoryBatch(undefined, true);
-          } catch (error) {
-            console.warn('强制刷新历史数据失败:', error);
-          } finally {
-            fetchAttemptRef.current = false;
-          }
-        }
-
-        const realHistory = historyList.slice(0, CONFIG.MAX_HISTORY).reverse();
-        setHistory(realHistory);
-      } catch (error) {
-        console.error('加载历史失败:', error);
-        setHistory([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadHistory();
-  }, [siteId, getCachedHistory, historyLoading, fetchHistoryBatch, historyCache]);
+    const cachedData = getCachedHistory(siteId);
+    const historyList = Array.isArray(cachedData?.history) ? cachedData.history : [];
+    const realHistory = historyList.slice(0, CONFIG.MAX_HISTORY).reverse();
+    setHistory(realHistory);
+    setLoading(false);
+  }, [siteId, getCachedHistory, historyCache]);
 
 
   useEffect(() => {

@@ -1,16 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, Reorder } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-
-const { Plus, Edit2, Trash2, X, AlertCircle, Image: ImageIcon, GripVertical, Folder } = LucideIcons;
-
-// 根据图标名称获取 Lucide 图标组件
-function getLucideIcon(iconName) {
-  if (!iconName || typeof iconName !== 'string') return null;
-  return LucideIcons[iconName] || null;
-}
-
+import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, GripVertical, Folder } from 'lucide-react';
+import { getLucideIcon } from '../utils/helpers';
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
 import { 

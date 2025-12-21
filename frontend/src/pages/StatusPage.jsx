@@ -1,25 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
-import * as LucideIcons from 'lucide-react';
-
-const { 
+import { 
   Server,
   ServerCog, 
   ServerCrash, 
   TrendingUp,
   Gauge
-} = LucideIcons;
-
-// 根据图标名称获取 Lucide 图标组件
-function getLucideIcon(iconName) {
-  if (!iconName || typeof iconName !== 'string') return null;
-  return LucideIcons[iconName] || null;
-}
-
+} from 'lucide-react';
 import { api, getToken } from '../utils/api';
 import { 
   formatTimeAgo, 
   formatResponseTime, 
-  groupSites 
+  groupSites,
+  getLucideIcon
 } from '../utils/helpers';
 import { REFRESH_INTERVAL } from '../config';
 import StatsCard from '../components/StatsCard';

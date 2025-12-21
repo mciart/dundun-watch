@@ -1,5 +1,16 @@
 import { formatDistanceToNow, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import * as LucideIcons from 'lucide-react';
+
+/**
+ * 根据图标名称获取 Lucide 图标组件
+ * @param {string} iconName - 图标名称（PascalCase），如 "Gauge"、"Users"、"Zap" 等
+ * @returns {React.Component|null} 图标组件或 null
+ */
+export function getLucideIcon(iconName) {
+  if (!iconName || typeof iconName !== 'string') return null;
+  return LucideIcons[iconName] || null;
+}
 
 
 export function formatTimeAgo(timestamp) {

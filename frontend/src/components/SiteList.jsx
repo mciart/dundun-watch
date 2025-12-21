@@ -1,16 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-
-const { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } = LucideIcons;
-
-// 根据图标名称获取 Lucide 图标组件
-function getLucideIcon(iconName) {
-  if (!iconName || typeof iconName !== 'string') return null;
-  return LucideIcons[iconName] || null;
-}
-
-import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
+import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor, getLucideIcon } from '../utils/helpers';
 import { EASING, DURATION } from '../utils/animations';
 
 // 提取一个内部组件来处理单个分组的拖拽逻辑

@@ -1,9 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-
-// 解构常用图标
-const { 
+import { 
   Server, 
   Cpu, 
   MemoryStick, 
@@ -19,21 +16,9 @@ const {
   TrendingUp,
   BarChart3,
   GripVertical
-} = LucideIcons;
-
+} from 'lucide-react';
 import { api } from '../utils/api';
-
-/**
- * 根据图标名称获取 lucide-react 图标组件
- * @param {string} iconName - 图标名称，如 "Gauge"、"Users"、"Zap" 等
- * @returns {React.Component|null} 图标组件或 null
- */
-function getLucideIcon(iconName) {
-  if (!iconName || typeof iconName !== 'string') return null;
-  // 直接从 LucideIcons 中获取
-  const Icon = LucideIcons[iconName];
-  return Icon || null;
-}
+import { getLucideIcon } from '../utils/helpers';
 
 /**
  * 主机监控面板组件
