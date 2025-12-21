@@ -63,6 +63,7 @@ export async function addSite(request, env) {
       tcpHost: site.tcpHost || '',
       tcpPort: site.tcpPort ? parseInt(site.tcpPort, 10) : 0,
       showUrl: site.showUrl || false,
+      notifyEnabled: site.notifyEnabled === true,  // 默认关闭通知
       sortOrder: site.sortOrder || existingSites.length,
       createdAt: Date.now(),
       // Push 监控相关字段

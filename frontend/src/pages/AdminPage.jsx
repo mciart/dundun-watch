@@ -1239,11 +1239,14 @@ export default function AdminPage() {
                       onChange={(e) => setTestNotifSite(e.target.value)}
                       className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none"
                     >
-                      <option value="">随机选择</option>
-                      {sites.map(site => (
+                      <option value="">随机选择（仅已启用通知的站点）</option>
+                      {sites.filter(site => site.notifyEnabled !== false).map(site => (
                         <option key={site.id} value={site.id}>{site.name}</option>
                       ))}
                     </select>
+                    {sites.filter(site => site.notifyEnabled !== false).length === 0 && (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">没有启用通知的站点，请先在站点设置中启用</p>
+                    )}
                   </div>
                   <div className="flex items-end">
                     <button

@@ -38,19 +38,24 @@ export async function testNotification(request, env) {
       return errorResponse('通知功能未启用', 400);
     }
     
-    const sites = await db.getAllSites(env);
+    const allSites = await db.getAllSites(env);
+    // 只筛选启用通知的站点
+    const notifySites = allSites.filter(s => s.notifyEnabled !== false);
     
     let site;
     if (siteId) {
-      site = sites.find(s => s.id === siteId);
+      site = allSites.find(s => s.id === siteId);
       if (!site) {
         return errorResponse('站点不存在', 404);
       }
-    } else {
-      if (!sites || sites.length === 0) {
-        return errorResponse('没有可用的站点', 400);
+      if (site.notifyEnabled === false) {
+        return errorResponse('该站点未启用通知', 400);
       }
-      site = sites[Math.floor(Math.random() * sites.length)];
+    } else {
+      if (!notifySites || notifySites.length === 0) {
+        return errorResponse('没有启用通知的站点', 400);
+      }
+      site = notifySites[Math.floor(Math.random() * notifySites.length)];
     }
     
     // 使用真实的 SSL 证书数据

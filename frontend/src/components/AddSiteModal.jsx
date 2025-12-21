@@ -10,7 +10,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
     url: '',
     groupId: 'default',
     showUrl: false,
-    notifyEnabled: true,  // 是否启用通知
+    notifyEnabled: false,  // 是否启用通知（默认关闭）
     // 监控类型: http 或 dns 或 tcp 或 push
     monitorType: 'http',
     // HTTP 相关
