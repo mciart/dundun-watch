@@ -175,6 +175,10 @@ get_cpu() {
 
 # 获取内存使用率
 get_memory() {
+  # 优先从 /proc/meminfo 读取（更可靠）
+  mem=$(awk '/MemTotal/{t=$2} /MemAvailable/{a=$2} END{if(t>0) printf "%.1f", (t-a)/t*100}' /proc/meminfo 2>/dev/null)
+  [ -n "$mem" ] && echo "$mem" && return
+  # 备用: 使用 free 命令
   mem=$(free 2>/dev/null | awk '/Mem:/ {printf "%.1f", $3/$2 * 100}')
   [ -n "$mem" ] && echo "$mem" || echo "0"
 }
