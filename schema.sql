@@ -38,6 +38,11 @@ CREATE TABLE IF NOT EXISTS sites (
   tcp_host TEXT,
   tcp_port INTEGER,
   
+  -- SMTP 监控配置
+  smtp_host TEXT,
+  smtp_port INTEGER DEFAULT 25,
+  smtp_security TEXT DEFAULT 'starttls',  -- 'smtps', 'starttls', 'none'
+  
   -- Push 监控配置
   push_token TEXT,
   push_interval INTEGER DEFAULT 60,

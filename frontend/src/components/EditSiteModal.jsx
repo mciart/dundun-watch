@@ -10,7 +10,15 @@ const MONITOR_TYPES = [
   { value: 'http', label: 'HTTP(S)', description: '监控网站或 API 可用性' },
   { value: 'dns', label: 'DNS', description: '监控域名 DNS 记录' },
   { value: 'tcp', label: 'TCP 端口', description: '监控端口连通性' },
+  { value: 'smtp', label: 'SMTP', description: '监控邮件服务器可用性' },
   { value: 'push', label: 'Push 心跳', description: '被动接收主机心跳' },
+];
+
+// SMTP 安全性选项
+const SMTP_SECURITY_OPTIONS = [
+  { value: 'smtps', label: 'SMTPS', description: '测试 SMTP/TLS 是否正常工作' },
+  { value: 'none', label: '忽略 STARTTLS', description: '通过明文连接' },
+  { value: 'starttls', label: '使用 STARTTLS', description: '通过明文连接，然后发出 STARTTLS 命令并验证服务器证书' },
 ];
 
 export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) {
@@ -45,6 +53,10 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     // TCP 相关
     tcpHost: site.tcpHost || '',
     tcpPort: site.tcpPort || '',
+    // SMTP 相关
+    smtpHost: site.smtpHost || '',
+    smtpPort: site.smtpPort || '25',
+    smtpSecurity: site.smtpSecurity || 'starttls',
     // Push 相关
     pushTimeoutMinutes: site.pushTimeoutMinutes || 3,
     showInHostPanel: site.showInHostPanel !== false  // 默认为 true
@@ -153,12 +165,21 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
 
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                {formData.monitorType === 'dns' ? '域名 *' : formData.monitorType === 'tcp' ? '主机名 *' : formData.monitorType === 'push' ? '主机名称 *' : '站点 URL *'}
+                {formData.monitorType === 'dns' ? '域名 *' : (formData.monitorType === 'tcp' || formData.monitorType === 'smtp') ? '主机名 *' : formData.monitorType === 'push' ? '主机名称 *' : '站点 URL *'}
               </label>
               {formData.monitorType === 'push' ? (
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
                   Push 模式下，主机会主动向监控系统发送心跳，无需填写 URL
                 </p>
+              ) : formData.monitorType === 'smtp' ? (
+              <input
+                type="text"
+                value={formData.smtpHost}
+                onChange={(e) => setFormData({ ...formData, smtpHost: e.target.value })}
+                className="input-field"
+                placeholder="smtp.example.com"
+                required
+              />
               ) : (
               <input
                 type="text"
@@ -277,6 +298,85 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     常见端口：SSH(22)、MySQL(3306)、Redis(6379)、PostgreSQL(5432)
                   </p>
+                </div>
+              </div>
+            )}
+
+            {/* SMTP 监控配置 */}
+            {formData.monitorType === 'smtp' && (
+              <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-cyan-50/50 dark:bg-cyan-900/10 border border-cyan-200 dark:border-cyan-800">
+                <div className="flex items-center gap-2 text-cyan-700 dark:text-cyan-300 text-sm font-medium">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  SMTP 邮件服务器检测配置
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    端口 *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="65535"
+                    value={formData.smtpPort}
+                    onChange={(e) => setFormData({ ...formData, smtpPort: e.target.value })}
+                    className="input-field"
+                    placeholder="25"
+                    required
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    常见端口：25（SMTP）、465（SMTPS）、587（Submission）
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    SMTP 安全性
+                  </label>
+                  <select
+                    value={formData.smtpSecurity}
+                    onChange={(e) => setFormData({ ...formData, smtpSecurity: e.target.value })}
+                    className="input-field"
+                  >
+                    {SMTP_SECURITY_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                    {SMTP_SECURITY_OPTIONS.find(opt => opt.value === formData.smtpSecurity)?.description}
+                  </p>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <p className="font-medium mb-1">💡 安全性说明：</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li><strong>SMTPS</strong>：测试 SMTP/TLS 是否正常工作</li>
+                    <li><strong>忽略 STARTTLS</strong>：通过明文连接</li>
+                    <li><strong>使用 STARTTLS</strong>：通过明文连接，然后发出 STARTTLS 命令并验证服务器证书</li>
+                  </ul>
+                  <p className="mt-2 text-amber-600 dark:text-amber-400">⚠️ 这些方式都不会导致实际发送电子邮件。</p>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-cyan-200 dark:border-cyan-800">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      反转模式
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      开启后，服务可访问视为故障，不可访问视为正常
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, inverted: !formData.inverted })}
+                    className={`relative w-11 h-6 rounded-full transition-colors ${
+                      formData.inverted 
+                        ? 'bg-amber-500' 
+                        : 'bg-slate-300 dark:bg-slate-600'
+                    }`}
+                  >
+                    <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                      formData.inverted ? 'translate-x-5' : 'translate-x-0'
+                    }`} />
+                  </button>
                 </div>
               </div>
             )}
@@ -576,8 +676,8 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
               </label>
             </div>
 
-            {/* 反转模式选项 - 仅非 Push 类型显示 */}
-            {formData.monitorType !== 'push' && (
+            {/* 反转模式选项 - 仅非 Push 和非 SMTP 类型显示（SMTP 在配置面板中已有） */}
+            {formData.monitorType !== 'push' && formData.monitorType !== 'smtp' && (
             <div className="flex items-center justify-between">
               <div>
                 <label className="text-sm font-medium text-slate-700 dark:text-slate-300">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, ShieldAlert, ShieldCheck, Globe, Server } from 'lucide-react';
+import { Shield, ShieldAlert, ShieldCheck, Globe, Server, Mail } from 'lucide-react';
 import { formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
 import StatusBar from './StatusBarCanvas';
 
@@ -7,6 +7,7 @@ export default function SiteCard({ site, index }) {
   const daysLeft = typeof site?.sslCert?.daysLeft === 'number' ? site.sslCert.daysLeft : null;
   const certExpired = daysLeft !== null && daysLeft < 0;
   const isDns = site.monitorType === 'dns';
+  const isSmtp = site.monitorType === 'smtp';
   const isPush = site.monitorType === 'push';
 
   const handleSiteClick = () => {
@@ -87,9 +88,17 @@ export default function SiteCard({ site, index }) {
                 <span>Push</span>
               </div>
             )}
+
+            {/* SMTP 监控标识 */}
+            {isSmtp && (
+              <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 flex-shrink-0">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span>SMTP</span>
+              </div>
+            )}
             
             {/* SSL证书状态 - 美化版 (仅 HTTP 监控显示) */}
-            {!isDns && !isPush && site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
+            {!isDns && !isPush && !isSmtp && site.sslCertLastCheck > 0 && site.sslCert && daysLeft !== null && (
               <div className={`
                 inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0
                 ${certExpired
@@ -115,7 +124,7 @@ export default function SiteCard({ site, index }) {
             )}
             
             {/* 无证书状态 (仅 HTTP 监控显示) */}
-            {!isDns && !isPush && site.sslCertLastCheck > 0 && !site.sslCert && (
+            {!isDns && !isPush && !isSmtp && site.sslCertLastCheck > 0 && !site.sslCert && (
               <div className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800 flex-shrink-0">
                 <ShieldAlert className="w-3 h-3 flex-shrink-0" />
                 <span>证书无效</span>

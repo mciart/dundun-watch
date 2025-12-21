@@ -104,6 +104,10 @@ export async function getAllSites(env) {
     // TCP
     tcpHost: row.tcp_host,
     tcpPort: row.tcp_port,
+    // SMTP
+    smtpHost: row.smtp_host,
+    smtpPort: row.smtp_port,
+    smtpSecurity: row.smtp_security,
     // Push
     pushToken: row.push_token,
     pushInterval: row.push_interval,
@@ -154,6 +158,9 @@ export async function getSite(env, siteId) {
     dnsExpectedValue: row.dns_expected_value,
     tcpHost: row.tcp_host,
     tcpPort: row.tcp_port,
+    smtpHost: row.smtp_host,
+    smtpPort: row.smtp_port,
+    smtpSecurity: row.smtp_security,
     pushToken: row.push_token,
     pushInterval: row.push_interval,
     lastHeartbeat: row.last_heartbeat,
@@ -179,9 +186,10 @@ export async function createSite(env, site) {
       method, expected_status, timeout, headers, body,
       dns_record_type, dns_expected_value,
       tcp_host, tcp_port,
+      smtp_host, smtp_port, smtp_security,
       push_token, push_interval, last_heartbeat, push_data, show_in_host_panel,
       ssl_cert, ssl_cert_last_check, notify_enabled, inverted, last_message
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     site.id,
     site.name,
@@ -203,6 +211,9 @@ export async function createSite(env, site) {
     site.dnsExpectedValue || null,
     site.tcpHost || null,
     site.tcpPort || null,
+    site.smtpHost || null,
+    site.smtpPort || 25,
+    site.smtpSecurity || 'starttls',
     site.pushToken || null,
     site.pushInterval || 60,
     site.lastHeartbeat || 0,
@@ -233,6 +244,7 @@ export async function updateSite(env, siteId, updates) {
       method = ?, expected_status = ?, timeout = ?, headers = ?, body = ?,
       dns_record_type = ?, dns_expected_value = ?,
       tcp_host = ?, tcp_port = ?,
+      smtp_host = ?, smtp_port = ?, smtp_security = ?,
       push_token = ?, push_interval = ?, last_heartbeat = ?, push_data = ?, show_in_host_panel = ?,
       ssl_cert = ?, ssl_cert_last_check = ?, notify_enabled = ?, inverted = ?, last_message = ?
     WHERE id = ?
@@ -256,6 +268,9 @@ export async function updateSite(env, siteId, updates) {
     merged.dnsExpectedValue,
     merged.tcpHost,
     merged.tcpPort,
+    merged.smtpHost,
+    merged.smtpPort || 25,
+    merged.smtpSecurity || 'starttls',
     merged.pushToken,
     merged.pushInterval,
     merged.lastHeartbeat,

@@ -23,5 +23,8 @@
   "license": "MIT",
   "devDependencies": {
     "wrangler": "^4.56.0"
+  },
+  "dependencies": {
+    "migrate": "^2.1.0"
   }
 }

@@ -20,6 +20,7 @@ export async function addSite(request, env) {
     const site = await request.json();
     const isDns = site.monitorType === 'dns';
     const isTcp = site.monitorType === 'tcp';
+    const isSmtp = site.monitorType === 'smtp';
     const isPush = site.monitorType === 'push';
     
     if (isDns) {
@@ -32,6 +33,17 @@ export async function addSite(request, env) {
       }
       if (!site.tcpPort || isNaN(parseInt(site.tcpPort)) || parseInt(site.tcpPort) < 1 || parseInt(site.tcpPort) > 65535) {
         return errorResponse('无效的端口号（必须为 1-65535）', 400);
+      }
+    } else if (isSmtp) {
+      if (!site.smtpHost || !isValidHost(site.smtpHost)) {
+        return errorResponse('无效的SMTP主机名', 400);
+      }
+      if (!site.smtpPort || isNaN(parseInt(site.smtpPort)) || parseInt(site.smtpPort) < 1 || parseInt(site.smtpPort) > 65535) {
+        return errorResponse('无效的SMTP端口号（必须为 1-65535）', 400);
+      }
+      const validSecurityModes = ['smtps', 'starttls', 'none'];
+      if (site.smtpSecurity && !validSecurityModes.includes(site.smtpSecurity)) {
+        return errorResponse('无效的SMTP安全模式', 400);
       }
     } else if (isPush) {
       if (!site.name || site.name.trim() === '') {
@@ -48,7 +60,7 @@ export async function addSite(request, env) {
     const newSite = {
       id: generateId(),
       name: site.name || '未命名站点',
-      url: (isTcp || isPush) ? '' : site.url,
+      url: (isTcp || isPush || isSmtp) ? '' : site.url,
       status: 'unknown',
       responseTime: 0,
       lastCheck: 0,
@@ -62,6 +74,10 @@ export async function addSite(request, env) {
       dnsExpectedValue: site.dnsExpectedValue || '',
       tcpHost: site.tcpHost || '',
       tcpPort: site.tcpPort ? parseInt(site.tcpPort, 10) : 0,
+      // SMTP 监控相关字段
+      smtpHost: site.smtpHost || '',
+      smtpPort: site.smtpPort ? parseInt(site.smtpPort, 10) : 25,
+      smtpSecurity: site.smtpSecurity || 'starttls',
       showUrl: site.showUrl || false,
       notifyEnabled: site.notifyEnabled === true,  // 默认关闭通知
       inverted: site.inverted === true,  // 反转模式
@@ -106,6 +122,21 @@ export async function updateSite(request, env, siteId) {
         }
         updates.tcpPort = port;
       }
+    } else if (newMonitorType === 'smtp') {
+      if (updates.smtpHost && !isValidHost(updates.smtpHost)) {
+        return errorResponse('无效的SMTP主机名', 400);
+      }
+      if (updates.smtpPort !== undefined) {
+        const port = parseInt(updates.smtpPort, 10);
+        if (isNaN(port) || port < 1 || port > 65535) {
+          return errorResponse('无效的SMTP端口号（必须为 1-65535）', 400);
+        }
+        updates.smtpPort = port;
+      }
+      const validSecurityModes = ['smtps', 'starttls', 'none'];
+      if (updates.smtpSecurity && !validSecurityModes.includes(updates.smtpSecurity)) {
+        return errorResponse('无效的SMTP安全模式', 400);
+      }
     } else if (newMonitorType === 'push') {
       if (updates.pushInterval !== undefined) {
         const interval = parseInt(updates.pushInterval, 10);
@@ -132,7 +163,8 @@ export async function updateSite(request, env, siteId) {
 
     // 检查关键字段是否变化，需要重置状态
     const criticalFields = [
-      'url', 'monitorType', 'method', 'expectedStatus', 'dnsRecordType', 'dnsExpectedValue', 'tcpHost', 'tcpPort', 'inverted'
+      'url', 'monitorType', 'method', 'expectedStatus', 'dnsRecordType', 'dnsExpectedValue', 
+      'tcpHost', 'tcpPort', 'smtpHost', 'smtpPort', 'smtpSecurity', 'inverted'
     ];
 
     const needReset = criticalFields.some(field => {
