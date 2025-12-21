@@ -52,6 +52,9 @@ CREATE TABLE IF NOT EXISTS sites (
   -- 通知设置
   notify_enabled INTEGER DEFAULT 0,  -- 0=关闭, 1=启用
   
+  -- 反转模式
+  inverted INTEGER DEFAULT 0,  -- 0=正常, 1=反转（可访问=故障）
+  
   -- 状态消息
   last_message TEXT
 );
@@ -72,6 +75,8 @@ CREATE TABLE IF NOT EXISTS history (
 
 -- 历史记录索引：按站点和时间查询
 CREATE INDEX IF NOT EXISTS idx_history_site_time ON history(site_id, timestamp DESC);
+-- 历史记录索引：优化清理旧数据
+CREATE INDEX IF NOT EXISTS idx_history_timestamp ON history(timestamp);
 
 -- 事件记录表：存储故障事件
 CREATE TABLE IF NOT EXISTS incidents (
@@ -133,3 +138,5 @@ CREATE TABLE IF NOT EXISTS push_history (
 
 -- Push 历史索引
 CREATE INDEX IF NOT EXISTS idx_push_history_site_time ON push_history(site_id, timestamp DESC);
+-- Push 历史索引：优化清理旧数据
+CREATE INDEX IF NOT EXISTS idx_push_history_timestamp ON push_history(timestamp);

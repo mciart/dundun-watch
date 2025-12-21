@@ -40,6 +40,21 @@ export async function handleMonitor(env, ctx, options = {}) {
   });
   const results = await Promise.all(checkPromises);
 
+  // 处理反转模式：交换 online 和 offline 状态
+  for (let i = 0; i < sitesToCheck.length; i++) {
+    const site = sitesToCheck[i];
+    if (site.inverted && results[i]) {
+      const result = results[i];
+      if (result.status === 'online' || result.status === 'slow') {
+        result.status = 'offline';
+        result.message = `[反转] ${result.message || '服务可访问'}`;
+      } else if (result.status === 'offline') {
+        result.status = 'online';
+        result.message = `[反转] ${result.message || '服务不可访问'}`;
+      }
+    }
+  }
+
   // 准备批量更新
   const statusUpdates = [];
   const historyRecords = [];

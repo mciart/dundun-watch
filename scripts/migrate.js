@@ -184,7 +184,9 @@ async function migrate() {
   console.log('\n📋 检查索引...');
   const indexes = [
     'CREATE INDEX IF NOT EXISTS idx_history_site_time ON history(site_id, timestamp DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_history_timestamp ON history(timestamp)',
     'CREATE INDEX IF NOT EXISTS idx_push_history_site_time ON push_history(site_id, timestamp DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_push_history_timestamp ON push_history(timestamp)',
     'CREATE INDEX IF NOT EXISTS idx_incidents_site ON incidents(site_id)',
     'CREATE INDEX IF NOT EXISTS idx_incidents_time ON incidents(created_at DESC)'
   ];

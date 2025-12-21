@@ -12,6 +12,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     groupId: site.groupId || 'default',
     showUrl: site.showUrl || false,
     notifyEnabled: !!site.notifyEnabled,  // 从站点数据读取，默认为 false
+    inverted: !!site.inverted,  // 反转模式
     // 监控类型
     monitorType: site.monitorType || 'http',
     // HTTP 相关
@@ -598,6 +599,29 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
               </label>
             </div>
+
+            {/* 反转模式选项 - 仅非 Push 类型显示 */}
+            {formData.monitorType !== 'push' && (
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  反转模式
+                </label>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  开启后，服务可访问视为故障，不可访问视为正常
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={formData.inverted}
+                  onChange={(e) => setFormData({ ...formData, inverted: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+            )}
 
             {error && (
               <motion.div
