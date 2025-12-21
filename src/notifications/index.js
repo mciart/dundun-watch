@@ -12,6 +12,12 @@ export async function sendNotifications(env, incident, site, cfg, returnResults 
     return returnResults ? { results: {} } : undefined;
   }
   
+  // 检查站点级别的通知设置
+  if (site && site.notifyEnabled === false) {
+    console.log(`站点 ${site.name} 已禁用通知，跳过发送`);
+    return returnResults ? { results: {}, skipped: true, reason: '站点已禁用通知' } : undefined;
+  }
+  
   const results = {};
   const promises = [];
   
