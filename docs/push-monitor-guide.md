@@ -142,7 +142,103 @@ urllib.request.urlopen(req, timeout=10)
 | `temperature` / `temp` | number | CPU 温度（摄氏度） |
 | `latency` | number | 自定义延迟值（毫秒） |
 | `network` | object | 网络信息（自定义） |
-| `custom` | any | 自定义数据 |
+| `custom` | object | 自定义数据（见下方详细说明） |
+
+## 自定义字段（custom）
+
+`custom` 字段支持上报任意自定义指标，每个字段可以是简单数值或对象形式：
+
+### 简单数值
+```json
+{
+  "custom": {
+    "queue_size": 42,
+    "workers": 8
+  }
+}
+```
+
+### 完整对象格式
+```json
+{
+  "custom": {
+    "gpu": {
+      "value": 45,
+      "label": "GPU",
+      "unit": "%",
+      "icon": "gpu",
+      "color": "#8b5cf6",
+      "showHistory": true
+    }
+  }
+}
+```
+
+### 字段说明
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `value` | number | ✅ | 数值 |
+| `label` | string | ❌ | 显示名称，默认使用字段 key |
+| `unit` | string | ❌ | 单位，如 `%`, `MB`, `°C` |
+| `icon` | string | ❌ | 图标名称（见下方支持列表） |
+| `color` | string | ❌ | 图表颜色，如 `#10b981` |
+| `showHistory` | boolean | ❌ | 是否显示历史走势，默认 true |
+
+### 支持的图标
+
+**系统监控**: `cpu`, `memory`, `disk`, `storage`, `database`, `activity`, `load`, `temperature`, `gauge`
+
+**GPU/显卡**: `gpu`, `graphics`, `vram`, `monitor`
+
+**网络相关**: `network`, `wifi`, `signal`, `router`, `globe`, `upload`, `download`, `bandwidth`
+
+**连接/用户**: `connections`, `users`, `user`, `sessions`, `online`
+
+**服务器/设备**: `server`, `cloud`, `container`, `docker`, `laptop`, `smartphone`
+
+**电源/能源**: `battery`, `power`, `energy`, `zap`, `bolt`
+
+**散热/环境**: `fan`, `cooling`, `flame`, `droplet`, `humidity`, `wind`, `sun`, `moon`
+
+**消息/队列**: `message`, `queue`, `bell`, `notification`, `send`
+
+**状态/趋势**: `trend`, `chart`, `stats`, `eye`, `views`
+
+### 完整示例
+
+```bash
+curl -X POST "https://你的域名/api/push/你的Token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cpu": 25.5,
+    "memory": 60.2,
+    "disk": 45.0,
+    "custom": {
+      "gpu": { 
+        "value": 45, 
+        "label": "GPU", 
+        "unit": "%", 
+        "icon": "gpu",
+        "showHistory": true 
+      },
+      "connections": { 
+        "value": 128, 
+        "label": "连接数", 
+        "icon": "users",
+        "showHistory": true 
+      },
+      "download_speed": { 
+        "value": 156.8, 
+        "label": "下载速度", 
+        "unit": "MB/s", 
+        "icon": "download",
+        "color": "#06b6d4"
+      },
+      "queue_size": 42
+    }
+  }'
+```
 
 ## 常见问题
 

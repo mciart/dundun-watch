@@ -15,8 +15,179 @@ import {
   X,
   TrendingUp,
   BarChart3,
-  GripVertical
+  GripVertical,
+  // 扩展图标 - 用于自定义字段
+  Gauge,
+  Zap,
+  Database,
+  Network,
+  Globe,
+  Cloud,
+  CloudRain,
+  Upload,
+  Download,
+  Users,
+  User,
+  Box,
+  Package,
+  Layers,
+  Monitor,
+  Smartphone,
+  Laptop,
+  Battery,
+  BatteryCharging,
+  Signal,
+  Radio,
+  Router,
+  HardDriveDownload,
+  HardDriveUpload,
+  Fan,
+  Flame,
+  Droplet,
+  Wind,
+  Sun,
+  Moon,
+  Eye,
+  Bell,
+  MessageSquare,
+  Send,
+  RefreshCw,
+  Settings,
+  Wrench,
+  Cog,
+  CircleDot,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
+
+// 图标映射表 - 将字符串名称映射到图标组件
+const ICON_MAP = {
+  // 系统监控相关
+  cpu: Cpu,
+  memory: MemoryStick,
+  ram: MemoryStick,
+  disk: HardDrive,
+  hdd: HardDrive,
+  ssd: HardDrive,
+  storage: Database,
+  database: Database,
+  activity: Activity,
+  load: Activity,
+  temperature: Thermometer,
+  temp: Thermometer,
+  thermometer: Thermometer,
+  gauge: Gauge,
+  meter: Gauge,
+  
+  // GPU 和显卡相关
+  gpu: Monitor,
+  graphics: Monitor,
+  vram: Monitor,
+  
+  // 网络相关
+  network: Network,
+  wifi: Wifi,
+  signal: Signal,
+  radio: Radio,
+  router: Router,
+  globe: Globe,
+  internet: Globe,
+  upload: Upload,
+  download: Download,
+  'upload-speed': HardDriveUpload,
+  'download-speed': HardDriveDownload,
+  bandwidth: ArrowUpDown,
+  
+  // 连接和用户
+  connections: Users,
+  users: Users,
+  user: User,
+  online: Users,
+  sessions: Users,
+  
+  // 服务器和设备
+  server: Server,
+  cloud: Cloud,
+  box: Box,
+  package: Package,
+  container: Package,
+  docker: Package,
+  layers: Layers,
+  monitor: Monitor,
+  screen: Monitor,
+  laptop: Laptop,
+  smartphone: Smartphone,
+  mobile: Smartphone,
+  
+  // 电源和能源
+  battery: Battery,
+  power: BatteryCharging,
+  energy: Zap,
+  zap: Zap,
+  bolt: Zap,
+  lightning: Zap,
+  
+  // 散热和环境
+  fan: Fan,
+  cooling: Fan,
+  flame: Flame,
+  fire: Flame,
+  heat: Flame,
+  droplet: Droplet,
+  water: Droplet,
+  humidity: Droplet,
+  wind: Wind,
+  air: Wind,
+  sun: Sun,
+  moon: Moon,
+  weather: CloudRain,
+  
+  // 消息和通知
+  message: MessageSquare,
+  messages: MessageSquare,
+  queue: MessageSquare,
+  bell: Bell,
+  notification: Bell,
+  send: Send,
+  
+  // 状态和趋势
+  trend: TrendingUp,
+  trending: TrendingUp,
+  chart: BarChart3,
+  stats: BarChart3,
+  eye: Eye,
+  view: Eye,
+  views: Eye,
+  
+  // 通用
+  refresh: RefreshCw,
+  sync: RefreshCw,
+  settings: Settings,
+  config: Settings,
+  wrench: Wrench,
+  tool: Wrench,
+  cog: Cog,
+  gear: Cog,
+  dot: CircleDot,
+  point: CircleDot,
+  up: ArrowUp,
+  down: ArrowDown,
+  clock: Clock,
+  time: Clock,
+  uptime: Clock,
+};
+
+/**
+ * 根据图标名称获取图标组件
+ * @param {string} iconName - 图标名称
+ * @returns {React.Component} 图标组件，默认返回 Activity
+ */
+function getIconComponent(iconName) {
+  if (!iconName) return Activity;
+  const normalizedName = iconName.toLowerCase().replace(/[_\s]/g, '-');
+  return ICON_MAP[normalizedName] || Activity;
+}
 import { api } from '../utils/api';
 
 /**
@@ -592,17 +763,17 @@ function HostDetailModal({ site, onClose }) {
             key: `custom.${key}`,
             label: customField.label || key,
             unit: customField.unit || '',
-            icon: Activity,
+            icon: getIconComponent(customField.icon || key),
             color: customField.color || '#64748b',
             isCustom: true
           });
         } else if (typeof customField === 'number') {
-          // 数字类型直接显示
+          // 数字类型直接显示，尝试根据 key 匹配图标
           base.push({
             key: `custom.${key}`,
             label: key,
             unit: '',
-            icon: Activity,
+            icon: getIconComponent(key),
             color: '#64748b',
             isCustom: true
           });
@@ -742,7 +913,7 @@ function HostDetailModal({ site, onClose }) {
               >
                 {metrics.map(metric => (
                   <option key={metric.key} value={metric.key}>
-                    {metric.label}{metric.isCustom ? ' (自定义)' : ''}
+                    {metric.label}
                   </option>
                 ))}
               </select>
@@ -764,9 +935,6 @@ function HostDetailModal({ site, onClose }) {
                   >
                     <Icon className="w-4 h-4" />
                     {metric.label}
-                    {metric.isCustom && (
-                      <span className="text-xs opacity-60">(自定义)</span>
-                    )}
                   </button>
                 );
               })}
@@ -840,14 +1008,26 @@ function HostDetailModal({ site, onClose }) {
     "cpu": 25.5,
     "memory": 60.2,
     "custom": {
-      "gpu": { "value": 45, "label": "GPU", "unit": "%", "showHistory": true },
-      "connections": { "value": 128, "label": "连接数", "showHistory": true },
+      "gpu": { 
+        "value": 45, 
+        "label": "GPU", 
+        "unit": "%", 
+        "icon": "gpu",
+        "showHistory": true 
+      },
+      "connections": { 
+        "value": 128, 
+        "label": "连接数", 
+        "icon": "users",
+        "showHistory": true 
+      },
       "queue_size": 42
     }
   }'`}
             </pre>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2">
-                设置 <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">showHistory: false</code> 可以隐藏某个字段的历史走势
+                <strong>icon</strong>: 可选图标名，如 gpu, users, network, upload, download, battery, fan 等<br/>
+                <strong>showHistory</strong>: 设为 false 可隐藏历史走势
               </p>
             </div>
           </details>

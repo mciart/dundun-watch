@@ -537,9 +537,14 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
     "temperature": 55,
     "latency": 15,
     "network": {"rx": 1024, "tx": 512},
-    "custom": {"key": "value"}
+    "custom": {
+      "gpu": { "value": 45, "label": "GPU", "unit": "%", "icon": "gpu", "showHistory": true },
+      "connections": { "value": 128, "label": "连接数", "icon": "users" }
+    }
   }'
 ```
+
+#### 基础字段
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -551,7 +556,48 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
 | `temperature` / `temp` | number | 温度 (°C) |
 | `latency` | number | 延迟/响应时间 (ms) |
 | `network` | object | 网络流量信息 |
-| `custom` | object | 自定义数据 |
+| `custom` | object | 自定义数据（见下方详细说明） |
+
+#### 自定义字段（custom）
+
+`custom` 字段支持任意自定义指标，支持简单数值或完整对象格式：
+
+```json
+{
+  "custom": {
+    "gpu": { 
+      "value": 45, 
+      "label": "GPU", 
+      "unit": "%", 
+      "icon": "gpu",
+      "color": "#8b5cf6",
+      "showHistory": true 
+    },
+    "queue_size": 42
+  }
+}
+```
+
+| 属性 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `value` | number | ✅ | 数值 |
+| `label` | string | ❌ | 显示名称 |
+| `unit` | string | ❌ | 单位，如 `%`, `MB`, `°C` |
+| `icon` | string | ❌ | 图标名称（见下方列表） |
+| `color` | string | ❌ | 图表颜色，如 `#10b981` |
+| `showHistory` | boolean | ❌ | 是否显示历史走势，默认 true |
+
+**支持的图标名称**：
+- **系统**: `cpu`, `memory`, `disk`, `storage`, `database`, `load`, `temperature`, `gauge`
+- **GPU**: `gpu`, `graphics`, `monitor`
+- **网络**: `network`, `wifi`, `signal`, `router`, `upload`, `download`, `bandwidth`
+- **连接**: `connections`, `users`, `sessions`
+- **设备**: `server`, `cloud`, `container`, `docker`, `laptop`
+- **电源**: `battery`, `power`, `energy`, `zap`
+- **环境**: `fan`, `flame`, `droplet`, `humidity`, `wind`
+- **消息**: `message`, `queue`, `bell`, `notification`
+
+> 📖 完整文档请参考 [Push 心跳监控使用指南](docs/push-monitor-guide.md)
 
 ### D1 配额说明
 
