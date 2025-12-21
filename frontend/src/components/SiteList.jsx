@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from 'react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion'; // 引入 Reorder
-import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react'; // 引入 GripVertical，移除 ChevronUp/Down
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
+import { EASING, DURATION } from '../utils/animations';
 
 // 提取一个内部组件来处理单个分组的拖拽逻辑
 const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete }) => {
@@ -77,20 +78,26 @@ const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete })
           </div>
 
           <div className="flex items-center gap-1">
-            <button
+            <motion.button
               onClick={() => onEdit(site)}
               className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
               title="编辑"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
             >
               <Edit className="w-3.5 h-3.5" />
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               onClick={() => onDelete(site.id)}
               className="p-1.5 rounded-lg bg-danger-100 dark:bg-danger-900/30 text-danger-600 dark:text-danger-400 hover:bg-danger-200 dark:hover:bg-danger-900/50 transition-colors"
               title="删除"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
             >
               <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            </motion.button>
           </div>
         </Reorder.Item>
       ))}
@@ -161,17 +168,26 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
         const isExpanded = expandedGroups[group.id] !== false;
 
         return (
-          <div key={group.id} className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <button
+          <motion.div 
+            key={group.id} 
+            className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
+          >
+            <motion.button
               onClick={() => toggleGroup(group.id)}
               className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
+              whileTap={{ scale: 0.99 }}
             >
               <div className="flex items-center gap-2">
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-slate-500" />
-                ) : (
+                <motion.div
+                  animate={{ rotate: isExpanded ? 90 : 0 }}
+                  transition={{ duration: DURATION.fast, ease: EASING.bounce }}
+                >
                   <ChevronRight className="w-4 h-4 text-slate-500" />
-                )}
+                </motion.div>
                 {group.icon && (
                   <i className={`${group.icon} w-4 h-4`} style={{ color: group.iconColor || '#3B82F6' }} />
                 )}
@@ -180,7 +196,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                   ({sitesInGroup.length})
                 </span>
               </div>
-            </button>
+            </motion.button>
 
             <AnimatePresence initial={false}>
               {isExpanded && (
@@ -188,7 +204,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
+                  transition={{ duration: DURATION.normal, ease: EASING.bounce }}
                   className="overflow-hidden"
                 >
                   {/* 使用提取的 SortableSiteGroup 组件 */}
@@ -202,7 +218,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         );
       })}
     </div>

@@ -30,7 +30,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all btn-icon hover:rotate-90"
             >
               <X className="w-5 h-5" />
             </button>

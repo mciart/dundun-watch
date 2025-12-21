@@ -113,13 +113,11 @@ export default function IncidentCarousel({ limit = 20, autoInterval = SLIDE_DURA
       onTouchEnd={() => setIsPaused(false)}
     >
       <div className="flex items-center gap-4 px-6 py-3">
-        <motion.div 
-          className="flex-shrink-0 text-black dark:text-white cursor-pointer"
-          whileHover={{ rotate: [0, -10, 10, -10, 10, 0] }}
-          transition={{ duration: 0.5 }}
+        <div 
+          className="flex-shrink-0 text-black dark:text-white cursor-pointer transition-transform duration-200 hover:scale-110 hover:rotate-12"
         >
           <Bell className="w-5 h-5" />
-        </motion.div>
+        </div>
 
         <div 
           className="flex-1 min-w-0 cursor-pointer group/content transition-colors"
@@ -159,7 +157,7 @@ export default function IncidentCarousel({ limit = 20, autoInterval = SLIDE_DURA
         </div>
 
         <div 
-          className="flex-shrink-0 cursor-pointer"
+          className="flex-shrink-0 cursor-pointer transition-transform duration-200 hover:translate-x-1 hover:scale-110 active:scale-90"
           onClick={() => navigate('/incidents')}
         >
           <i className="fa-solid fa-circle-arrow-right text-2xl text-slate-600 dark:text-slate-300 hover:text-[#425AEF] dark:hover:text-[#FF953E] transition-colors" />

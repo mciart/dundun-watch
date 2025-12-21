@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Server,
   ServerCog, 
@@ -166,10 +165,7 @@ export default function StatusPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-[auto,1fr,auto] items-center h-16 gap-4">
             {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+            <div
               className="flex items-center gap-4 min-w-0"
             >
               <div className="w-10 h-10 rounded-xl flex items-center justify-center">
@@ -183,16 +179,13 @@ export default function StatusPage() {
                   {siteSettings.siteSubtitle}
                 </p>
               </div>
-            </motion.div>
+            </div>
 
             {/* 右侧区域 */}
             <div className="flex items-center gap-3 justify-end">
               {/* 最后监测时间 */}
               {lastCheckTime > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: 0.15 }}
+                <div
                   className="hidden md:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
                 >
                   <span className="font-medium whitespace-nowrap">
@@ -206,17 +199,13 @@ export default function StatusPage() {
                     }).replace(/\//g, '-')}
                   </span>
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                </motion.div>
+                </div>
               )}
               
               {/* 主题切换按钮 */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
+              <div>
                 <ThemeToggle />
-              </motion.div>
+              </div>
             </div>
           </div>
         </div>
@@ -282,9 +271,7 @@ export default function StatusPage() {
             <p className="mt-4 text-slate-500 dark:text-slate-400">加载中...</p>
           </div>
         ) : sites.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          <div
             className="glass-card p-12 text-center"
           >
             <TrendingUp className="w-16 h-16 mx-auto text-slate-400 mb-4" />
@@ -294,15 +281,12 @@ export default function StatusPage() {
             <p className="text-slate-500 dark:text-slate-400">
               暂无可显示的监控站点
             </p>
-          </motion.div>
+          </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedSites).map(([group, groupSites], groupIndex) => (
-              <motion.div
+              <div
                 key={group}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: groupIndex * 0.05, ease: "easeOut" }}
                 className="space-y-3"
               >
                 {/* 分类标题 */}
@@ -341,7 +325,7 @@ export default function StatusPage() {
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}

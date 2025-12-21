@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, Reorder } from 'framer-motion';
+import { motion, Reorder, AnimatePresence } from 'framer-motion';
 import { 
   Server, 
   Cpu, 
@@ -72,14 +72,18 @@ export default function HostMonitorPanel({ sites = [], displayMode = 'card', onR
   }
 
   return (
-    <div className="mb-8">
+    <div 
+      className="mb-8"
+    >
       {/* 标题栏 */}
       <div 
-        className="flex items-center justify-between mb-4 cursor-pointer"
+        className="flex items-center justify-between mb-4 cursor-pointer group transition-transform duration-200 hover:translate-x-1"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20">
+          <div 
+            className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/20 transition-transform duration-300 group-hover:scale-110"
+          >
             <Server className="w-5 h-5" />
           </div>
           <div>
@@ -91,18 +95,21 @@ export default function HostMonitorPanel({ sites = [], displayMode = 'card', onR
             </p>
           </div>
         </div>
-        <button className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-          {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+        <button 
+          className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-300 btn-icon ${expanded ? '' : 'rotate-180'}`}
+        >
+          <ChevronUp className="w-5 h-5" />
         </button>
       </div>
 
       {/* 主机卡片网格 / 列表 */}
       {expanded && displayMode === 'card' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {pushSites.map((site) => (
+          {pushSites.map((site, idx) => (
             <HostCard 
               key={site.id} 
               site={site} 
+              index={idx}
               onClick={() => setSelectedHost(site)}
             />
           ))}
@@ -147,12 +154,14 @@ export default function HostMonitorPanel({ sites = [], displayMode = 'card', onR
       )}
 
       {/* 详情弹窗 */}
-      {selectedHost && (
-        <HostDetailModal 
-          site={selectedHost} 
-          onClose={() => setSelectedHost(null)} 
-        />
-      )}
+      <AnimatePresence>
+        {selectedHost && (
+          <HostDetailModal 
+            site={selectedHost} 
+            onClose={() => setSelectedHost(null)} 
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -370,7 +379,7 @@ function HostListItemStatic({ site, onClick }) {
 /**
  * 单个主机卡片
  */
-function HostCard({ site, onClick }) {
+function HostCard({ site, onClick, index = 0 }) {
   const pushData = site.pushData || {};
   const isOnline = site.status === 'online';
   const isOffline = site.status === 'offline';
@@ -418,23 +427,26 @@ function HostCard({ site, onClick }) {
       onClick={onClick}
       className={`
         glass-card p-4 relative overflow-hidden cursor-pointer
-        hover:shadow-lg hover:scale-[1.02] transition-all duration-200
+        transition-transform duration-150 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]
         ${isOffline ? 'border-red-200 dark:border-red-800' : ''}
       `}
     >
       {/* 状态指示条 */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${
-        isOnline ? 'bg-emerald-500' : isOffline ? 'bg-red-500' : 'bg-slate-400'
-      }`} />
+      <div 
+        className={`absolute top-0 left-0 right-0 h-1 ${
+          isOnline ? 'bg-emerald-500' : isOffline ? 'bg-red-500' : 'bg-slate-400'
+        }`}
+      />
 
-      {/* 头部 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${
-            isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
-            isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-            'bg-slate-100 dark:bg-slate-800 text-slate-500'
-          }`}>
+          <div 
+            className={`p-1.5 rounded-lg ${
+              isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
+              isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+              'bg-slate-100 dark:bg-slate-800 text-slate-500'
+            }`}
+          >
             {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
           </div>
           <div>
@@ -448,12 +460,14 @@ function HostCard({ site, onClick }) {
         </div>
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-slate-400" />
-          <div className={`
-            px-2 py-0.5 rounded-full text-xs font-medium
-            ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
-              isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-              'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}
-          `}>
+          <div 
+            className={`
+              px-2 py-0.5 rounded-full text-xs font-medium
+              ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
+                isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}
+            `}
+          >
             {isOnline ? '在线' : isOffline ? '离线' : '等待'}
           </div>
         </div>
@@ -645,7 +659,10 @@ function HostDetailModal({ site, onClose }) {
   const activeMetricInfo = metrics.find(m => m.key === activeMetric);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div 
         className="glass-card w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
@@ -672,7 +689,7 @@ function HostDetailModal({ site, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 shrink-0 btn-icon hover:rotate-90"
             >
               <X className="w-5 h-5" />
             </button>
@@ -756,35 +773,33 @@ function HostDetailModal({ site, onClose }) {
             </div>
           </div>
 
-          {/* 统计摘要 - 手机端 2x2 网格 */}
-          {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-              <div className="glass-card p-2 sm:p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">当前</p>
-                <p className="text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-200 truncate">
-                  {stats.current}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
-                </p>
-              </div>
-              <div className="glass-card p-2 sm:p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">平均</p>
-                <p className="text-lg sm:text-2xl font-bold text-blue-500 truncate">
-                  {stats.avg}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
-                </p>
-              </div>
-              <div className="glass-card p-2 sm:p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最高</p>
-                <p className="text-lg sm:text-2xl font-bold text-red-500 truncate">
-                  {stats.max}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
-                </p>
-              </div>
-              <div className="glass-card p-2 sm:p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最低</p>
-                <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate">
-                  {stats.min}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
-                </p>
-              </div>
+          {/* 统计摘要 - 固定布局 */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div className="glass-card p-2 sm:p-4 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">当前</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-200 truncate">
+                {loading ? '-' : (stats?.current ?? '-')}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
+              </p>
             </div>
-          )}
+            <div className="glass-card p-2 sm:p-4 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">平均</p>
+              <p className="text-lg sm:text-2xl font-bold text-blue-500 truncate">
+                {loading ? '-' : (stats?.avg ?? '-')}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
+              </p>
+            </div>
+            <div className="glass-card p-2 sm:p-4 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最高</p>
+              <p className="text-lg sm:text-2xl font-bold text-red-500 truncate">
+                {loading ? '-' : (stats?.max ?? '-')}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
+              </p>
+            </div>
+            <div className="glass-card p-2 sm:p-4 text-center">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最低</p>
+              <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate">
+                {loading ? '-' : (stats?.min ?? '-')}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
+              </p>
+            </div>
+          </div>
 
           {/* 图表区域 */}
           <div className="glass-card p-3 sm:p-4">

@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock } from 'lucide-react';
 import { useHistory } from '../context/HistoryContext';
+import { 
+  modalVariants,
+  modalTransition,
+  backdropVariants,
+  backdropTransition,
+  closeButtonHover
+} from '../utils/animations';
 
 export default function HistoryModal({ site, onClose }) {
   const [history, setHistory] = useState([]);
@@ -72,15 +79,21 @@ export default function HistoryModal({ site, onClose }) {
 
   return (
     <AnimatePresence>
-      <div 
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      <motion.div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        initial={backdropVariants.initial}
+        animate={backdropVariants.animate}
+        exit={backdropVariants.exit}
+        transition={backdropTransition}
         onWheel={(e) => e.preventDefault()}
         onTouchMove={(e) => e.preventDefault()}
+        onClick={onClose}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          initial={modalVariants.initial}
+          animate={modalVariants.animate}
+          exit={modalVariants.exit}
+          transition={modalTransition}
           className="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
@@ -96,12 +109,13 @@ export default function HistoryModal({ site, onClose }) {
                 {(site.showUrl === true) ? `${site.name} - ${site.url}` : site.name}
               </p>
             </div>
-            <button
+            <motion.button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              {...closeButtonHover}
             >
               <X className="w-5 h-5" />
-            </button>
+            </motion.button>
           </div>
 
           {/* 时间范围信息 */}
@@ -304,15 +318,17 @@ export default function HistoryModal({ site, onClose }) {
 
           {/* 底部按钮 */}
           <div className="p-6 border-t border-slate-200 dark:border-slate-700">
-            <button
+            <motion.button
               onClick={onClose}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-medium transition-colors"
             >
               关闭
-            </button>
+            </motion.button>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

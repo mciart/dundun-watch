@@ -1,6 +1,15 @@
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { 
+  EASING,
+  DURATION,
+  modalVariants,
+  modalTransition,
+  backdropVariants,
+  backdropTransition,
+  closeButtonHover
+} from '../utils/animations';
 
 export default function Dialog({
   isOpen,
@@ -67,17 +76,18 @@ export default function Dialog({
   return createPortal(
     <AnimatePresence initial={false}>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        initial={backdropVariants.initial}
+        animate={backdropVariants.animate}
+        exit={backdropVariants.exit}
+        transition={backdropTransition}
         onClick={handleCancel}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ duration: 0.2 }}
+          initial={modalVariants.initial}
+          animate={modalVariants.animate}
+          exit={modalVariants.exit}
+          transition={modalTransition}
           className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
@@ -86,44 +96,71 @@ export default function Dialog({
             <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
               {title}
             </h3>
-            <button
+            <motion.button
               onClick={handleCancel}
-              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               aria-label="关闭"
+              {...closeButtonHover}
             >
               <X className="w-5 h-5 text-slate-500" />
-            </button>
+            </motion.button>
           </div>
 
           <div className="px-6 py-5">
             <div className="flex gap-4">
-              <div className={`flex-shrink-0 w-10 h-10 rounded-full ${bgColor} flex items-center justify-center`}>
+              <motion.div 
+                className={`flex-shrink-0 w-10 h-10 rounded-full ${bgColor} flex items-center justify-center`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  delay: 0.1, 
+                  type: "spring", 
+                  stiffness: 500, 
+                  damping: 15 
+                }}
+              >
                 <Icon className={`w-5 h-5 ${color}`} />
-              </div>
-              <div className="flex-1 pt-1">
+              </motion.div>
+              <motion.div 
+                className="flex-1 pt-1"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.15, duration: 0.3 }}
+              >
                 <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line">
                   {message}
                 </p>
-              </div>
+              </motion.div>
             </div>
           </div>
 
-          <div className="flex gap-3 px-6 py-4 bg-slate-50 dark:bg-slate-900/50">
+          <motion.div 
+            className="flex gap-3 px-6 py-4 bg-slate-50 dark:bg-slate-900/50"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.3 }}
+          >
             {isConfirm && (
-              <button
+              <motion.button
                 onClick={handleCancel}
                 className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.2 }}
               >
                 {cancelText}
-              </button>
+              </motion.button>
             )}
-            <button
+            <motion.button
               onClick={handleConfirm}
-              className={`${isConfirm ? 'flex-1' : 'w-full'} px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors`}
+              className={`${isConfirm ? 'flex-1' : 'w-full'} px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40`}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
               {confirmText}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </motion.div>
       </motion.div>
     </AnimatePresence>,

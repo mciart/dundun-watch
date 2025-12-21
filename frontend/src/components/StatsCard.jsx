@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 const colorMap = {
   blue: {
     bg: 'bg-blue-100 dark:bg-blue-900/30',
@@ -28,7 +26,7 @@ export default function StatsCard({ icon: Icon, label, value, color = 'blue' }) 
 
   return (
     <div
-      className="glass-card p-6 group cursor-pointer transition-all duration-300 hover:shadow-[0_3px_12px_2px_rgba(66,90,239,0.15),0_0_0_1px_rgba(66,90,239,0.3)] dark:hover:shadow-[0_3px_12px_2px_rgba(255,149,62,0.2),0_0_0_1px_rgba(255,149,62,0.4)] hover:border-[#425AEF] dark:hover:border-[#FF953E]"
+      className="glass-card p-6 group cursor-pointer transition-transform duration-150 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -39,13 +37,11 @@ export default function StatsCard({ icon: Icon, label, value, color = 'blue' }) 
             {value}
           </p>
         </div>
-        <motion.div 
-          className={`w-14 h-14 rounded-2xl ${colors.bg} flex items-center justify-center`}
-          whileHover={{ rotate: 360 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+        <div 
+          className={`w-14 h-14 rounded-2xl ${colors.bg} flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[360deg] group-hover:scale-110 animate-icon-spin`}
         >
           <Icon className={`w-7 h-7 ${colors.icon}`} />
-        </motion.div>
+        </div>
       </div>
     </div>
   );

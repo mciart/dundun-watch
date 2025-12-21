@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   LogOut, 
@@ -36,6 +36,7 @@ import GroupManager from '../components/GroupManager';
 import Dialog from '../components/Dialog';
 import { useDialog } from '../hooks/useDialog';
 import StarryBackground from '../components/StarryBackground';
+import { EASING, DURATION, SPRING } from '../utils/animations';
 
 export default function AdminPage() {
   const [sites, setSites] = useState([]);
@@ -374,80 +375,125 @@ export default function AdminPage() {
 
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
-            <nav className="flex space-x-4 sm:space-x-8 min-w-max" aria-label="Tabs">
-              <button
+            <nav className="flex space-x-4 sm:space-x-8 min-w-max relative" aria-label="Tabs">
+              <motion.button
                 onClick={() => setActiveTab('sites')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`
-                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative
                   ${activeTab === 'sites'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
                   }
                 `}
               >
-                <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <motion.div
+                  animate={activeTab === 'sites' ? { rotate: [0, -10, 10, 0] } : {}}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                >
+                  <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.div>
                 站点管理
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setActiveTab('website')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`
-                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative
                   ${activeTab === 'website'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
                   }
                 `}
               >
-                <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <motion.div
+                  animate={activeTab === 'website' ? { rotate: 360 } : {}}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
+                  <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.div>
                 网站设置
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setActiveTab('settings')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`
-                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative
                   ${activeTab === 'settings'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
                   }
                 `}
               >
-                <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <motion.div
+                  animate={activeTab === 'settings' ? { rotate: 180 } : {}}
+                  transition={{ duration: DURATION.slow, ease: EASING.bounce }}
+                >
+                  <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.div>
                 数据设置
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setActiveTab('notifications')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`
-                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative
                   ${activeTab === 'notifications'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
                   }
                 `}
               >
-                <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <motion.div
+                  animate={activeTab === 'notifications' ? { 
+                    rotate: [0, -15, 15, -15, 15, 0],
+                    scale: [1, 1.1, 1]
+                  } : {}}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                >
+                  <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.div>
                 通知设置
-              </button>
-              <button
+              </motion.button>
+              <motion.button
                 onClick={() => setActiveTab('account')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 className={`
-                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap
+                  flex items-center gap-1.5 sm:gap-2 py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap relative
                   ${activeTab === 'account'
                     ? 'border-primary-500 text-primary-600 dark:text-primary-400'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-300'
                   }
                 `}
               >
-                <Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <motion.div
+                  animate={activeTab === 'account' ? { rotate: 90 } : {}}
+                  transition={{ duration: DURATION.normal, ease: EASING.bounce }}
+                >
+                  <Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </motion.div>
                 后台设置
-              </button>
+              </motion.button>
             </nav>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <AnimatePresence mode="wait">
         {activeTab === 'sites' && (
-          <>
+          <motion.div
+            key="sites"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
+          >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <motion.div
             initial={false}
@@ -558,7 +604,7 @@ export default function AdminPage() {
             />
           )}
         </motion.div>
-          </>
+          </motion.div>
         )}
 
         {/* 为保持代码简洁，website/settings/notifications/account 标签页内容与之前一致，
@@ -568,8 +614,11 @@ export default function AdminPage() {
         */}
         {activeTab === 'website' && (
           <motion.div
-            initial={false}
+            key="website"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
             className="space-y-6"
           >
             {/* 网站名称 */}
@@ -758,8 +807,11 @@ export default function AdminPage() {
 
         {activeTab === 'settings' && (
           <motion.div
-            initial={false}
+            key="settings"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
             className="space-y-6"
           >
             {/* 历史数据时间范围 */}
@@ -886,8 +938,11 @@ export default function AdminPage() {
 
         {activeTab === 'notifications' && (
           <motion.div
-            initial={false}
+            key="notifications"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
             className="space-y-6"
           >
             <div className="glass-card p-6">
@@ -1207,8 +1262,11 @@ export default function AdminPage() {
         {/* 后台设置 */}
         {activeTab === 'account' && (
           <motion.div
-            initial={false}
+            key="account"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: DURATION.normal, ease: EASING.bounce }}
             className="space-y-6"
           >
             {/* 修改密码 */}
@@ -1393,7 +1451,7 @@ export default function AdminPage() {
             </div>
           </motion.div>
         )}
-
+        </AnimatePresence>
       </main>
 
       {/* 弹窗组件 */}

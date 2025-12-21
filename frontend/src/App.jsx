@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import StatusPage from './pages/StatusPage';
 import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
@@ -9,6 +9,52 @@ import IncidentsPage from './pages/IncidentsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import { getToken, api } from './utils/api';
 import { HistoryProvider } from './context/HistoryContext';
+
+// 路由组件 - 无页面切换动画，更快响应
+function AppRoutes({ adminPath, loginPath }) {
+  return (
+    <Routes>
+      <Route path="/" element={<StatusPage />} />
+      <Route path="/incidents" element={<IncidentsPage />} />
+      {/* 动态登录路径 */}
+      <Route path={loginPath} element={<LoginPage adminPath={adminPath} />} />
+      {/* 禁止直接访问 /console，重定向到首页 */}
+      <Route path="/console" element={<Navigate to="/" replace />} />
+      <Route 
+        path={`/${adminPath}`}
+            element={
+              getToken() ? (
+                <AdminPage />
+              ) : (
+                <Navigate to={loginPath} replace />
+              )
+            } 
+          />
+          <Route 
+            path="/settings" 
+            element={
+              getToken() ? (
+                <SettingsPage />
+              ) : (
+                <Navigate to={loginPath} replace />
+              )
+            } 
+          />
+          <Route 
+            path="/website-settings" 
+            element={
+              getToken() ? (
+                <WebsiteSettingsPage />
+              ) : (
+                <Navigate to={loginPath} replace />
+              )
+            } 
+          />
+          {/* 404 - 所有未匹配的路径 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+  );
+}
 
 function App() {
   const [adminPath, setAdminPath] = useState('admin');
@@ -45,53 +91,14 @@ function App() {
 
   return (
     <HistoryProvider>
-    <BrowserRouter
+      <BrowserRouter
         future={{
           v7_startTransition: true,
           v7_relativeSplatPath: true
         }}
       >
-        <Routes>
-        <Route path="/" element={<StatusPage />} />
-        <Route path="/incidents" element={<IncidentsPage />} />
-        {/* 动态登录路径 */}
-        <Route path={loginPath} element={<LoginPage adminPath={adminPath} />} />
-        {/* 禁止直接访问 /console，重定向到首页 */}
-        <Route path="/console" element={<Navigate to="/" replace />} />
-        <Route 
-          path={`/${adminPath}`}
-          element={
-            getToken() ? (
-              <AdminPage />
-            ) : (
-              <Navigate to={loginPath} replace />
-            )
-          } 
-        />
-        <Route 
-          path="/settings" 
-          element={
-            getToken() ? (
-              <SettingsPage />
-            ) : (
-              <Navigate to={loginPath} replace />
-            )
-          } 
-        />
-        <Route 
-          path="/website-settings" 
-          element={
-            getToken() ? (
-              <WebsiteSettingsPage />
-            ) : (
-              <Navigate to={loginPath} replace />
-            )
-          } 
-        />
-        {/* 404 - 所有未匹配的路径 */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
+        <AppRoutes adminPath={adminPath} loginPath={loginPath} />
+      </BrowserRouter>
     </HistoryProvider>
   );
 }

@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, AlertCircle, Server, Copy, RefreshCw } from 'lucide-react';
 import { api } from '../utils/api';
+import { 
+  modalVariants,
+  modalTransition,
+  backdropVariants,
+  backdropTransition,
+  closeButtonHover
+} from '../utils/animations';
 
 const DNS_RECORD_TYPES = ['A', 'AAAA', 'CAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'SRV', 'TXT'];
 
@@ -139,26 +146,40 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
 
   return (
     <AnimatePresence initial={false}>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <motion.div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+        initial={backdropVariants.initial}
+        animate={backdropVariants.animate}
+        exit={backdropVariants.exit}
+        transition={backdropTransition}
+        onClick={onClose}
+      >
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
+          initial={modalVariants.initial}
+          animate={modalVariants.animate}
+          exit={modalVariants.exit}
+          transition={modalTransition}
           className="glass-card w-full max-w-lg max-h-[85vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 overflow-y-auto max-h-[85vh]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+            <motion.h2 
+              className="text-xl font-semibold flex items-center gap-2"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
+            >
               <Save className="w-6 h-6" />
               编辑站点
-            </h2>
-            <button
+            </motion.h2>
+            <motion.button
               onClick={onClose}
               className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              {...closeButtonHover}
             >
               <X className="w-5 h-5" />
-            </button>
+            </motion.button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -786,7 +807,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
           </form>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

@@ -4,6 +4,15 @@ import { AnimatePresence, motion, Reorder } from 'framer-motion'; // 引入 Reor
 import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, GripVertical } from 'lucide-react'; // 引入 GripVertical
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
+import { 
+  EASING, 
+  DURATION,
+  modalVariants,
+  modalTransition,
+  backdropVariants,
+  backdropTransition,
+  closeButtonHover
+} from '../utils/animations';
 
 const MODAL_INITIAL = { name: '', icon: '', iconColor: '#3B82F6' };
 
@@ -213,17 +222,18 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
         <AnimatePresence initial={false}>
           <motion.div
             key="group-modal"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            initial={backdropVariants.initial}
+            animate={backdropVariants.animate}
+            exit={backdropVariants.exit}
+            transition={backdropTransition}
             onClick={closeModal}
           >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+              initial={modalVariants.initial}
+              animate={modalVariants.animate}
+              exit={modalVariants.exit}
+              transition={modalTransition}
               className="glass-card p-6 w-full max-w-lg"
               onClick={(e) => e.stopPropagation()}
             >
@@ -241,13 +251,15 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                     </>
                   )}
                 </h2>
-                <button
+                <motion.button
                   onClick={closeModal}
                   className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                   aria-label="关闭"
+                  {...closeButtonHover}
+                  transition={{ duration: 0.2 }}
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </motion.button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
