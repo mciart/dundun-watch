@@ -1,4 +1,5 @@
 import { connect } from 'cloudflare:sockets';
+import { TIMEOUTS, MONITOR } from '../config/index.js';
 
 /**
  * SMTP 监控器
@@ -22,7 +23,7 @@ export async function checkSmtpSite(site, checkTime) {
   }
 
   const host = site.smtpHost || '';
-  const port = parseInt(site.smtpPort, 10) || 25;
+  const port = parseInt(site.smtpPort, 10) || MONITOR.defaultSmtpPort;
   const security = site.smtpSecurity || 'starttls';
 
   if (!host) {
@@ -35,7 +36,7 @@ export async function checkSmtpSite(site, checkTime) {
     };
   }
 
-  const timeoutMs = 30000; // 30秒超时
+  const timeoutMs = TIMEOUTS.smtpTimeout;
   let socket = null;
   let timeoutId;
 

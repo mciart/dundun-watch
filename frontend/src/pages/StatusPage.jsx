@@ -13,7 +13,7 @@ import {
   groupSites,
   getLucideIcon
 } from '../utils/helpers';
-import { REFRESH_INTERVAL } from '../config';
+import { REFRESH_INTERVAL, BRAND } from '../config';
 import StatsCard from '../components/StatsCard';
 import SiteCard from '../components/SiteCard';
 import StarryBackground from '../components/StarryBackground';
@@ -30,9 +30,9 @@ export default function StatusPage() {
   const [incidents, setIncidents] = useState([]);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [siteSettings, setSiteSettings] = useState({
-    siteName: '炖炖哨兵',
-    siteSubtitle: '慢慢炖，网站不 "糊锅"',
-    pageTitle: '网站监控',
+    siteName: BRAND.siteName,
+    siteSubtitle: BRAND.siteSubtitle,
+    pageTitle: BRAND.pageTitle,
     hostDisplayMode: 'card',
     hostPanelExpanded: true
   });
@@ -58,9 +58,9 @@ export default function StatusPage() {
       setSites(sitesList);
       setGroups(groupList);
       const settings = {
-        siteName: cfg.siteName || '炖炖哨兵',
-        siteSubtitle: cfg.siteSubtitle || '慢慢炖，网站不 "糊锅"',
-        pageTitle: cfg.pageTitle || '网站监控',
+        siteName: cfg.siteName || BRAND.siteName,
+        siteSubtitle: cfg.siteSubtitle || BRAND.siteSubtitle,
+        pageTitle: cfg.pageTitle || BRAND.pageTitle,
         hostDisplayMode: cfg.hostDisplayMode || 'card',
         hostPanelExpanded: cfg.hostPanelExpanded !== false
       };
@@ -96,9 +96,9 @@ export default function StatusPage() {
     try {
       const data = await api.getSettings();
       const settings = {
-        siteName: data.siteName || '炖炖哨兵',
-        siteSubtitle: data.siteSubtitle || '慢慢炖，网站不 "糊锅"',
-        pageTitle: data.pageTitle || '网站监控',
+        siteName: data.siteName || BRAND.siteName,
+        siteSubtitle: data.siteSubtitle || BRAND.siteSubtitle,
+        pageTitle: data.pageTitle || BRAND.pageTitle,
         hostDisplayMode: data.hostDisplayMode || 'card'
       };
       setSiteSettings(settings);

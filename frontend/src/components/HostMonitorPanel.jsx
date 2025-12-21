@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { getLucideIcon } from '../utils/helpers';
+import { METRIC_COLORS } from '../config';
 
 /**
  * 主机监控面板组件
@@ -580,12 +581,12 @@ function HostDetailModal({ site, onClose }) {
   // 可用的指标列表
   const metrics = useMemo(() => {
     const base = [
-      { key: 'cpu', label: 'CPU', unit: '%', icon: Cpu, color: '#10b981' },
-      { key: 'memory', label: '内存', unit: '%', icon: MemoryStick, color: '#3b82f6' },
-      { key: 'disk', label: '磁盘', unit: '%', icon: HardDrive, color: '#f59e0b' },
-      { key: 'load', label: '负载', unit: '', icon: Activity, color: '#8b5cf6' },
-      { key: 'temperature', label: '温度', unit: '°C', icon: Thermometer, color: '#ef4444' },
-      { key: 'latency', label: '延迟', unit: 'ms', icon: TrendingUp, color: '#06b6d4' },
+      { key: 'cpu', label: 'CPU', unit: '%', icon: Cpu, color: METRIC_COLORS.cpu },
+      { key: 'memory', label: '内存', unit: '%', icon: MemoryStick, color: METRIC_COLORS.memory },
+      { key: 'disk', label: '磁盘', unit: '%', icon: HardDrive, color: METRIC_COLORS.disk },
+      { key: 'load', label: '负载', unit: '', icon: Activity, color: METRIC_COLORS.load },
+      { key: 'temperature', label: '温度', unit: '°C', icon: Thermometer, color: METRIC_COLORS.temperature },
+      { key: 'latency', label: '延迟', unit: 'ms', icon: TrendingUp, color: METRIC_COLORS.network },
     ];
     
     // 检查自定义字段

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, LogIn, AlertCircle } from 'lucide-react';
 import { api, setToken } from '../utils/api';
+import { BRAND } from '../config';
 import { 
   EASING, 
   DURATION, 
@@ -82,7 +83,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
               transition={{ delay: 0.3, duration: 0.3 }}
               className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent"
             >
-              炖炖哨兵
+              {BRAND.siteName}
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 10 }}

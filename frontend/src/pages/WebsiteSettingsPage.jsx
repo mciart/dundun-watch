@@ -3,15 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Save, Globe, Type } from 'lucide-react';
 import { api } from '../utils/api';
+import { BRAND } from '../config';
 import Dialog from '../components/Dialog';
 import { useDialog } from '../hooks/useDialog';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function WebsiteSettingsPage() {
   const [settings, setSettings] = useState({
-    siteName: '炖炖哨兵',
-    siteSubtitle: '慢慢炖，网站不 "糊锅"',
-    pageTitle: '网站监控'
+    siteName: BRAND.siteName,
+    siteSubtitle: BRAND.siteSubtitle,
+    pageTitle: BRAND.pageTitle
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,9 +25,9 @@ export default function WebsiteSettingsPage() {
       try {
         const data = await api.getSettings();
         setSettings({
-          siteName: data.siteName || '炖炖哨兵',
-          siteSubtitle: data.siteSubtitle || '慢慢炖，网站不 "糊锅"',
-          pageTitle: data.pageTitle || '网站监控'
+          siteName: data.siteName || BRAND.siteName,
+          siteSubtitle: data.siteSubtitle || BRAND.siteSubtitle,
+          pageTitle: data.pageTitle || BRAND.pageTitle
         });
       } catch (error) {
         console.error('加载设置失败:', error);

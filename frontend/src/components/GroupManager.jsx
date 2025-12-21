@@ -5,6 +5,7 @@ import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, GripVertical, 
 import { getLucideIcon } from '../utils/helpers';
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
+import { DEFAULTS, CHART_COLORS } from '../config';
 import { 
   EASING, 
   DURATION,
@@ -15,7 +16,7 @@ import {
   closeButtonHover
 } from '../utils/animations';
 
-const MODAL_INITIAL = { name: '', icon: '', iconColor: '#3B82F6' };
+const MODAL_INITIAL = { name: '', icon: '', iconColor: CHART_COLORS.responseTime };
 
 export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
   const [modalMode, setModalMode] = useState(null);
@@ -42,7 +43,7 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
   const openAddModal = () => {
     setModalMode('add');
     setCurrentGroupId(null);
-    setFormData({ name: '', icon: '', iconColor: '#3B82F6' });
+    setFormData({ name: '', icon: '', iconColor: CHART_COLORS.responseTime });
     setError('');
   };
 
@@ -52,7 +53,7 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
     setFormData({
       name: group.name || '',
       icon: group.icon || '',
-      iconColor: group.iconColor || '#3B82F6'
+      iconColor: group.iconColor || CHART_COLORS.responseTime
     });
     setError('');
   };
@@ -91,12 +92,12 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
 
   const handleDelete = (group) => {
     if (group.id === 'default') {
-      showAlert('不能删除默认分类', '提示', 'warning');
+      showAlert(`不能删除${DEFAULTS.groupName}`, '提示', 'warning');
       return;
     }
 
     showConfirm(
-      `确定要删除分类“${group.name}”吗？\n该分类下的站点将移至默认分类。`,
+      `确定要删除分类"${group.name}"吗？\n该分类下的站点将移至${DEFAULTS.groupName}。`,
       async () => {
         try {
           await onDelete(group.id);
@@ -325,7 +326,7 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                         value={formData.iconColor}
                         onChange={(e) => setFormData({ ...formData, iconColor: e.target.value })}
                         className="input-field flex-1"
-                        placeholder="#3B82F6"
+                        placeholder="#3b82f6"
                       />
                     </div>
                     <div className="mt-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center gap-3">

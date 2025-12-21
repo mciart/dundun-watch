@@ -1,8 +1,9 @@
 import { formatDuration } from '../utils.js';
 import { connect } from 'cloudflare:sockets';
+import { BRAND, NOTIFICATIONS, STATUS_COLORS } from '../config/index.js';
 
 function stateSiteName(cfg) {
-  return (cfg && cfg.siteName) || '炖炖哨兵';
+  return (cfg && cfg.siteName) || BRAND.siteName;
 }
 
 export async function sendEmailNotification(env, cfg, incident, site) {
@@ -18,7 +19,7 @@ export async function sendEmailNotification(env, cfg, incident, site) {
     return;
   }
   
-  const fromEmail = emailCfg.from && emailCfg.from.includes('@') ? emailCfg.from : 'onboarding@resend.dev';
+  const fromEmail = emailCfg.from && emailCfg.from.includes('@') ? emailCfg.from : NOTIFICATIONS.defaultFromEmail;
   const siteName = stateSiteName(cfg);
 
   let prefix, headerBg, headerIcon, headerTitle, siteTitle, message, boxBg, boxBorder, labelColor;
@@ -101,7 +102,7 @@ export async function sendEmailNotification(env, cfg, incident, site) {
     return;
   }
 
-  const subject = `炖炖哨兵 - ${site.name} ${prefix}`;
+  const subject = `${siteName} - ${site.name} ${prefix}`;
   
   let dataRowsHtml = '';
   dataRows.forEach((row, i) => {

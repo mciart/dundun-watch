@@ -1,4 +1,5 @@
 import { dnsResolveStatus } from './dns.js';
+import { TIMEOUTS, MONITOR, RESPONSE_TIME } from '../config/index.js';
 
 function getCharsetFromContentType(contentType) {
   if (!contentType || typeof contentType !== 'string') return 'utf-8';
@@ -51,14 +52,14 @@ export async function checkSite(site, checkTime) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    const timeoutId = setTimeout(() => controller.abort(), TIMEOUTS.httpTimeout);
 
-    const method = (site.method || 'GET').toString().toUpperCase();
-    const allowedMethods = ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'];
-    const finalMethod = allowedMethods.includes(method) ? method : 'GET';
+    const method = (site.method || MONITOR.defaultMethod).toString().toUpperCase();
+    const allowedMethods = MONITOR.allowedMethods;
+    const finalMethod = allowedMethods.includes(method) ? method : MONITOR.defaultMethod;
 
     const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36',
+      'User-Agent': MONITOR.defaultUserAgent,
       ...(site.headers && typeof site.headers === 'object' ? Object.fromEntries(Object.entries(site.headers).map(([k, v]) => [k, String(v)])) : {})
     };
 
@@ -109,13 +110,13 @@ export async function checkSite(site, checkTime) {
     let finalMessage = message;
 
     if (isUp) {
-      if (responseTime > 15000) {
+      if (responseTime > RESPONSE_TIME.http.verySlow) {
         finalStatus = 'slow';
         finalMessage = '响应非常缓慢';
-      } else if (responseTime > 5000) {
+      } else if (responseTime > RESPONSE_TIME.http.slow) {
         finalStatus = 'slow';
         finalMessage = '响应缓慢';
-      } else if (responseTime > 1500) {
+      } else if (responseTime > RESPONSE_TIME.http.normal) {
         finalStatus = 'online';
         finalMessage = 'OK';
       } else {
@@ -144,14 +145,14 @@ export async function checkSite(site, checkTime) {
 
     if (isRealTimeout) {
       message = '连接超时';
-    } else if (isAbort && responseTime >= 30000) {
+    } else if (isAbort && responseTime >= TIMEOUTS.httpTimeout) {
       message = '网络错误';
     } else if (isAbort) {
       message = '网络错误';
     } else {
       let hostname = '';
       try { hostname = new URL(site.url).hostname; } catch {}
-      const dns = await dnsResolveStatus(hostname, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36');
+      const dns = await dnsResolveStatus(hostname, MONITOR.defaultUserAgent);
       if (!(dns === 'nxdomain' || dns === 'dns_error' || dns === 'nodata')) {
         if (hasCertIssue) {
           message = '证书错误';

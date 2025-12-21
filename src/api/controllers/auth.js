@@ -1,9 +1,7 @@
 // Auth controllers: login and password change
 import { jsonResponse, errorResponse } from '../../utils.js';
 import { getAdminPassword, putAdminPassword } from '../../core/storage.js';
-
-// 默认密码为 'admin' 的 SHA-256 哈希值
-const DEFAULT_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+import { AUTH } from '../../config/index.js';
 
 async function hashPassword(password) {
   const encoder = new TextEncoder();
@@ -45,13 +43,13 @@ export async function handleLogin(request, env) {
     }
 
     const kvAdmin = await getAdminPassword(env);
-    const adminPassword = kvAdmin || DEFAULT_PASSWORD_HASH;
+    const adminPassword = kvAdmin || AUTH.defaultPasswordHash;
 
     if (!await verifyPassword(password, adminPassword)) {
       return errorResponse('密码错误', 401);
     }
 
-    const token = generateToken({ admin: true, exp: Date.now() + 24 * 60 * 60 * 1000 });
+    const token = generateToken({ admin: true, exp: Date.now() + AUTH.tokenExpireMs });
 
     return jsonResponse({ success: true, token, message: '登录成功' });
 
@@ -69,7 +67,7 @@ export async function changePassword(request, env) {
     }
 
     const kvAdmin = await getAdminPassword(env);
-    const adminPassword = kvAdmin || DEFAULT_PASSWORD_HASH;
+    const adminPassword = kvAdmin || AUTH.defaultPasswordHash;
 
     if (!await verifyPassword(oldPassword, adminPassword)) {
       return errorResponse('旧密码错误', 401);

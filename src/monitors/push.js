@@ -1,6 +1,8 @@
 // Push/心跳监控模块
 // 该模块用于处理主机主动推送的心跳数据
 
+import { PUSH } from '../config/index.js';
+
 /**
  * 检查 Push 类型站点的状态
  * Push 类型不需要主动检测，只需检查最后心跳时间
@@ -9,7 +11,7 @@
  * @param {number} timeoutMinutes - 超时时间（分钟），默认3分钟
  * @returns {Object} 检测结果
  */
-export function checkPushSite(site, now, timeoutMinutes = 3) {
+export function checkPushSite(site, now, timeoutMinutes = PUSH.defaultTimeoutMinutes) {
   const timeoutMs = timeoutMinutes * 60 * 1000;
   const lastHeartbeat = site.lastHeartbeat || 0;
   const timeSinceLastHeartbeat = now - lastHeartbeat;
@@ -59,9 +61,9 @@ export function isValidPushToken(token) {
  * @returns {string}
  */
 export function generatePushToken() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const chars = PUSH.tokenChars;
   let token = '';
-  for (let i = 0; i < 32; i++) {
+  for (let i = 0; i < PUSH.tokenLength; i++) {
     token += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return token;

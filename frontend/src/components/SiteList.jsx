@@ -3,6 +3,7 @@ import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
 import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor, getLucideIcon } from '../utils/helpers';
 import { EASING, DURATION } from '../utils/animations';
+import { CHART_COLORS } from '../config';
 
 // 提取一个内部组件来处理单个分组的拖拽逻辑
 const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete }) => {
@@ -191,7 +192,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                 {group.icon && (() => {
                   const IconComponent = getLucideIcon(group.icon);
                   return IconComponent ? (
-                    <IconComponent className="w-4 h-4" style={{ color: group.iconColor || '#3B82F6' }} />
+                    <IconComponent className="w-4 h-4" style={{ color: group.iconColor || CHART_COLORS.responseTime }} />
                   ) : null;
                 })()}
                 <span className="font-medium text-slate-900 dark:text-white">{group.name}</span>

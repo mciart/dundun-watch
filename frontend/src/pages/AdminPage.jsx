@@ -37,6 +37,7 @@ import Dialog from '../components/Dialog';
 import { useDialog } from '../hooks/useDialog';
 import StarryBackground from '../components/StarryBackground';
 import { EASING, DURATION, SPRING } from '../utils/animations';
+import { BRAND, DEFAULTS } from '../config';
 
 export default function AdminPage() {
   const [sites, setSites] = useState([]);
@@ -52,9 +53,9 @@ export default function AdminPage() {
   });
   const [stats, setStats] = useState(null);
   const [websiteSettings, setWebsiteSettings] = useState({
-    siteName: '炖炖哨兵',
-    siteSubtitle: '慢慢炖，网站不 "糊锅"',
-    pageTitle: '网站监控',
+    siteName: BRAND.siteName,
+    siteSubtitle: BRAND.siteSubtitle,
+    pageTitle: BRAND.pageTitle,
     hostDisplayMode: 'card', // 'card' | 'list'
     hostPanelExpanded: true // 默认展开
   });
@@ -147,9 +148,9 @@ export default function AdminPage() {
           const apiSettings = await api.getSettings();
           setSettings(apiSettings);
           setWebsiteSettings({
-            siteName: apiSettings.siteName || '炖炖哨兵',
-            siteSubtitle: apiSettings.siteSubtitle || '慢慢炖，网站不 "糊锅"',
-            pageTitle: apiSettings.pageTitle || '网站监控',
+            siteName: apiSettings.siteName || BRAND.siteName,
+            siteSubtitle: apiSettings.siteSubtitle || BRAND.siteSubtitle,
+            pageTitle: apiSettings.pageTitle || BRAND.pageTitle,
             hostDisplayMode: apiSettings.hostDisplayMode || 'card',
             hostPanelExpanded: apiSettings.hostPanelExpanded !== false
           });
@@ -649,7 +650,7 @@ export default function AdminPage() {
                   value={websiteSettings.siteName}
                   onChange={(e) => setWebsiteSettings({ ...websiteSettings, siteName: e.target.value })}
                   className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
-                  placeholder="例如：炖炖哨兵"
+                  placeholder={`例如：${BRAND.siteName}`}
                 />
               </div>
             </div>
@@ -679,7 +680,7 @@ export default function AdminPage() {
                   value={websiteSettings.siteSubtitle}
                   onChange={(e) => setWebsiteSettings({ ...websiteSettings, siteSubtitle: e.target.value })}
                   className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
-                  placeholder="例如：慢慢炖，网站不 &quot;糊锅&quot;"
+                  placeholder={`例如：${BRAND.siteSubtitle}`}
                 />
               </div>
             </div>

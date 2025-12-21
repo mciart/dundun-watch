@@ -1,6 +1,8 @@
 // D1 数据库存储层
 // 替代 KV 存储，提供 100,000 次/天的写入配额
 
+import { BRAND, SETTINGS, NOTIFICATIONS, TIMEOUTS, MONITOR, GROUPS } from '../config/index.js';
+
 /**
  * 获取北京日期字符串
  */
@@ -37,22 +39,15 @@ export async function setConfig(env, key, value) {
  */
 export async function getSettings(env) {
   const defaults = {
-    siteName: '炖炖哨兵',
-    siteSubtitle: '慢慢炖，网站不"糊锅"',
-    pageTitle: '网站监控',
-    historyHours: 24,
-    retentionHours: 720,
-    statusChangeDebounceMinutes: 3,
-    hostDisplayMode: 'card',
-    hostPanelExpanded: true,
-    notifications: {
-      enabled: false,
-      events: ['down', 'recovered', 'cert_warning'],
-      channels: {
-        email: { enabled: false, to: '', from: '' },
-        wecom: { enabled: false, webhook: '' }
-      }
-    }
+    siteName: BRAND.siteName,
+    siteSubtitle: BRAND.siteSubtitle,
+    pageTitle: BRAND.pageTitle,
+    historyHours: SETTINGS.historyHours,
+    retentionHours: SETTINGS.retentionHours,
+    statusChangeDebounceMinutes: SETTINGS.statusChangeDebounceMinutes,
+    hostDisplayMode: SETTINGS.hostDisplayMode,
+    hostPanelExpanded: SETTINGS.hostPanelExpanded,
+    notifications: NOTIFICATIONS.defaults,
   };
   
   const result = await getConfig(env, 'settings');
@@ -208,7 +203,7 @@ export async function createSite(env, site) {
     site.createdAt || now,
     site.method || 'GET',
     site.expectedStatus || 200,
-    site.timeout || 30000,
+    site.timeout || TIMEOUTS.httpTimeout,
     site.headers ? JSON.stringify(site.headers) : null,
     site.body || null,
     site.dnsRecordType || 'A',
@@ -218,7 +213,7 @@ export async function createSite(env, site) {
     site.tcpHost || null,
     site.tcpPort || null,
     site.smtpHost || null,
-    site.smtpPort || 25,
+    site.smtpPort || MONITOR.defaultSmtpPort,
     site.smtpSecurity || 'starttls',
     site.pushToken || null,
     site.pushInterval || 60,
@@ -890,7 +885,7 @@ export async function initDatabase(env) {
         created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
       )
     `),
-    env.DB.prepare("INSERT OR IGNORE INTO groups (id, name, sort_order) VALUES ('default', '默认分类', 0)"),
+    env.DB.prepare(`INSERT OR IGNORE INTO groups (id, name, sort_order) VALUES ('default', '${GROUPS.defaultGroupName}', 0)`),
     env.DB.prepare(`
       CREATE TABLE IF NOT EXISTS stats (
         date TEXT PRIMARY KEY,

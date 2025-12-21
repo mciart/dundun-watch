@@ -1,4 +1,5 @@
 import { connect } from 'cloudflare:sockets';
+import { TIMEOUTS, MONITOR, RESPONSE_TIME } from '../config/index.js';
 
 export async function checkTcpSite(site, checkTime) {
   const startTime = Date.now();
@@ -15,7 +16,7 @@ export async function checkTcpSite(site, checkTime) {
   }
 
   const host = site.tcpHost || '';
-  const port = parseInt(site.tcpPort, 10) || 80;
+  const port = parseInt(site.tcpPort, 10) || MONITOR.defaultTcpPort;
   
   if (!host) {
     return {
@@ -29,7 +30,7 @@ export async function checkTcpSite(site, checkTime) {
 
   try {
     // 设置超时
-    const timeoutMs = 15000; // 15秒超时
+    const timeoutMs = TIMEOUTS.tcpTimeout;
     let timeoutId;
     const timeoutPromise = new Promise((_, reject) => {
       timeoutId = setTimeout(() => reject(new Error('TCP_TIMEOUT')), timeoutMs);
@@ -55,10 +56,10 @@ export async function checkTcpSite(site, checkTime) {
     let finalStatus = 'online';
     let finalMessage = `端口 ${port} 开放`;
     
-    if (responseTime > 10000) {
+    if (responseTime > RESPONSE_TIME.tcp.verySlow) {
       finalStatus = 'slow';
       finalMessage = `端口 ${port} 开放 (响应缓慢)`;
-    } else if (responseTime > 5000) {
+    } else if (responseTime > RESPONSE_TIME.tcp.slow) {
       finalStatus = 'slow';
       finalMessage = `端口 ${port} 开放 (响应较慢)`;
     }

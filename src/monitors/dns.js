@@ -1,3 +1,5 @@
+import { TIMEOUTS } from '../config/index.js';
+
 export const DNS_TYPE_MAP = {
   'A': 1,
   'AAAA': 28,
@@ -52,7 +54,7 @@ export async function dnsResolveStatus(hostname, ua, dnsServer = 'cloudflare') {
   
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), TIMEOUTS.dnsTimeout);
     
     // 并行查询 A 和 AAAA 记录，减少等待时间
     const headers = {

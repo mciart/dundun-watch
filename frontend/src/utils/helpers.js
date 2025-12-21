@@ -1,6 +1,7 @@
 import { formatDistanceToNow, format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import * as LucideIcons from 'lucide-react';
+import { DEFAULTS } from '../config';
 
 /**
  * 根据图标名称获取 Lucide 图标组件
@@ -82,7 +83,7 @@ export function groupSites(sites, groups = []) {
   
   sites.forEach(site => {
 
-    let groupName = '默认分类';
+    let groupName = DEFAULTS.groupName;
     
     if (site.groupId) {
       const groupObj = groups.find(g => g && g.id === site.groupId);

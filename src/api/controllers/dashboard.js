@@ -2,6 +2,7 @@
 import { jsonResponse, errorResponse } from '../../utils.js';
 import * as db from '../../core/storage.js';
 import { calculateStats } from '../../core/stats.js';
+import { BRAND, SETTINGS } from '../../config/index.js';
 
 export async function getDashboardData(request, env) {
   try {
@@ -47,10 +48,10 @@ export async function getDashboardData(request, env) {
       sites: publicSites, 
       groups: formattedGroups, 
       settings: {
-        siteName: settings.siteName || '炖炖哨兵',
-        siteSubtitle: settings.siteSubtitle || '慢慢炖，网站不 "糊锅"',
-        pageTitle: settings.pageTitle || '网站监控',
-        hostDisplayMode: settings.hostDisplayMode || 'card',
+        siteName: settings.siteName || BRAND.siteName,
+        siteSubtitle: settings.siteSubtitle || BRAND.siteSubtitle,
+        pageTitle: settings.pageTitle || BRAND.pageTitle,
+        hostDisplayMode: settings.hostDisplayMode || SETTINGS.hostDisplayMode,
         hostPanelExpanded: settings.hostPanelExpanded !== false
       }, 
       incidents 
