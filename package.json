@@ -10,7 +10,8 @@
     "build:frontend": "cd frontend && npm install && npm run build",
     "deploy": "npm run build && wrangler deploy",
     "tail": "wrangler tail",
-    "test:local": "wrangler dev --local"
+    "test:local": "wrangler dev --local",
+    "migrate": "node scripts/migrate.js"
   },
   "keywords": [
     "cloudflare",
