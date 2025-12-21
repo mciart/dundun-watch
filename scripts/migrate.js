@@ -1,6 +1,8 @@
 /**
  * 自动数据库迁移脚本
- * 解析 schema.sql，对比现有数据库结构，自动添加缺失的列
+ * 解析 schema.sql，对比现有数据库结构：
+ * - 自动添加缺失的列
+ * - 自动删除废弃的表（schema.sql 中不存在的表）
  */
 
 import { execSync } from 'child_process';
@@ -12,6 +14,24 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const DB_NAME = 'dundun-sentinel-db';
+
+// 获取数据库中所有表名
+function getExistingTables() {
+  try {
+    const result = execSync(
+      `npx wrangler d1 execute ${DB_NAME} --command "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE '_cf_%' AND name NOT LIKE 'd1_%';" --remote --json`,
+      { encoding: 'utf-8' }
+    );
+    const data = JSON.parse(result);
+    if (data && data[0] && data[0].results) {
+      return data[0].results.map(row => row.name);
+    }
+    return [];
+  } catch (e) {
+    console.error('获取数据库表列表失败:', e.message);
+    return [];
+  }
+}
 
 // 执行 wrangler 命令
 function wranglerExec(command, silent = false) {
@@ -107,8 +127,31 @@ async function migrate() {
   const schema = parseSchema(schemaPath);
   let migrationsRun = 0;
   
+  // 第一步：检查并删除废弃的表（schema.sql 中不存在的表）
+  console.log('🗑️ 检查废弃表...');
+  const existingTables = getExistingTables();
+  const schemaTables = Object.keys(schema);
+  
+  for (const tableName of existingTables) {
+    if (!schemaTables.includes(tableName)) {
+      console.log(`   🗑️ 删除废弃表: ${tableName}`);
+      try {
+        execSync(
+          `npx wrangler d1 execute ${DB_NAME} --command "DROP TABLE IF EXISTS ${tableName};" --remote --yes`,
+          { encoding: 'utf-8', stdio: 'pipe' }
+        );
+        migrationsRun++;
+        console.log(`   ✅ 已删除`);
+      } catch (e) {
+        console.log(`   ⚠️ 删除失败: ${e.message}`);
+      }
+    }
+  }
+  
+  // 第二步：检查并添加缺失的列
+  console.log('\n📋 检查表结构...');
   for (const [tableName, columns] of Object.entries(schema)) {
-    console.log(`📋 检查表: ${tableName}`);
+    console.log(`   检查表: ${tableName}`);
     
     // 检查表是否存在，如果不存在则创建
     const existingCols = getExistingColumns(tableName);
@@ -137,7 +180,7 @@ async function migrate() {
     }
   }
   
-  // 创建索引（如果不存在）
+  // 第三步：创建索引（如果不存在）
   console.log('\n📋 检查索引...');
   const indexes = [
     'CREATE INDEX IF NOT EXISTS idx_history_site_time ON history(site_id, timestamp DESC)',
@@ -157,7 +200,7 @@ async function migrate() {
     }
   }
   
-  console.log(`\n✅ 迁移完成！执行了 ${migrationsRun} 个列迁移`);
+  console.log(`\n✅ 迁移完成！执行了 ${migrationsRun} 个迁移操作`);
 }
 
 migrate().catch(console.error);

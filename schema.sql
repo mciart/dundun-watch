@@ -105,15 +105,6 @@ CREATE TABLE IF NOT EXISTS groups (
 -- 插入默认分组
 INSERT OR IGNORE INTO groups (id, name, sort_order) VALUES ('default', '默认分类', 0);
 
--- 统计表：存储写入统计
-CREATE TABLE IF NOT EXISTS stats (
-  date TEXT PRIMARY KEY,  -- YYYY-MM-DD
-  writes INTEGER DEFAULT 0,
-  reads INTEGER DEFAULT 0,
-  checks INTEGER DEFAULT 0,
-  created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-);
-
 -- 证书告警表
 CREATE TABLE IF NOT EXISTS certificate_alerts (
   site_id TEXT PRIMARY KEY,

@@ -61,17 +61,9 @@ export async function getDashboardData(request, env) {
 export async function getStats(request, env) {
   try {
     const stats = await db.getTodayStats(env);
-    const settings = await db.getSettings(env);
     const sites = await db.getAllSites(env);
     
-    const checkInterval = settings.checkInterval || 10;
-    const estimatedDailyWrites = Math.round(1440 / checkInterval);
-    
     return jsonResponse({
-      writes: {
-        today: stats.writes,
-        total: stats.writes
-      },
       checks: {
         today: stats.checks,
         total: stats.checks
@@ -80,10 +72,6 @@ export async function getStats(request, env) {
         total: sites.length,
         online: sites.filter(s => s.status === 'online').length,
         offline: sites.filter(s => s.status === 'offline').length
-      },
-      estimated: {
-        dailyWrites: estimatedDailyWrites,
-        quotaUsage: (stats.writes / 100000 * 100).toFixed(2)  // D1 有 100,000 次/天
       }
     });
   } catch (error) {

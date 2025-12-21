@@ -283,14 +283,6 @@ export async function getState(env) {
     incidents: incidents.reduce((acc, i) => { acc[i.id] = i; return acc; }, {}),
     incidentIndex: incidents.map(i => i.id),
     stats: {
-      writes: {
-        today: stats.writes,
-        total: stats.writes,
-        yesterday: 0,
-        forced: 0,
-        statusChange: 0,
-        lastResetDate: getBeijingDate()
-      },
       checks: {
         today: stats.checks,
         total: stats.checks,

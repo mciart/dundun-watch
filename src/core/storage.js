@@ -211,7 +211,6 @@ export async function createSite(env, site) {
     site.lastMessage || null
   ).run();
   
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -265,7 +264,6 @@ export async function updateSite(env, siteId, updates) {
     siteId
   ).run();
   
-  await incrementStats(env, 'writes');
   return true;
 }
 
@@ -283,7 +281,6 @@ export async function batchUpdateSiteStatus(env, updates) {
   );
   
   await env.DB.batch(statements);
-  await incrementStats(env, 'writes', updates.length);
 }
 
 /**
@@ -297,7 +294,6 @@ export async function deleteSite(env, siteId) {
     env.DB.prepare('DELETE FROM certificate_alerts WHERE site_id = ?').bind(siteId),
     env.DB.prepare('DELETE FROM sites WHERE id = ?').bind(siteId)
   ]);
-  await incrementStats(env, 'writes', 4);
 }
 
 // ==================== 历史记录操作 ====================
@@ -318,7 +314,6 @@ export async function addHistory(env, siteId, record) {
     record.message || null
   ).run();
   
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -335,7 +330,6 @@ export async function batchAddHistory(env, records) {
   );
   
   await env.DB.batch(statements);
-  await incrementStats(env, 'writes', records.length);
 }
 
 /**
@@ -438,7 +432,6 @@ export async function createGroup(env, group) {
     group.order || 0,
     group.createdAt || Date.now()
   ).run();
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -448,7 +441,6 @@ export async function updateGroup(env, groupId, updates) {
   await env.DB.prepare(`
     UPDATE groups SET name = ?, sort_order = ? WHERE id = ?
   `).bind(updates.name, updates.order || 0, groupId).run();
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -460,7 +452,6 @@ export async function deleteGroup(env, groupId) {
     env.DB.prepare('UPDATE sites SET group_id = ? WHERE group_id = ?').bind('default', groupId),
     env.DB.prepare('DELETE FROM groups WHERE id = ?').bind(groupId)
   ]);
-  await incrementStats(env, 'writes', 2);
 }
 
 // ==================== 事件操作 ====================
@@ -485,7 +476,6 @@ export async function createIncident(env, incident) {
     incident.duration || null,
     incident.createdAt || Date.now()
   ).run();
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -502,7 +492,6 @@ export async function updateIncident(env, incidentId, updates) {
     updates.duration || null,
     incidentId
   ).run();
-  await incrementStats(env, 'writes');
 }
 
 /**
@@ -556,15 +545,22 @@ export async function getOngoingIncident(env, siteId) {
 // ==================== 统计操作 ====================
 
 /**
- * 增加统计计数
+ * 增加统计计数（仅用于 checks）
  */
 export async function incrementStats(env, type, count = 1) {
+  // 仅保留 checks 统计，writes 已移除
+  if (type !== 'checks') return;
+  
   const date = getBeijingDate();
-  await env.DB.prepare(`
-    INSERT INTO stats (date, ${type})
-    VALUES (?, ?)
-    ON CONFLICT(date) DO UPDATE SET ${type} = ${type} + ?
-  `).bind(date, count, count).run();
+  try {
+    await env.DB.prepare(`
+      INSERT INTO stats (date, ${type})
+      VALUES (?, ?)
+      ON CONFLICT(date) DO UPDATE SET ${type} = ${type} + ?
+    `).bind(date, count, count).run();
+  } catch (e) {
+    // 忽略统计错误
+  }
 }
 
 /**
@@ -572,32 +568,18 @@ export async function incrementStats(env, type, count = 1) {
  */
 export async function getTodayStats(env) {
   const date = getBeijingDate();
-  const row = await env.DB.prepare(
-    'SELECT * FROM stats WHERE date = ?'
-  ).bind(date).first();
-  
-  return {
-    date,
-    writes: row?.writes || 0,
-    reads: row?.reads || 0,
-    checks: row?.checks || 0
-  };
-}
-
-/**
- * 获取统计历史
- */
-export async function getStatsHistory(env, days = 7) {
-  const results = await env.DB.prepare(`
-    SELECT * FROM stats ORDER BY date DESC LIMIT ?
-  `).bind(days).all();
-  
-  return (results.results || []).map(row => ({
-    date: row.date,
-    writes: row.writes,
-    reads: row.reads,
-    checks: row.checks
-  }));
+  try {
+    const row = await env.DB.prepare(
+      'SELECT * FROM stats WHERE date = ?'
+    ).bind(date).first();
+    
+    return {
+      date,
+      checks: row?.checks || 0
+    };
+  } catch (e) {
+    return { date, checks: 0 };
+  }
 }
 
 // ==================== 认证操作 ====================
@@ -771,7 +753,6 @@ export async function setCertificateAlert(env, siteId, alertTime, alertType) {
     INSERT OR REPLACE INTO certificate_alerts (site_id, last_alert_time, alert_type)
     VALUES (?, ?, ?)
   `).bind(siteId, alertTime, alertType).run();
-  await incrementStats(env, 'writes');
 }
 
 // ==================== 数据库初始化 ====================
@@ -1007,10 +988,6 @@ export async function getMonitorState(env) {
     incidents: {},  // 兼容旧格式
     incidentIndex: incidents.map(i => i.id),
     stats: {
-      writes: {
-        today: stats.writes,
-        total: stats.writes
-      },
       checks: {
         today: stats.checks,
         total: stats.checks
