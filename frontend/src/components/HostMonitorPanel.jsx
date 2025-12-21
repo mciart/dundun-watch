@@ -645,34 +645,34 @@ function HostDetailModal({ site, onClose }) {
   const activeMetricInfo = metrics.find(m => m.key === activeMetric);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm">
       <div 
-        className="glass-card w-full max-w-4xl max-h-[90vh] overflow-hidden"
+        className="glass-card w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 头部 */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className={`p-1.5 sm:p-2 rounded-xl shrink-0 ${
                 site.status === 'online' 
                   ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'
                   : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
               }`}>
-                <Server className="w-6 h-6" />
+                <Server className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base sm:text-xl font-semibold text-slate-800 dark:text-slate-200 truncate">
                   {site.name}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  主机监控详情 · 历史数据走势
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  历史数据走势
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
             >
               <X className="w-5 h-5" />
             </button>
@@ -680,95 +680,127 @@ function HostDetailModal({ site, onClose }) {
         </div>
 
         {/* 内容区 */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-          {/* 时间范围选择 */}
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-sm text-slate-600 dark:text-slate-400">时间范围:</span>
-            {[6, 12, 24, 48, 72, 168].map(h => (
-              <button
-                key={h}
-                onClick={() => setHours(h)}
-                className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                  hours === h
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                }`}
-              >
-                {h < 24 ? `${h}小时` : `${h / 24}天`}
-              </button>
-            ))}
-          </div>
-
-          {/* 指标选择 */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {metrics.map(metric => {
-              const Icon = metric.icon;
-              const isActive = activeMetric === metric.key;
-              return (
+        <div className="p-4 sm:p-6 overflow-y-auto max-h-[calc(95vh-80px)] sm:max-h-[calc(90vh-100px)]">
+          {/* 时间范围选择 - 手机端使用下拉 */}
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <span className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 shrink-0">时间:</span>
+            {/* 手机端下拉选择 */}
+            <select
+              value={hours}
+              onChange={(e) => setHours(Number(e.target.value))}
+              className="sm:hidden px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
+            >
+              {[6, 12, 24, 48, 72, 168].map(h => (
+                <option key={h} value={h}>
+                  {h < 24 ? `${h}小时` : `${h / 24}天`}
+                </option>
+              ))}
+            </select>
+            {/* 桌面端按钮组 */}
+            <div className="hidden sm:flex items-center gap-2">
+              {[6, 12, 24, 48, 72, 168].map(h => (
                 <button
-                  key={metric.key}
-                  onClick={() => setActiveMetric(metric.key)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    isActive
-                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                  key={h}
+                  onClick={() => setHours(h)}
+                  className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                    hours === h
+                      ? 'bg-primary-500 text-white'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  {metric.label}
-                  {metric.isCustom && (
-                    <span className="text-xs opacity-60">(自定义)</span>
-                  )}
+                  {h < 24 ? `${h}小时` : `${h / 24}天`}
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          {/* 统计摘要 */}
+          {/* 指标选择 - 手机端使用下拉 */}
+          <div className="mb-4 sm:mb-6">
+            {/* 手机端下拉选择 */}
+            <div className="sm:hidden">
+              <select
+                value={activeMetric}
+                onChange={(e) => setActiveMetric(e.target.value)}
+                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {metrics.map(metric => (
+                  <option key={metric.key} value={metric.key}>
+                    {metric.label}{metric.isCustom ? ' (自定义)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* 桌面端按钮组 */}
+            <div className="hidden sm:flex flex-wrap gap-2">
+              {metrics.map(metric => {
+                const Icon = metric.icon;
+                const isActive = activeMetric === metric.key;
+                return (
+                  <button
+                    key={metric.key}
+                    onClick={() => setActiveMetric(metric.key)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
+                      isActive
+                        ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {metric.label}
+                    {metric.isCustom && (
+                      <span className="text-xs opacity-60">(自定义)</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 统计摘要 - 手机端 2x2 网格 */}
           {stats && (
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="glass-card p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">当前</p>
-                <p className="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                  {stats.current}{activeMetricInfo?.unit}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+              <div className="glass-card p-2 sm:p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">当前</p>
+                <p className="text-lg sm:text-2xl font-bold text-slate-800 dark:text-slate-200 truncate">
+                  {stats.current}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
                 </p>
               </div>
-              <div className="glass-card p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">平均</p>
-                <p className="text-2xl font-bold text-blue-500">
-                  {stats.avg}{activeMetricInfo?.unit}
+              <div className="glass-card p-2 sm:p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">平均</p>
+                <p className="text-lg sm:text-2xl font-bold text-blue-500 truncate">
+                  {stats.avg}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
                 </p>
               </div>
-              <div className="glass-card p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">最高</p>
-                <p className="text-2xl font-bold text-red-500">
-                  {stats.max}{activeMetricInfo?.unit}
+              <div className="glass-card p-2 sm:p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最高</p>
+                <p className="text-lg sm:text-2xl font-bold text-red-500 truncate">
+                  {stats.max}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
                 </p>
               </div>
-              <div className="glass-card p-4 text-center">
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">最低</p>
-                <p className="text-2xl font-bold text-emerald-500">
-                  {stats.min}{activeMetricInfo?.unit}
+              <div className="glass-card p-2 sm:p-4 text-center">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">最低</p>
+                <p className="text-lg sm:text-2xl font-bold text-emerald-500 truncate">
+                  {stats.min}<span className="text-xs sm:text-sm font-normal">{activeMetricInfo?.unit}</span>
                 </p>
               </div>
             </div>
           )}
 
           {/* 图表区域 */}
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="w-5 h-5 text-slate-500" />
-              <h3 className="font-medium text-slate-800 dark:text-slate-200">
+          <div className="glass-card p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" />
+              <h3 className="text-sm sm:font-medium text-slate-800 dark:text-slate-200">
                 {activeMetricInfo?.label} 走势图
               </h3>
             </div>
             
             {loading ? (
-              <div className="h-64 flex items-center justify-center text-slate-500">
+              <div className="h-40 sm:h-64 flex items-center justify-center text-slate-500">
                 加载中...
               </div>
             ) : chartData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center text-slate-500">
+              <div className="h-40 sm:h-64 flex items-center justify-center text-slate-500">
                 暂无历史数据
               </div>
             ) : (
@@ -780,12 +812,13 @@ function HostDetailModal({ site, onClose }) {
             )}
           </div>
 
-          {/* 自定义字段说明 */}
-          <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-            <h4 className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          {/* 自定义字段说明 - 手机端默认折叠 */}
+          <details className="mt-4 sm:mt-6">
+            <summary className="p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               💡 自定义字段上传示例
-            </h4>
-            <pre className="text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 p-3 rounded-lg overflow-x-auto">
+            </summary>
+            <div className="mt-2 p-3 sm:p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+              <pre className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 p-2 sm:p-3 rounded-lg overflow-x-auto">
 {`curl -X POST "https://your-worker/api/push/TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -794,14 +827,15 @@ function HostDetailModal({ site, onClose }) {
     "custom": {
       "gpu": { "value": 45, "label": "GPU", "unit": "%", "showHistory": true },
       "connections": { "value": 128, "label": "连接数", "showHistory": true },
-      "queue_size": 42  // 简单数值也会被记录
+      "queue_size": 42
     }
   }'`}
             </pre>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              设置 <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">showHistory: false</code> 可以隐藏某个字段的历史走势
-            </p>
-          </div>
+              <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2">
+                设置 <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">showHistory: false</code> 可以隐藏某个字段的历史走势
+              </p>
+            </div>
+          </details>
         </div>
       </div>
     </div>
@@ -809,7 +843,7 @@ function HostDetailModal({ site, onClose }) {
 }
 
 /**
- * 简单折线图组件
+ * 简单折线图组件 - 响应式设计
  */
 function SimpleLineChart({ data, color, unit }) {
   if (!data || data.length === 0) return null;
@@ -819,10 +853,10 @@ function SimpleLineChart({ data, color, unit }) {
   const max = Math.max(...values);
   const range = max - min || 1;
 
-  // SVG 尺寸
+  // SVG 尺寸 - 使用更合适的比例
   const width = 800;
   const height = 200;
-  const padding = { top: 20, right: 20, bottom: 30, left: 50 };
+  const padding = { top: 20, right: 15, bottom: 30, left: 45 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
 
@@ -839,14 +873,14 @@ function SimpleLineChart({ data, color, unit }) {
   // 生成区域填充路径
   const areaD = `${pathD} L ${points[points.length - 1].x} ${padding.top + chartHeight} L ${padding.left} ${padding.top + chartHeight} Z`;
 
-  // Y 轴刻度
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => ({
+  // Y 轴刻度 - 减少刻度数量便于手机显示
+  const yTicks = [0, 0.5, 1].map(ratio => ({
     value: (min + range * ratio).toFixed(1),
     y: padding.top + chartHeight * (1 - ratio)
   }));
 
-  // X 轴时间标签
-  const xTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => {
+  // X 轴时间标签 - 减少标签数量
+  const xTicks = [0, 0.5, 1].map(ratio => {
     const index = Math.floor(ratio * (data.length - 1));
     const point = data[index];
     return {
@@ -856,7 +890,7 @@ function SimpleLineChart({ data, color, unit }) {
   });
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-64">
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-40 sm:h-64" preserveAspectRatio="xMidYMid meet">
       {/* 网格线 */}
       {yTicks.map((tick, i) => (
         <line
@@ -875,11 +909,11 @@ function SimpleLineChart({ data, color, unit }) {
       {yTicks.map((tick, i) => (
         <text
           key={i}
-          x={padding.left - 10}
+          x={padding.left - 8}
           y={tick.y}
           textAnchor="end"
           dominantBaseline="middle"
-          className="text-xs fill-slate-500"
+          className="text-[10px] sm:text-xs fill-slate-500"
         >
           {tick.value}
         </text>
@@ -890,9 +924,9 @@ function SimpleLineChart({ data, color, unit }) {
         <text
           key={i}
           x={tick.x}
-          y={height - 5}
+          y={height - 8}
           textAnchor="middle"
-          className="text-xs fill-slate-500"
+          className="text-[10px] sm:text-xs fill-slate-500"
         >
           {tick.label}
         </text>
@@ -915,8 +949,8 @@ function SimpleLineChart({ data, color, unit }) {
         strokeLinejoin="round"
       />
 
-      {/* 数据点 */}
-      {points.length <= 50 && points.map((p, i) => (
+      {/* 数据点 - 只在数据点少的时候显示 */}
+      {points.length <= 30 && points.map((p, i) => (
         <circle
           key={i}
           cx={p.x}
