@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
-import { 
+import * as LucideIcons from 'lucide-react';
+
+// 解构常用图标
+const { 
   Server, 
   Cpu, 
   MemoryStick, 
@@ -15,180 +18,22 @@ import {
   X,
   TrendingUp,
   BarChart3,
-  GripVertical,
-  // 扩展图标 - 用于自定义字段
-  Gauge,
-  Zap,
-  Database,
-  Network,
-  Globe,
-  Cloud,
-  CloudRain,
-  Upload,
-  Download,
-  Users,
-  User,
-  Box,
-  Package,
-  Layers,
-  Monitor,
-  Smartphone,
-  Laptop,
-  Battery,
-  BatteryCharging,
-  Signal,
-  Radio,
-  Router,
-  HardDriveDownload,
-  HardDriveUpload,
-  Fan,
-  Flame,
-  Droplet,
-  Wind,
-  Sun,
-  Moon,
-  Eye,
-  Bell,
-  MessageSquare,
-  Send,
-  RefreshCw,
-  Settings,
-  Wrench,
-  Cog,
-  CircleDot,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown
-} from 'lucide-react';
+  GripVertical
+} = LucideIcons;
 
-// 图标映射表 - 将字符串名称映射到图标组件
-const ICON_MAP = {
-  // 系统监控相关
-  cpu: Cpu,
-  memory: MemoryStick,
-  ram: MemoryStick,
-  disk: HardDrive,
-  hdd: HardDrive,
-  ssd: HardDrive,
-  storage: Database,
-  database: Database,
-  activity: Activity,
-  load: Activity,
-  temperature: Thermometer,
-  temp: Thermometer,
-  thermometer: Thermometer,
-  gauge: Gauge,
-  meter: Gauge,
-  
-  // GPU 和显卡相关
-  gpu: Monitor,
-  graphics: Monitor,
-  vram: Monitor,
-  
-  // 网络相关
-  network: Network,
-  wifi: Wifi,
-  signal: Signal,
-  radio: Radio,
-  router: Router,
-  globe: Globe,
-  internet: Globe,
-  upload: Upload,
-  download: Download,
-  'upload-speed': HardDriveUpload,
-  'download-speed': HardDriveDownload,
-  bandwidth: ArrowUpDown,
-  
-  // 连接和用户
-  connections: Users,
-  users: Users,
-  user: User,
-  online: Users,
-  sessions: Users,
-  
-  // 服务器和设备
-  server: Server,
-  cloud: Cloud,
-  box: Box,
-  package: Package,
-  container: Package,
-  docker: Package,
-  layers: Layers,
-  monitor: Monitor,
-  screen: Monitor,
-  laptop: Laptop,
-  smartphone: Smartphone,
-  mobile: Smartphone,
-  
-  // 电源和能源
-  battery: Battery,
-  power: BatteryCharging,
-  energy: Zap,
-  zap: Zap,
-  bolt: Zap,
-  lightning: Zap,
-  
-  // 散热和环境
-  fan: Fan,
-  cooling: Fan,
-  flame: Flame,
-  fire: Flame,
-  heat: Flame,
-  droplet: Droplet,
-  water: Droplet,
-  humidity: Droplet,
-  wind: Wind,
-  air: Wind,
-  sun: Sun,
-  moon: Moon,
-  weather: CloudRain,
-  
-  // 消息和通知
-  message: MessageSquare,
-  messages: MessageSquare,
-  queue: MessageSquare,
-  bell: Bell,
-  notification: Bell,
-  send: Send,
-  
-  // 状态和趋势
-  trend: TrendingUp,
-  trending: TrendingUp,
-  chart: BarChart3,
-  stats: BarChart3,
-  eye: Eye,
-  view: Eye,
-  views: Eye,
-  
-  // 通用
-  refresh: RefreshCw,
-  sync: RefreshCw,
-  settings: Settings,
-  config: Settings,
-  wrench: Wrench,
-  tool: Wrench,
-  cog: Cog,
-  gear: Cog,
-  dot: CircleDot,
-  point: CircleDot,
-  up: ArrowUp,
-  down: ArrowDown,
-  clock: Clock,
-  time: Clock,
-  uptime: Clock,
-};
+import { api } from '../utils/api';
 
 /**
- * 根据图标名称获取图标组件
- * @param {string} iconName - 图标名称
- * @returns {React.Component} 图标组件，默认返回 Activity
+ * 根据图标名称获取 lucide-react 图标组件
+ * @param {string} iconName - 图标名称，如 "Gauge"、"Users"、"Zap" 等
+ * @returns {React.Component|null} 图标组件或 null
  */
-function getIconComponent(iconName) {
-  if (!iconName) return Activity;
-  const normalizedName = iconName.toLowerCase().replace(/[_\s]/g, '-');
-  return ICON_MAP[normalizedName] || Activity;
+function getLucideIcon(iconName) {
+  if (!iconName || typeof iconName !== 'string') return null;
+  // 直接从 LucideIcons 中获取
+  const Icon = LucideIcons[iconName];
+  return Icon || null;
 }
-import { api } from '../utils/api';
 
 /**
  * 主机监控面板组件
@@ -768,17 +613,17 @@ function HostDetailModal({ site, onClose }) {
             key: `custom.${key}`,
             label: customField.label || key,
             unit: customField.unit || '',
-            icon: getIconComponent(customField.icon || key),
+            icon: getLucideIcon(customField.icon), // 动态获取 lucide 图标
             color: customField.color || '#64748b',
             isCustom: true
           });
         } else if (typeof customField === 'number') {
-          // 数字类型直接显示，尝试根据 key 匹配图标
+          // 数字类型直接显示
           base.push({
             key: `custom.${key}`,
             label: key,
             unit: '',
-            icon: getIconComponent(key),
+            icon: null,
             color: '#64748b',
             isCustom: true
           });
@@ -938,7 +783,11 @@ function HostDetailModal({ site, onClose }) {
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                     }`}
                   >
-                    <Icon className="w-4 h-4" />
+                    {Icon ? (
+                      <Icon className="w-4 h-4" />
+                    ) : (
+                      <Activity className="w-4 h-4" />
+                    )}
                     {metric.label}
                   </button>
                 );
@@ -1017,13 +866,13 @@ function HostDetailModal({ site, onClose }) {
         "value": 45, 
         "label": "GPU", 
         "unit": "%", 
-        "icon": "gpu",
+        "icon": "Gauge",
         "showHistory": true 
       },
       "connections": { 
         "value": 128, 
         "label": "连接数", 
-        "icon": "users",
+        "icon": "Users",
         "showHistory": true 
       },
       "queue_size": 42
@@ -1031,7 +880,7 @@ function HostDetailModal({ site, onClose }) {
   }'`}
             </pre>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2">
-                <strong>icon</strong>: 可选图标名，如 gpu, users, network, upload, download, battery, fan 等<br/>
+                <strong>icon</strong>: 可选 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Lucide 图标</a>名称（PascalCase），如 <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">Gauge</code>、<code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">Users</code>、<code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">Zap</code> 等<br/>
                 <strong>showHistory</strong>: 设为 false 可隐藏历史走势
               </p>
             </div>

@@ -166,7 +166,7 @@ urllib.request.urlopen(req, timeout=10)
       "value": 45,
       "label": "GPU",
       "unit": "%",
-      "icon": "gpu",
+      "icon": "Gauge",
       "color": "#8b5cf6",
       "showHistory": true
     }
@@ -181,29 +181,30 @@ urllib.request.urlopen(req, timeout=10)
 | `value` | number | ✅ | 数值 |
 | `label` | string | ❌ | 显示名称，默认使用字段 key |
 | `unit` | string | ❌ | 单位，如 `%`, `MB`, `°C` |
-| `icon` | string | ❌ | 图标名称（见下方支持列表） |
+| `icon` | string | ❌ | [Lucide 图标](https://lucide.dev/icons/)名称（PascalCase） |
 | `color` | string | ❌ | 图表颜色，如 `#10b981` |
 | `showHistory` | boolean | ❌ | 是否显示历史走势，默认 true |
 
-### 支持的图标
+### 图标说明
 
-**系统监控**: `cpu`, `memory`, `disk`, `storage`, `database`, `activity`, `load`, `temperature`, `gauge`
+`icon` 字段使用 [Lucide 图标](https://lucide.dev/icons/) 名称（PascalCase 格式），例如：
 
-**GPU/显卡**: `gpu`, `graphics`, `vram`, `monitor`
+| 用途 | 图标名称 |
+|------|----------|
+| 仪表盘 | `Gauge` |
+| 用户/连接 | `Users` |
+| 网络 | `Network` |
+| 下载 | `Download` |
+| 上传 | `Upload` |
+| 温度 | `Thermometer` |
+| 风扇 | `Fan` |
+| 电池 | `Battery` |
+| 服务器 | `Server` |
+| 云 | `Cloud` |
+| 趋势 | `TrendingUp` |
+| 闪电 | `Zap` |
 
-**网络相关**: `network`, `wifi`, `signal`, `router`, `globe`, `upload`, `download`, `bandwidth`
-
-**连接/用户**: `connections`, `users`, `user`, `sessions`, `online`
-
-**服务器/设备**: `server`, `cloud`, `container`, `docker`, `laptop`, `smartphone`
-
-**电源/能源**: `battery`, `power`, `energy`, `zap`, `bolt`
-
-**散热/环境**: `fan`, `cooling`, `flame`, `droplet`, `humidity`, `wind`, `sun`, `moon`
-
-**消息/队列**: `message`, `queue`, `bell`, `notification`, `send`
-
-**状态/趋势**: `trend`, `chart`, `stats`, `eye`, `views`
+> 💡 完整图标列表请访问 [Lucide 官网](https://lucide.dev/icons/)，搜索需要的图标后使用 **PascalCase** 格式名称即可（如网站显示 `memory-stick`，则填写 `MemoryStick`）。
 
 ### 完整示例
 
@@ -219,20 +220,20 @@ curl -X POST "https://你的域名/api/push/你的Token" \
         "value": 45, 
         "label": "GPU", 
         "unit": "%", 
-        "icon": "gpu",
+        "icon": "Gauge",
         "showHistory": true 
       },
       "connections": { 
         "value": 128, 
         "label": "连接数", 
-        "icon": "users",
+        "icon": "Users",
         "showHistory": true 
       },
       "download_speed": { 
         "value": 156.8, 
         "label": "下载速度", 
         "unit": "MB/s", 
-        "icon": "download",
+        "icon": "Download",
         "color": "#06b6d4"
       },
       "queue_size": 42

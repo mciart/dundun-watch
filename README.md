@@ -538,8 +538,8 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
     "latency": 15,
     "network": {"rx": 1024, "tx": 512},
     "custom": {
-      "gpu": { "value": 45, "label": "GPU", "unit": "%", "icon": "gpu", "showHistory": true },
-      "connections": { "value": 128, "label": "连接数", "icon": "users" }
+      "gpu": { "value": 45, "label": "GPU", "unit": "%", "icon": "Gauge", "showHistory": true },
+      "connections": { "value": 128, "label": "连接数", "icon": "Users" }
     }
   }'
 ```
@@ -556,7 +556,7 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
 | `temperature` / `temp` | number | 温度 (°C) |
 | `latency` | number | 延迟/响应时间 (ms) |
 | `network` | object | 网络流量信息 |
-| `custom` | object | 自定义数据（见下方详细说明） |
+| `custom` | object | 自定义数据 |
 
 #### 自定义字段（custom）
 
@@ -569,9 +569,13 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
       "value": 45, 
       "label": "GPU", 
       "unit": "%", 
-      "icon": "gpu",
-      "color": "#8b5cf6",
+      "icon": "Gauge",
       "showHistory": true 
+    },
+    "connections": { 
+      "value": 128, 
+      "label": "连接数", 
+      "icon": "Users" 
     },
     "queue_size": 42
   }
@@ -583,19 +587,9 @@ curl -X POST "https://your-worker.workers.dev/api/push/YOUR_TOKEN" \
 | `value` | number | ✅ | 数值 |
 | `label` | string | ❌ | 显示名称 |
 | `unit` | string | ❌ | 单位，如 `%`, `MB`, `°C` |
-| `icon` | string | ❌ | 图标名称（见下方列表） |
+| `icon` | string | ❌ | [Lucide 图标](https://lucide.dev/icons/)名称（PascalCase） |
 | `color` | string | ❌ | 图表颜色，如 `#10b981` |
 | `showHistory` | boolean | ❌ | 是否显示历史走势，默认 true |
-
-**支持的图标名称**：
-- **系统**: `cpu`, `memory`, `disk`, `storage`, `database`, `load`, `temperature`, `gauge`
-- **GPU**: `gpu`, `graphics`, `monitor`
-- **网络**: `network`, `wifi`, `signal`, `router`, `upload`, `download`, `bandwidth`
-- **连接**: `connections`, `users`, `sessions`
-- **设备**: `server`, `cloud`, `container`, `docker`, `laptop`
-- **电源**: `battery`, `power`, `energy`, `zap`
-- **环境**: `fan`, `flame`, `droplet`, `humidity`, `wind`
-- **消息**: `message`, `queue`, `bell`, `notification`
 
 > 📖 完整文档请参考 [Push 心跳监控使用指南](docs/push-monitor-guide.md)
 
