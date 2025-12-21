@@ -65,7 +65,7 @@ export default function Dialog({
         return {
           icon: Info,
           color: 'text-slate-600 dark:text-slate-400',
-          bgColor: 'bg-slate-100 dark:bg-slate-800'
+          bgColor: 'bg-slate-200/80 dark:bg-[#2a2a2a]'
         };
     }
   };
@@ -88,25 +88,25 @@ export default function Dialog({
           animate={modalVariants.animate}
           exit={modalVariants.exit}
           transition={modalTransition}
-          className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+          className="bg-white dark:bg-[#222] rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-black/50 w-full max-w-md overflow-hidden border border-slate-100 dark:border-slate-700"
           onClick={(e) => e.stopPropagation()}
         >
 
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-800">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
               {title}
             </h3>
             <motion.button
               onClick={handleCancel}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
               aria-label="关闭"
               {...closeButtonHover}
             >
-              <X className="w-5 h-5 text-slate-500" />
+              <X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" />
             </motion.button>
           </div>
 
-          <div className="px-6 py-5">
+          <div className="px-6 py-5 bg-white dark:bg-[#222]">
             <div className="flex gap-4">
               <motion.div 
                 className={`flex-shrink-0 w-10 h-10 rounded-full ${bgColor} flex items-center justify-center`}
@@ -127,7 +127,7 @@ export default function Dialog({
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.15, duration: 0.3 }}
               >
-                <p className="text-slate-700 dark:text-slate-300 whitespace-pre-line">
+                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-line">
                   {message}
                 </p>
               </motion.div>
@@ -135,7 +135,7 @@ export default function Dialog({
           </div>
 
           <motion.div 
-            className="flex gap-3 px-6 py-4 bg-slate-50 dark:bg-slate-900/50"
+            className="flex gap-3 px-6 py-4 bg-gradient-to-r from-slate-50 to-slate-100/50 dark:from-slate-900/50 dark:to-slate-900/30 border-t border-slate-100 dark:border-slate-700"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
@@ -143,7 +143,7 @@ export default function Dialog({
             {isConfirm && (
               <motion.button
                 onClick={handleCancel}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-[#2a2a2a] border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 hover:border-slate-300 dark:hover:bg-[#333] transition-all"
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2 }}

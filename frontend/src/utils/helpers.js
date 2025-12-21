@@ -56,7 +56,7 @@ export function getStatusBgColor(status) {
     online: 'bg-primary-100 dark:bg-primary-900/30',
     offline: 'bg-danger-100 dark:bg-danger-900/30',
     slow: 'bg-warning-100 dark:bg-warning-900/30',
-    unknown: 'bg-slate-100 dark:bg-slate-800',
+    unknown: 'bg-slate-200/80 dark:bg-[#2a2a2a]',
   };
   return colors[status] || colors.unknown;
 }

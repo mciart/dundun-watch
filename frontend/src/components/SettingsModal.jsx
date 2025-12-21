@@ -21,7 +21,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
-          className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl"
+          className="w-full max-w-md bg-white dark:bg-[#222] rounded-2xl shadow-2xl"
         >
           {/* 标题栏 */}
           <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
@@ -30,7 +30,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all btn-icon hover:rotate-90"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-all btn-icon hover:rotate-90"
             >
               <X className="w-5 h-5" />
             </button>
@@ -49,7 +49,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
                 max="720"
                 value={historyHours}
                 onChange={(e) => setHistoryHours(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 required
               />
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -74,7 +74,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
                 max="720"
                 value={retentionHours}
                 onChange={(e) => setRetentionHours(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 required
               />
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -92,7 +92,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#333] transition-colors"
               >
                 取消
               </button>

@@ -508,7 +508,7 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
                   </span>
                 </div>
                 
-                <div className="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
+                <div className="w-px h-4 bg-slate-200 dark:bg-[#2a2a2a]"></div>
                 
                 <div className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                   {hoveredBlock.record.responseTime}ms

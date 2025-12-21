@@ -176,7 +176,7 @@ export default function SettingsPage() {
                       max="720"
                       value={settings.historyHours}
                       onChange={(e) => setSettings({ ...settings, historyHours: parseInt(e.target.value) })}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <div className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
                       <p>• 24 小时 = 1 天（默认）</p>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                       max="720"
                       value={settings.retentionHours}
                       onChange={(e) => setSettings({ ...settings, retentionHours: parseInt(e.target.value) })}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <div className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
                       <p>• 24 小时 = 1 天</p>

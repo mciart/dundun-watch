@@ -94,7 +94,7 @@ export default function HistoryModal({ site, onClose }) {
           animate={modalVariants.animate}
           exit={modalVariants.exit}
           transition={modalTransition}
-          className="w-full max-w-4xl bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+          className="w-full max-w-4xl bg-white dark:bg-[#222] rounded-2xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
           onWheel={(e) => e.stopPropagation()}
           onTouchMove={(e) => e.stopPropagation()}
@@ -111,7 +111,7 @@ export default function HistoryModal({ site, onClose }) {
             </div>
             <motion.button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
               {...closeButtonHover}
             >
               <X className="w-5 h-5" />
@@ -181,7 +181,7 @@ export default function HistoryModal({ site, onClose }) {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'all'
                       ? 'bg-primary-500 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      : 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#333]'
                   }`}
                 >
                   全部 ({stats?.total || 0})
@@ -191,7 +191,7 @@ export default function HistoryModal({ site, onClose }) {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'online'
                       ? 'bg-emerald-500 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      : 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#333]'
                   }`}
                 >
                   正常 ({stats?.online || 0})
@@ -201,7 +201,7 @@ export default function HistoryModal({ site, onClose }) {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'slow'
                       ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      : 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#333]'
                   }`}
                 >
                   缓慢 ({stats?.slow || 0})
@@ -211,7 +211,7 @@ export default function HistoryModal({ site, onClose }) {
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     statusFilter === 'offline'
                       ? 'bg-red-500 text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      : 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#333]'
                   }`}
                 >
                   异常 ({stats?.offline || 0})
@@ -322,7 +322,7 @@ export default function HistoryModal({ site, onClose }) {
               onClick={onClose}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-medium transition-colors"
+              className="w-full px-4 py-2 rounded-lg bg-slate-100 dark:bg-[#2a2a2a] hover:bg-slate-200 dark:hover:bg-[#333] text-slate-900 dark:text-white font-medium transition-colors"
             >
               关闭
             </motion.button>

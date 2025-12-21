@@ -69,6 +69,34 @@ function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    // 动态更新状态栏颜色
+    const updateThemeColor = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      const themeColor = isDarkMode ? '#0d0d0d' : '#ffffff';
+      let metaThemeColor = document.querySelector('meta[name="theme-color"]:not([media])');
+      if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        document.head.appendChild(metaThemeColor);
+      }
+      metaThemeColor.content = themeColor;
+    };
+    
+    updateThemeColor();
+    
+    // 监听主题变化
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          updateThemeColor();
+        }
+      });
+    });
+    
+    observer.observe(document.documentElement, { attributes: true });
+    
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {

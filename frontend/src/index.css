@@ -8,6 +8,19 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* iOS 安全区域适配 */
+html {
+  /* 支持 iOS 刘海屏等安全区域 */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* PWA 模式下顶部安全区域 */
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
 .glass-card {
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -39,7 +52,7 @@ canvas {
 
 @layer components {
   .glass-card {
-    @apply bg-white/70 dark:bg-[#1a1a1a]/90;
+    @apply bg-white/95 dark:bg-[#1a1a1a]/95;
     @apply backdrop-blur-xl;
     @apply rounded-2xl;
     @apply transition-all duration-300;
@@ -102,9 +115,9 @@ canvas {
 
   .btn-secondary {
     @apply btn px-6 py-3 rounded-xl;
-    @apply bg-slate-200 dark:bg-slate-800;
+    @apply bg-slate-200/80 dark:bg-[#2a2a2a];
     @apply text-slate-900 dark:text-slate-100;
-    @apply hover:bg-slate-300 dark:hover:bg-slate-700;
+    @apply hover:bg-slate-300 dark:hover:bg-[#333];
     @apply shadow-md;
     @apply hover:shadow-lg;
   }
@@ -140,12 +153,12 @@ canvas {
     @apply btn px-4 py-2 rounded-lg;
     @apply bg-transparent;
     @apply text-slate-600 dark:text-slate-300;
-    @apply hover:bg-slate-100 dark:hover:bg-slate-800;
+    @apply hover:bg-slate-200/80 dark:hover:bg-[#2a2a2a];
   }
 
   .input-field {
     @apply w-full px-4 py-3 rounded-xl;
-    @apply bg-white/50 dark:bg-slate-800/50;
+    @apply bg-white/50 dark:bg-[#2a2a2a]/50;
     @apply border-2 border-slate-200 dark:border-slate-700;
     @apply focus:border-slate-400 dark:focus:border-slate-500;
     @apply outline-none;
@@ -183,9 +196,9 @@ canvas {
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-300 dark:bg-slate-700;
+  @apply bg-slate-300 dark:bg-[#2a2a2a];
   @apply rounded-full;
-  @apply hover:bg-slate-400 dark:hover:bg-slate-600;
+  @apply hover:bg-slate-400 dark:hover:bg-[#333];
 }
 
 .scrollbar-hide {

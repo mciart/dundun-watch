@@ -129,7 +129,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.siteName}
                 onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 text-lg font-medium"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 text-lg font-medium"
                 placeholder="例如：炖炖哨兵"
               />
             </div>
@@ -154,7 +154,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.siteSubtitle}
                 onChange={(e) => setSettings({ ...settings, siteSubtitle: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                 placeholder="例如：慢慢炖，网站不 &quot;糊锅&quot;"
               />
             </div>
@@ -179,7 +179,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.pageTitle}
                 onChange={(e) => setSettings({ ...settings, pageTitle: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
                 placeholder="例如：网站监控"
               />
             </div>
@@ -188,7 +188,7 @@ export default function WebsiteSettingsPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => navigate('/admin')}
-                className="px-6 py-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium transition-colors"
+                className="px-6 py-3 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] hover:bg-slate-300 dark:hover:bg-[#333] text-slate-700 dark:text-slate-300 font-medium transition-colors"
               >
                 取消
               </button>
