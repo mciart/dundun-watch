@@ -1,7 +1,16 @@
 import { useMemo, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { AnimatePresence, motion, Reorder } from 'framer-motion'; // 引入 Reorder
-import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, GripVertical } from 'lucide-react'; // 引入 GripVertical
+import { AnimatePresence, motion, Reorder } from 'framer-motion';
+import * as LucideIcons from 'lucide-react';
+
+const { Plus, Edit2, Trash2, X, AlertCircle, Image: ImageIcon, GripVertical, Folder } = LucideIcons;
+
+// 根据图标名称获取 Lucide 图标组件
+function getLucideIcon(iconName) {
+  if (!iconName || typeof iconName !== 'string') return null;
+  return LucideIcons[iconName] || null;
+}
+
 import Dialog from './Dialog';
 import { useDialog } from '../hooks/useDialog';
 import { 
@@ -171,12 +180,15 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {group.icon && (
-                    <i 
-                      className={`${group.icon} w-5 h-5 flex items-center justify-center flex-shrink-0`}
-                      style={{ color: group.iconColor || 'currentColor' }}
-                    />
-                  )}
+                  {group.icon && (() => {
+                    const IconComponent = getLucideIcon(group.icon);
+                    return IconComponent ? (
+                      <IconComponent 
+                        className="w-5 h-5 flex-shrink-0"
+                        style={{ color: group.iconColor || 'currentColor' }}
+                      />
+                    ) : null;
+                  })()}
                   <span className="text-sm font-medium text-slate-900 dark:text-white">
                     {group.name}
                   </span>
@@ -279,9 +291,9 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    图标类名
+                    图标名称
                     <a 
-                      href="https://fontawesome.com/search?o=r&m=free" 
+                      href="https://lucide.dev/icons/" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="ml-2 text-xs text-primary-600 dark:text-primary-400 hover:underline"
@@ -296,11 +308,11 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                       value={formData.icon}
                       onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
                       className="input-field pl-10"
-                      placeholder="例如：fas fa-folder"
+                      placeholder="例如：Folder"
                     />
                   </div>
                   <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    输入 Font Awesome 图标类名，如：fas fa-home、far fa-user、fab fa-github 等
+                    输入 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Lucide 图标</a>名称（PascalCase），如：Home、User、Github、Server 等
                   </p>
                 </div>
 
@@ -326,10 +338,17 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                     </div>
                     <div className="mt-3 p-4 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center gap-3">
                       <span className="text-sm text-slate-600 dark:text-slate-400">预览:</span>
-                      <i 
-                        className={`${formData.icon} text-2xl`}
-                        style={{ color: formData.iconColor }}
-                      />
+                      {(() => {
+                        const IconComponent = getLucideIcon(formData.icon);
+                        return IconComponent ? (
+                          <IconComponent 
+                            className="w-6 h-6"
+                            style={{ color: formData.iconColor }}
+                          />
+                        ) : (
+                          <span className="text-xs text-slate-400">无效图标名</span>
+                        );
+                      })()}
                       <span className="text-xs text-slate-500 dark:text-slate-400">
                         {formData.iconColor}
                       </span>

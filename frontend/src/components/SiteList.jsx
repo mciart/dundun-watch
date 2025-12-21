@@ -1,6 +1,15 @@
 import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+
+const { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } = LucideIcons;
+
+// 根据图标名称获取 Lucide 图标组件
+function getLucideIcon(iconName) {
+  if (!iconName || typeof iconName !== 'string') return null;
+  return LucideIcons[iconName] || null;
+}
+
 import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor } from '../utils/helpers';
 import { EASING, DURATION } from '../utils/animations';
 
@@ -188,9 +197,12 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                 >
                   <ChevronRight className="w-4 h-4 text-slate-500" />
                 </motion.div>
-                {group.icon && (
-                  <i className={`${group.icon} w-4 h-4`} style={{ color: group.iconColor || '#3B82F6' }} />
-                )}
+                {group.icon && (() => {
+                  const IconComponent = getLucideIcon(group.icon);
+                  return IconComponent ? (
+                    <IconComponent className="w-4 h-4" style={{ color: group.iconColor || '#3B82F6' }} />
+                  ) : null;
+                })()}
                 <span className="font-medium text-slate-900 dark:text-white">{group.name}</span>
                 <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">
                   ({sitesInGroup.length})

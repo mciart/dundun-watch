@@ -1,11 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
-import { 
+import * as LucideIcons from 'lucide-react';
+
+const { 
   Server,
   ServerCog, 
   ServerCrash, 
   TrendingUp,
   Gauge
-} from 'lucide-react';
+} = LucideIcons;
+
+// 根据图标名称获取 Lucide 图标组件
+function getLucideIcon(iconName) {
+  if (!iconName || typeof iconName !== 'string') return null;
+  return LucideIcons[iconName] || null;
+}
+
 import { api, getToken } from '../utils/api';
 import { 
   formatTimeAgo, 
@@ -297,16 +306,13 @@ export default function StatusPage() {
                   {(() => {
                     const groupObj = groups.find(g => g.name === group);
                     if (!groupObj?.icon) return null;
-                    // 确保图标类名格式正确：fa-solid fa-xxx 或 fa-brands fa-xxx
-                    const iconClass = groupObj.icon.startsWith('fa-') 
-                      ? `fa-solid ${groupObj.icon}` 
-                      : groupObj.icon;
-                    return (
-                      <i 
-                        className={`${iconClass} flex items-center justify-center text-3xl flex-shrink-0`}
+                    const IconComponent = getLucideIcon(groupObj.icon);
+                    return IconComponent ? (
+                      <IconComponent 
+                        className="w-8 h-8 flex-shrink-0"
                         style={{ color: groupObj.iconColor || 'currentColor' }}
                       />
-                    );
+                    ) : null;
                   })()}
                   <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
                     {group}
