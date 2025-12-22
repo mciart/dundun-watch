@@ -116,9 +116,7 @@
 2. 点击右上角 **Fork** 按钮
 3. 点击 **Create fork** 完成
 
-### 第二步：获取 Cloudflare 凭据
-
-#### 2.1 获取 API Token
+### 第二步：获取 Cloudflare API Token
 
 1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
 2. 点击右上角头像 → **配置文件** → **API 令牌**
@@ -128,19 +126,12 @@
 6. **权限** (权限配置 - 重要！):
    - `账户` - `Workers 脚本` - `编辑`
    - `账户` - `D1` - `编辑`
-   - `账户` - `帐户设置` - `读取`
+   - `账户` - `帐户设置` - `编辑`
    - `区域` - `Workers 路由` - `编辑`
 7. **账户资源**: 选择 `包括` - `所有账户`
 8. **区域资源**: 选择 `包括` - `所有区域`
 9. 点击 **继续以显示摘要** → **创建令牌**
 10. **复制 Token**（只显示一次！）
-
-#### 2.2 获取 Account ID
-
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. 进入 **Workers & Pages**
-3. 在右侧栏找到 **Account ID**
-4. 复制该 ID
 
 ### 第三步：创建 D1 数据库
 
