@@ -1228,7 +1228,8 @@ export default function AdminPage() {
                       <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">没有启用通知的站点，请先在站点设置中启用</p>
                     )}
                   </div>
-                  <div className="flex items-end">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">&nbsp;</label>
                     <button
                       onClick={async () => {
                         if (!settings.notifications?.enabled) {
