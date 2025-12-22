@@ -1188,11 +1188,11 @@ export async function clearAllData(env) {
   console.log('⚠️ 清除所有 D1 数据...');
   
   await env.DB.batch([
-    env.DB.prepare('DELETE FROM history'),
+    env.DB.prepare('DELETE FROM history_aggregated'),
     env.DB.prepare('DELETE FROM incidents'),
     env.DB.prepare('DELETE FROM certificate_alerts'),
+    env.DB.prepare('DELETE FROM push_history'),
     env.DB.prepare('DELETE FROM sites'),
-    env.DB.prepare('DELETE FROM stats'),
     env.DB.prepare("DELETE FROM groups WHERE id != 'default'"),
     env.DB.prepare("DELETE FROM config WHERE key NOT IN ('admin_password', 'admin_path')")
   ]);
