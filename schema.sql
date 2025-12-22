@@ -66,25 +66,6 @@ CREATE TABLE IF NOT EXISTS sites (
   last_message TEXT
 );
 
--- 历史记录表：存储检测历史
-CREATE TABLE IF NOT EXISTS history (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  site_id TEXT NOT NULL,
-  timestamp INTEGER NOT NULL,
-  status TEXT NOT NULL,
-  status_code INTEGER DEFAULT 0,
-  response_time INTEGER DEFAULT 0,
-  message TEXT,
-  created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
-  
-  FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
-);
-
--- 历史记录索引：按站点和时间查询
-CREATE INDEX IF NOT EXISTS idx_history_site_time ON history(site_id, timestamp DESC);
--- 历史记录索引：优化清理旧数据
-CREATE INDEX IF NOT EXISTS idx_history_timestamp ON history(timestamp);
-
 -- 事件记录表：存储故障事件
 CREATE TABLE IF NOT EXISTS incidents (
   id TEXT PRIMARY KEY,

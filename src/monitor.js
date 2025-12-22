@@ -29,7 +29,7 @@ export async function handleMonitor(env, ctx, options = {}) {
 
   const debounceMinutes = settings.statusChangeDebounceMinutes || 3;
   
-  console.log(`📋 配置: 检测间隔=10分钟, 防抖时间=${debounceMinutes}分钟`);
+  console.log(`📋 配置: 检测间隔=1分钟, 防抖时间=${debounceMinutes}分钟`);
 
   // 根据监控类型分别检测（排除 Push 类型，Push 通过心跳上报直接写入 D1）
   const sitesToCheck = sites.filter(s => s.monitorType !== 'push');
@@ -80,17 +80,15 @@ export async function handleMonitor(env, ctx, options = {}) {
       message: result.message || null
     });
 
-    // 只有状态确认后才写入历史记录
-    if (!pendingChanged) {
-      historyRecords.push({
-        siteId: site.id,
-        timestamp: now,
-        status: newStatus,
-        statusCode: result.statusCode,
-        responseTime: result.responseTime,
-        message: result.message
-      });
-    }
+    // 始终写入历史记录（实时反映检测结果，防抖只影响通知）
+    historyRecords.push({
+      siteId: site.id,
+      timestamp: now,
+      status: result.status,  // 使用实际检测状态，而非防抖后的状态
+      statusCode: result.statusCode,
+      responseTime: result.responseTime,
+      message: result.message
+    });
 
     if (newStatus === 'online') {
       onlineCount++;
