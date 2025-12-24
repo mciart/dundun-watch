@@ -48,19 +48,25 @@ export async function checkSmtpSite(site, checkTime) {
     const smtpCheckPromise = (async () => {
       // 根据安全模式决定是否使用 TLS
       const useTls = security === 'smtps';
-      
+      const useStartTls = security === 'starttls';
+
       // 连接配置
-      const connectOptions = {
+      const addressOptions = {
         hostname: host,
         port: port
       };
 
-      // SMTPS 模式：直接 TLS 连接
-      if (useTls) {
-        connectOptions.secureTransport = 'on';
-      }
+      // TLS 选项作为第二个参数传递
+      // - smtps: secureTransport: 'on' (直接 TLS)
+      // - starttls: secureTransport: 'starttls' (先明文后升级)
+      // - none: 不设置 (明文)
+      const tlsOptions = useTls
+        ? { secureTransport: 'on' }
+        : useStartTls
+          ? { secureTransport: 'starttls' }
+          : {};
 
-      socket = connect(connectOptions);
+      socket = connect(addressOptions, tlsOptions);
       await socket.opened;
 
       const reader = socket.readable.getReader();
@@ -117,37 +123,22 @@ export async function checkSmtpSite(site, checkTime) {
           throw new Error(`STARTTLS响应异常: ${starttlsResponse.substring(0, 100)}`);
         }
 
-        // 升级到 TLS
-        // 注意：Cloudflare Workers 的 socket 需要使用 startTls() 方法
-        // 但目前 Cloudflare Workers 不直接支持 STARTTLS 升级
-        // 我们需要关闭当前连接，建立新的 TLS 连接来验证证书
+        // 升级到 TLS - 使用 socket.startTls() 方法
         reader.releaseLock();
         writer.releaseLock();
-        await socket.close();
 
-        // 重新建立 TLS 连接以验证证书有效性
-        const tlsSocket = connect({
-          hostname: host,
-          port: port,
-          secureTransport: 'starttls'
-        });
-        await tlsSocket.opened;
-        
-        const tlsReader = tlsSocket.readable.getReader();
-        const tlsWriter = tlsSocket.writable.getWriter();
-        
-        // 读取欢迎消息
-        let tlsGreeting = '';
-        const { value: greetValue } = await tlsReader.read();
-        if (greetValue) {
-          tlsGreeting = decoder.decode(greetValue);
-        }
-        
-        // 发送 EHLO
+        // 升级到 TLS - 返回新的加密 socket
+        socket = await socket.startTls();
+
+        // 获取新的 reader/writer
+        const tlsReader = socket.readable.getReader();
+        const tlsWriter = socket.writable.getWriter();
+
+        // 再次发送 EHLO
         await tlsWriter.write(encoder.encode('EHLO sentinel-monitor\r\n'));
         const { value: ehloValue } = await tlsReader.read();
         const tlsEhlo = ehloValue ? decoder.decode(ehloValue) : '';
-        
+
         if (!tlsEhlo.startsWith('250')) {
           throw new Error(`TLS升级后EHLO失败: ${tlsEhlo.substring(0, 100)}`);
         }
@@ -156,15 +147,15 @@ export async function checkSmtpSite(site, checkTime) {
         await tlsWriter.write(encoder.encode('QUIT\r\n'));
         tlsReader.releaseLock();
         tlsWriter.releaseLock();
-        await tlsSocket.close();
+        await socket.close();
         socket = null; // 标记已关闭
-        
+
         return { success: true, mode: 'STARTTLS', greeting };
       }
 
       // 4. 发送 QUIT 命令
       await sendCommand('QUIT');
-      
+
       reader.releaseLock();
       writer.releaseLock();
       await socket.close();
