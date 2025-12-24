@@ -1,7 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHistory } from '../context/HistoryContext';
-import { getStatusLabel, getStatusDotClass } from '../utils/status';
+import { getStatusLabel, getStatusDotClass, getStatusTextColor } from '../utils/status';
 
 const CONFIG = {
   BLOCK_WIDTH: 16,
