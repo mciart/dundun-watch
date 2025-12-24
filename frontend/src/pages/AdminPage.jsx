@@ -526,8 +526,8 @@ export default function AdminPage() {
                         {sites.filter(s => s.status === 'online').length}
                       </p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <ServerCog className="w-6 h-6 text-green-600 dark:text-green-400" />
+                    <div className="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
+                      <ServerCog className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                     </div>
                   </div>
                 </motion.div>

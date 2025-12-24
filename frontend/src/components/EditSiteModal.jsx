@@ -519,7 +519,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                           </button>
                         </div>
                         {copySuccess === 'endpoint' && (
-                          <p className="text-xs text-green-600 mt-1">已复制！</p>
+                          <p className="text-xs text-primary-600 mt-1">已复制！</p>
                         )}
                       </div>
 
@@ -551,7 +551,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                           </button>
                         </div>
                         {copySuccess === 'token' && (
-                          <p className="text-xs text-green-600 mt-1">已复制！</p>
+                          <p className="text-xs text-primary-600 mt-1">已复制！</p>
                         )}
                       </div>
 
@@ -591,7 +591,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                           </button>
                         </div>
                         {copySuccess === 'script' && (
-                          <p className="text-xs text-green-600 mt-1">脚本已复制！</p>
+                          <p className="text-xs text-primary-600 mt-1">脚本已复制！</p>
                         )}
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                           将脚本保存到主机，然后添加到 crontab 定时执行（建议每分钟一次）
@@ -604,8 +604,8 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
 
               {/* HTTP 监控配置 */}
               {formData.monitorType === 'http' && (
-                <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 text-green-700 dark:text-green-300 text-sm font-medium">
+                <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-primary-50/50 dark:bg-primary-900/10 border border-primary-200 dark:border-primary-800">
+                  <div className="flex items-center gap-2 text-primary-700 dark:text-primary-300 text-sm font-medium">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
                     </svg>

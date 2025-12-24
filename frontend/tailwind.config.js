@@ -8,6 +8,12 @@ export default {
   theme: {
     extend: {
       colors: {
+        dark: {
+          page: '#0d0d0d',
+          card: '#1a1a1a',
+          layer: '#2a2a2a',
+          highlight: '#333333',
+        },
         primary: {
           50: '#f0fdf4',
           100: '#dcfce7',

@@ -44,7 +44,7 @@ canvas {
   }
 
   body {
-    @apply bg-slate-50 dark:bg-[#0d0d0d];
+    @apply bg-slate-50 dark:bg-dark-page;
     @apply text-slate-900 dark:text-slate-100;
     @apply min-h-screen;
   }
@@ -52,7 +52,7 @@ canvas {
 
 @layer components {
   .glass-card {
-    @apply bg-white/95 dark:bg-[#1a1a1a]/95;
+    @apply bg-white/95 dark:bg-dark-card/95;
     @apply backdrop-blur-xl;
     @apply rounded-2xl;
     @apply transition-all duration-300;
