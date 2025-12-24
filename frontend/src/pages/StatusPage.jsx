@@ -1,15 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import { 
+import {
   Server,
-  ServerCog, 
-  ServerCrash, 
+  ServerCog,
+  ServerCrash,
   TrendingUp,
   Gauge
 } from 'lucide-react';
 import { api, getToken } from '../utils/api';
-import { 
-  formatTimeAgo, 
-  formatResponseTime, 
+import {
+  formatTimeAgo,
+  formatResponseTime,
   groupSites,
   getLucideIcon
 } from '../utils/helpers';
@@ -36,7 +36,7 @@ export default function StatusPage() {
     hostDisplayMode: 'card',
     hostPanelExpanded: true
   });
-  
+
   const { fetchAllHistory, historyCache } = useHistory();
 
   const loadGroups = async () => {
@@ -103,7 +103,7 @@ export default function StatusPage() {
         hostDisplayMode: data.hostDisplayMode || 'card'
       };
       setSiteSettings(settings);
-      
+
 
       document.title = `${settings.siteName} - ${settings.pageTitle}`;
     } catch (error) {
@@ -125,15 +125,15 @@ export default function StatusPage() {
 
   const calculateAvgResponseTime = () => {
     if (sites.length === 0) return 0;
-    
+
     let totalResponseTime = 0;
     let totalCount = 0;
-    
+
     for (const site of sites) {
       const siteHistory = historyCache[site.id]?.history || [];
 
       const recentRecords = siteHistory.slice(0, 30);
-      
+
       for (const record of recentRecords) {
         if (record.responseTime && record.responseTime > 0) {
           totalResponseTime += record.responseTime;
@@ -141,7 +141,7 @@ export default function StatusPage() {
         }
       }
     }
-    
+
     return totalCount > 0 ? Math.round(totalResponseTime / totalCount) : 0;
   };
 
@@ -163,57 +163,59 @@ export default function StatusPage() {
     <div className="flex flex-col min-h-screen relative">
       {/* 星空背景 */}
       <StarryBackground />
-      
-      {/* 头部 */}
-      <header className="sm:sticky top-0 z-50 backdrop-blur-md bg-white/40 dark:bg-[#0d0d0d]/40 shadow-sm" style={{ borderBottom: '1px solid var(--border-color)' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-[auto,1fr,auto] items-center h-16 gap-4">
-            {/* Logo */}
-            <div
-              className="flex items-center gap-4 min-w-0"
-            >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-                <img src="/img/favicon.ico" alt="Logo" className="w-10 h-10" />
-              </div>
-              <div className="flex flex-col min-w-0">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 via-emerald-600 to-blue-600 dark:from-primary-400 dark:via-emerald-400 dark:to-blue-400 bg-clip-text text-transparent tracking-tight truncate">
-                  {siteSettings.siteName}
-                </h1>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 tracking-wide whitespace-nowrap">
-                  {siteSettings.siteSubtitle}
-                </p>
-              </div>
-            </div>
 
-            {/* 右侧区域 */}
-            <div className="flex items-center gap-3 justify-end">
-              {/* 最后监测时间 */}
-              {lastCheckTime > 0 && (
-                <div
-                  className="hidden md:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
-                >
-                  <span className="font-medium whitespace-nowrap">
-                    数据更新: {new Date(lastCheckTime).toLocaleString('zh-CN', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                      second: '2-digit'
-                    }).replace(/\//g, '-')}
-                  </span>
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+      {/* 头部 - 悬挂式设计 */}
+      <div className="sm:sticky top-0 z-50 px-4 sm:px-6 lg:px-8">
+        <header className="max-w-7xl mx-auto backdrop-blur-md bg-white/70 dark:bg-[#1a1a1a]/70 shadow-lg rounded-b-2xl" style={{ border: '1px solid var(--border-color)', borderTop: 'none' }}>
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-[auto,1fr,auto] items-center h-16 gap-4">
+              {/* Logo */}
+              <div
+                className="flex items-center gap-4 min-w-0"
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                  <img src="/img/favicon.ico" alt="Logo" className="w-10 h-10" />
                 </div>
-              )}
-              
-              {/* 主题切换按钮 */}
-              <div>
-                <ThemeToggle />
+                <div className="flex flex-col min-w-0">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary-600 via-emerald-600 to-blue-600 dark:from-primary-400 dark:via-emerald-400 dark:to-blue-400 bg-clip-text text-transparent tracking-tight truncate">
+                    {siteSettings.siteName}
+                  </h1>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 tracking-wide whitespace-nowrap">
+                    {siteSettings.siteSubtitle}
+                  </p>
+                </div>
+              </div>
+
+              {/* 右侧区域 */}
+              <div className="flex items-center gap-3 justify-end">
+                {/* 最后监测时间 */}
+                {lastCheckTime > 0 && (
+                  <div
+                    className="hidden md:flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300"
+                  >
+                    <span className="font-medium whitespace-nowrap">
+                      数据更新: {new Date(lastCheckTime).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                      }).replace(/\//g, '-')}
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                  </div>
+                )}
+
+                {/* 主题切换按钮 */}
+                <div>
+                  <ThemeToggle />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* 主内容 */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
@@ -251,8 +253,8 @@ export default function StatusPage() {
         </div>
 
         {/* 主机监控面板 */}
-        <HostMonitorPanel 
-          sites={sites} 
+        <HostMonitorPanel
+          sites={sites}
           displayMode={siteSettings.hostDisplayMode}
           defaultExpanded={siteSettings.hostPanelExpanded}
           onReorder={getToken() ? async (siteIds) => {
@@ -301,7 +303,7 @@ export default function StatusPage() {
                     if (!groupObj?.icon) return null;
                     const IconComponent = getLucideIcon(groupObj.icon);
                     return IconComponent ? (
-                      <IconComponent 
+                      <IconComponent
                         className="w-8 h-8 flex-shrink-0"
                         style={{ color: groupObj.iconColor || 'currentColor' }}
                       />
@@ -340,13 +342,13 @@ export default function StatusPage() {
             © {new Date().getFullYear()} {siteSettings.siteName} · 网站监控平台
           </p>
           <p className="text-xs text-slate-400 dark:text-slate-500">
-            <a 
-              href="https://github.com/mciart/dundun-sentinel" 
-              target="_blank" 
+            <a
+              href="https://github.com/mciart/dundun-sentinel"
+              target="_blank"
               rel="noopener noreferrer"
               className="hover:text-primary-500 dark:hover:text-primary-400 transition-colors inline-flex items-center gap-1"
             >
-              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
               dundun-sentinel · 项目开源
             </a>
           </p>
