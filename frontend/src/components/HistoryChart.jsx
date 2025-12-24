@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
     AreaChart,
     Area,
@@ -8,50 +9,64 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { CHART_COLORS } from '../config';
-import { getStatusClasses, getStatusDotClass, getStatusLabel, getStatusColor } from '../utils/status';
+import { getStatusDotClass, getStatusLabel, getStatusTextColor } from '../utils/status';
+
+const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        const statusDotClass = getStatusDotClass(data.status);
+        const statusLabel = getStatusLabel(data.status);
+        const statusColorClass = getStatusTextColor(data.status);
+
+        return (
+            <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur border border-slate-200 dark:border-zinc-700 p-3 rounded-lg shadow-lg text-xs">
+                <p className="font-medium text-slate-900 dark:text-slate-100 mb-2">{data.fullTime}</p>
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                        <span className="text-slate-600 dark:text-slate-400">响应时间:</span>
+                        <span className="font-mono font-medium text-slate-900 dark:text-slate-100">{data.responseTime}ms</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${statusDotClass}`}></div>
+                        <span className="text-slate-600 dark:text-slate-400">状态:</span>
+                        <span className={`font-medium ${statusColorClass}`}>
+                            {statusLabel}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+    return null;
+};
 
 export default function HistoryChart({ data }) {
     if (!data || data.length === 0) return null;
 
-    // 格式化数据以适配图表
-    const chartData = data.map(item => ({
-        ...item,
-        time: new Date(item.timestamp).toLocaleTimeString('zh-CN', {
-            hour: '2-digit',
-            minute: '2-digit'
-        }),
-        fullTime: new Date(item.timestamp).toLocaleString('zh-CN'),
-    })).reverse(); // 翻转数组以使时间从左（旧）到右（新）
+    // 格式化数据以适配图表，并进行降采样
+    const chartData = useMemo(() => {
+        // 先翻转，按照时间从旧到新
+        const reversedData = [...data].reverse();
 
-    const CustomTooltip = ({ active, payload, label }) => {
-        if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            const statusDotClass = getStatusDotClass(data.status);
-            const statusLabel = getStatusLabel(data.status);
-            const statusColorClass = getStatusTextColor(data.status);
+        // 如果数据量太大，进行降采样，限制在约 200 个点
+        const targetPoints = 200;
+        let processedData = reversedData;
 
-            return (
-                <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur border border-slate-200 dark:border-zinc-700 p-3 rounded-lg shadow-lg text-xs">
-                    <p className="font-medium text-slate-900 dark:text-slate-100 mb-2">{data.fullTime}</p>
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span className="text-slate-600 dark:text-slate-400">响应时间:</span>
-                            <span className="font-mono font-medium text-slate-900 dark:text-slate-100">{data.responseTime}ms</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full ${statusDotClass}`}></div>
-                            <span className="text-slate-600 dark:text-slate-400">状态:</span>
-                            <span className={`font-medium ${statusColorClass}`}>
-                                {statusLabel}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            );
+        if (reversedData.length > targetPoints) {
+            const step = Math.ceil(reversedData.length / targetPoints);
+            processedData = reversedData.filter((_, index) => index % step === 0);
         }
-        return null;
-    };
+
+        return processedData.map(item => ({
+            ...item,
+            time: new Date(item.timestamp).toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }),
+            fullTime: new Date(item.timestamp).toLocaleString('zh-CN'),
+        }));
+    }, [data]);
 
     return (
         <div className="w-full h-64 mt-4">
@@ -86,6 +101,7 @@ export default function HistoryChart({ data }) {
                         fillOpacity={1}
                         fill="url(#colorPv)"
                         animationDuration={1000}
+                        isAnimationActive={false}
                     />
                 </AreaChart>
             </ResponsiveContainer>

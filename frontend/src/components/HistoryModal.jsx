@@ -43,7 +43,14 @@ export default function HistoryModal({ site, onClose }) {
         setTimeRange(hours);
 
         const cachedData = getCachedHistory(site.id);
-        const historyData = cachedData?.history || [];
+        const allHistory = cachedData?.history || [];
+
+        // 根据时间范围筛选数据
+        const now = Date.now();
+        const historyData = allHistory.filter(item => {
+          const timeDiff = now - item.timestamp;
+          return timeDiff <= hours * 60 * 60 * 1000;
+        });
 
         setHistory(historyData);
 
