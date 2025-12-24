@@ -305,6 +305,8 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
     onAverageResponseTime(average);
   }, [blocksToRender, onAverageResponseTime]);
 
+  const rafRef = useRef(null);
+
   const updateHoverFromPoint = useCallback((clientX, clientY) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -360,7 +362,12 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
   }, [blockGap, drawCanvas]);
 
   const handlePointerMove = useCallback((e) => {
-    updateHoverFromPoint(e.clientX, e.clientY);
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+    }
+    rafRef.current = requestAnimationFrame(() => {
+      updateHoverFromPoint(e.clientX, e.clientY);
+    });
   }, [updateHoverFromPoint]);
 
   const handlePointerDown = useCallback((e) => {
