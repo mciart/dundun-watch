@@ -5,41 +5,9 @@ import {
     XAxis,
     YAxis,
     CartesianGrid,
-    Tooltip,
     ResponsiveContainer
 } from 'recharts';
 import { CHART_COLORS } from '../config';
-import { getStatusDotClass, getStatusLabel, getStatusTextColor } from '../utils/status';
-
-const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-        const data = payload[0].payload;
-        const statusDotClass = getStatusDotClass(data.status);
-        const statusLabel = getStatusLabel(data.status);
-        const statusColorClass = getStatusTextColor(data.status);
-
-        return (
-            <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 p-3 rounded-lg shadow-xl text-xs pointer-events-none">
-                <p className="font-medium text-slate-900 dark:text-slate-100 mb-2">{data.fullTime}</p>
-                <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <span className="text-slate-600 dark:text-slate-400">响应时间:</span>
-                        <span className="font-mono font-medium text-slate-900 dark:text-slate-100">{data.responseTime}ms</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${statusDotClass}`}></div>
-                        <span className="text-slate-600 dark:text-slate-400">状态:</span>
-                        <span className={`font-medium ${statusColorClass}`}>
-                            {statusLabel}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    return null;
-};
 
 export default function HistoryChart({ data }) {
     if (!data || data.length === 0) return null;
@@ -64,12 +32,11 @@ export default function HistoryChart({ data }) {
                 hour: '2-digit',
                 minute: '2-digit'
             }),
-            fullTime: new Date(item.timestamp).toLocaleString('zh-CN'),
         }));
     }, [data]);
 
     return (
-        <div className="w-full h-64 mt-4" style={{ position: 'relative', zIndex: 10 }}>
+        <div className="w-full h-64 mt-4">
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
@@ -92,11 +59,6 @@ export default function HistoryChart({ data }) {
                         axisLine={false}
                         tickFormatter={(value) => `${value}ms`}
                     />
-                    <Tooltip
-                        content={<CustomTooltip />}
-                        cursor={{ stroke: CHART_COLORS.responseTime, strokeWidth: 1, strokeDasharray: '4 4' }}
-                        wrapperStyle={{ zIndex: 1000 }}
-                    />
                     <Area
                         type="monotone"
                         dataKey="responseTime"
@@ -104,8 +66,7 @@ export default function HistoryChart({ data }) {
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#colorPv)"
-                        animationDuration={500}
-                        activeDot={{ r: 5, fill: CHART_COLORS.responseTime, stroke: '#fff', strokeWidth: 2 }}
+                        isAnimationActive={false}
                     />
                 </AreaChart>
             </ResponsiveContainer>

@@ -179,11 +179,7 @@ export default function HistoryModal({ site, onClose }) {
 
           {/* 趋势图表 */}
           {!loading && history && history.length > 0 && (
-            <div
-              className="px-6 pb-2"
-              onMouseMove={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            >
+            <div className="px-6 pb-2">
               <HistoryChart data={history} />
             </div>
           )}
