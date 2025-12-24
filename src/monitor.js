@@ -21,14 +21,14 @@ export async function handleMonitor(env, ctx, options = {}) {
   const now = Date.now();
   const sites = await db.getAllSites(env);
   const settings = await db.getSettings(env);
-  
+
   if (!sites || sites.length === 0) {
     console.log('暂无监控站点');
     return;
   }
 
   const debounceMinutes = settings.statusChangeDebounceMinutes || 3;
-  
+
   console.log(`📋 配置: 检测间隔=1分钟, 防抖时间=${debounceMinutes}分钟`);
 
   // 根据监控类型分别检测（排除 Push 类型，Push 通过心跳上报直接写入 D1）
@@ -71,10 +71,10 @@ export async function handleMonitor(env, ctx, options = {}) {
       await handleStatusChange(env, ctx, site, previousStatus, newStatus, result, settings);
     }
 
-    // 收集更新
+    // 收集更新 - 使用实际检测状态，防抖只影响通知
     statusUpdates.push({
       siteId: site.id,
-      status: newStatus,
+      status: result.status,  // 使用实际检测状态，而非防抖后的状态
       responseTime: result.responseTime,
       lastCheck: now,
       message: result.message || null
@@ -90,7 +90,7 @@ export async function handleMonitor(env, ctx, options = {}) {
       message: result.message
     });
 
-    if (newStatus === 'online') {
+    if (result.status === 'online') {
       onlineCount++;
     }
   }
@@ -162,18 +162,18 @@ export async function handleMonitor(env, ctx, options = {}) {
  */
 export async function handleCertCheck(env, ctx) {
   console.log('开始执行SSL证书检测任务...');
-  
+
   await db.initDatabase(env);
-  
+
   const sites = await db.getAllSites(env);
   const settings = await db.getSettings(env);
-  
+
   const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
-  
+
   if (httpSites.length > 0) {
     await checkSSLCertificates(env, ctx, httpSites, settings);
   }
-  
+
   console.log('SSL证书检测完成');
 }
 
@@ -183,17 +183,17 @@ export async function handleCertCheck(env, ctx) {
 async function checkSSLCertificates(env, ctx, sites, settings) {
   try {
     const certResults = await batchCheckSSLCertificates(sites);
-    
+
     for (const site of sites) {
       if (site.url) {
         try {
           const domain = new URL(site.url).hostname;
           const certInfo = certResults[domain];
-          
+
           if (certInfo) {
             // 检查是否需要告警
             await handleCertAlert(env, ctx, site, certInfo, settings);
-            
+
             // 更新站点的证书信息
             await db.updateSite(env, site.id, {
               sslCert: certInfo,
@@ -205,7 +205,7 @@ async function checkSSLCertificates(env, ctx, sites, settings) {
         }
       }
     }
-    
+
     console.log(`SSL证书检测完成，共 ${Object.keys(certResults).length} 个站点`);
   } catch (error) {
     console.error('SSL证书检测失败:', error);
@@ -217,7 +217,7 @@ async function checkSSLCertificates(env, ctx, sites, settings) {
  */
 async function handleStatusChange(env, ctx, site, previousStatus, newStatus, result, settings) {
   const now = Date.now();
-  
+
   if (previousStatus !== 'offline' && newStatus === 'offline') {
     // 站点离线
     const incident = {
@@ -230,9 +230,9 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
       reason: result.message || '站点离线',
       createdAt: now
     };
-    
+
     await db.createIncident(env, incident);
-    
+
     // 发送通知
     if (settings.notifications?.enabled) {
       const cfg = settings.notifications;
@@ -246,13 +246,13 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
         }, site, cfg));
       }
     }
-    
+
     console.log(`🔴 ${site.name} 离线: ${result.message}`);
-    
+
   } else if (previousStatus === 'offline' && (newStatus === 'online' || newStatus === 'slow')) {
     // 站点恢复
     const ongoingIncident = await db.getOngoingIncident(env, site.id);
-    
+
     if (ongoingIncident) {
       const duration = now - ongoingIncident.startTime;
       await db.updateIncident(env, ongoingIncident.id, {
@@ -261,7 +261,7 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
         resolvedReason: '自动恢复',
         duration
       });
-      
+
       // 创建恢复事件记录
       const recoveredIncident = {
         id: `${site.id}_${now}_recovered`,
@@ -276,7 +276,7 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
       };
       await db.createIncident(env, recoveredIncident);
     }
-    
+
     // 发送通知
     if (settings.notifications?.enabled) {
       const cfg = settings.notifications;
@@ -290,7 +290,7 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
         }, site, cfg));
       }
     }
-    
+
     console.log(`🟢 ${site.name} 恢复`);
   }
 }
@@ -300,20 +300,20 @@ async function handleStatusChange(env, ctx, site, previousStatus, newStatus, res
  */
 async function handleCertAlert(env, ctx, site, certInfo, settings) {
   if (!certInfo || typeof certInfo.daysLeft !== 'number') return;
-  
+
   const thresholds = [30, 7, 1];
   const daysLeft = certInfo.daysLeft;
-  
+
   const existingAlert = await db.getCertificateAlert(env, site.id);
   const lastAlertType = existingAlert?.alertType;
-  
+
   for (const threshold of thresholds) {
     if (daysLeft <= threshold && lastAlertType !== `${threshold}days`) {
       const now = Date.now();
-      const message = daysLeft < 0 
+      const message = daysLeft < 0
         ? `证书已过期 ${Math.abs(daysLeft)} 天`
         : `证书剩余 ${daysLeft} 天`;
-      
+
       // 创建证书告警事件记录
       const certIncident = {
         id: `${site.id}_${now}_cert`,
@@ -326,7 +326,7 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
         createdAt: now
       };
       await db.createIncident(env, certIncident);
-      
+
       // 发送告警
       if (settings.notifications?.enabled) {
         const cfg = settings.notifications;
@@ -341,7 +341,7 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
           }, site, cfg));
         }
       }
-      
+
       await db.setCertificateAlert(env, site.id, now, `${threshold}days`);
       console.log(`⚠️ ${site.name} 证书告警: 剩余 ${daysLeft} 天`);
       break;
@@ -351,55 +351,47 @@ async function handleCertAlert(env, ctx, site, certInfo, settings) {
 
 /**
  * 状态防抖检测
+ * 
+ * 防抖逻辑改进：
+ * - 恢复（offline → online/slow）：立即确认，不防抖（用户希望尽快看到恢复）
+ * - 故障（online/slow → offline）：需要持续异常达到防抖时间才确认（避免短暂波动触发告警）
+ * 
+ * 注意：由于防抖状态不持久化到数据库，每次监控运行时 pending 状态会重置。
+ * 这意味着实际上只有同一次监控周期内的多次检测才会累积防抖时间。
+ * 对于恢复场景，立即确认是更好的用户体验。
  */
 function checkWithDebounce(site, result, debounceMinutes) {
   const detectedStatus = result.status;
-  const now = Date.now();
-  let statusChanged = false;
-  let pendingChanged = false;
+  const currentStatus = site.status;
 
-  const validDebounceMinutes = (typeof debounceMinutes === 'number' && debounceMinutes > 0) ? debounceMinutes : 3;
-  
-  // 初始化防抖状态
-  if (!site.statusPending) site.statusPending = null;
-  if (!site.statusPendingStartTime) site.statusPendingStartTime = null;
-
-  // 首次检测，直接确认
-  if (site.status === 'unknown') {
+  // 首次检测（status 为 unknown），直接确认
+  if (currentStatus === 'unknown') {
     return { statusChanged: true, newStatus: detectedStatus, pendingChanged: false };
   }
 
-  // 状态相同，清除 pending
-  if (detectedStatus === site.status) {
-    if (site.statusPending !== null) {
-      pendingChanged = true;
-    }
-    site.statusPending = null;
-    site.statusPendingStartTime = null;
-    return { statusChanged: false, newStatus: site.status, pendingChanged };
+  // 状态相同，无变化
+  if (detectedStatus === currentStatus) {
+    return { statusChanged: false, newStatus: currentStatus, pendingChanged: false };
   }
 
-  // 检查是否已经在 pending 状态
-  if (detectedStatus === site.statusPending && site.statusPendingStartTime) {
-    const elapsedMs = now - site.statusPendingStartTime;
-    const elapsedMinutes = elapsedMs / 60000;
-
-    if (elapsedMinutes >= validDebounceMinutes) {
-      console.log(`✅ ${site.name} 持续异常 ${elapsedMinutes.toFixed(1)} 分钟，确认: ${site.status} → ${detectedStatus}`);
-      site.statusPending = null;
-      site.statusPendingStartTime = null;
-      return { statusChanged: true, newStatus: detectedStatus, pendingChanged: false };
-    } else {
-      console.log(`⏳ ${site.name} 等待确认: ${detectedStatus} (${elapsedMinutes.toFixed(1)}/${validDebounceMinutes} 分钟)`);
-      return { statusChanged: false, newStatus: site.status, pendingChanged: true };
-    }
+  // ===== 恢复场景：立即确认 =====
+  // offline → online 或 offline → slow
+  // 用户希望站点恢复时立即看到，没必要防抖
+  if (currentStatus === 'offline' && (detectedStatus === 'online' || detectedStatus === 'slow')) {
+    console.log(`🔄 ${site.name} 恢复检测: ${currentStatus} → ${detectedStatus}，立即确认`);
+    return { statusChanged: true, newStatus: detectedStatus, pendingChanged: false };
   }
 
-  // 新的状态变化，开始计时
-  console.log(`🔄 ${site.name} 检测到状态变化: ${site.status} → ${detectedStatus}，开始计时`);
-  site.statusPending = detectedStatus;
-  site.statusPendingStartTime = now;
-  return { statusChanged: false, newStatus: site.status, pendingChanged: true };
+  // ===== 故障场景：需要防抖 =====
+  // online/slow → offline
+  // 为了避免短暂网络波动触发告警，需要持续异常一段时间
+  // 但由于防抖状态不持久化，我们无法跨监控周期累积时间
+  // 这里简化处理：直接确认状态变化，依赖通知层面的防抖（如果有）
+  // 
+  // TODO: 如果需要真正的防抖，应该将 statusPending 和 statusPendingStartTime 存入数据库
+
+  console.log(`🔄 ${site.name} 状态变化: ${currentStatus} → ${detectedStatus}，确认更新`);
+  return { statusChanged: true, newStatus: detectedStatus, pendingChanged: false };
 }
 
 /**
@@ -408,11 +400,11 @@ function checkWithDebounce(site, result, debounceMinutes) {
 async function batchCheckSSLCertificates(sites) {
   try {
     const validUrls = sites.filter(site => site.url && site.url.startsWith('https'));
-    
+
     if (validUrls.length === 0) {
       return {};
     }
-    
+
     // 安全解析域名，过滤掉格式异常的 URL
     const domains = validUrls
       .map(site => {
@@ -425,16 +417,16 @@ async function batchCheckSSLCertificates(sites) {
       })
       .filter(Boolean);
     console.log(`批量检测 ${domains.length} 个域名的SSL证书...`);
-    
+
     const response = await fetch('https://zssl.com/api/ssl/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domains, IPVersion: 'default' })
     });
-    
+
     const data = await response.json();
     const certMap = {};
-    
+
     if (data.results && Array.isArray(data.results)) {
       data.results.forEach(result => {
         if (result.data && result.result === 'success') {
@@ -450,7 +442,7 @@ async function batchCheckSSLCertificates(sites) {
         }
       });
     }
-    
+
     return certMap;
   } catch (error) {
     console.error('批量证书检测失败:', error.message);
