@@ -4,9 +4,9 @@ import { motion } from 'framer-motion';
 import { Lock, LogIn, AlertCircle } from 'lucide-react';
 import { api, setToken } from '../utils/api';
 import { BRAND } from '../config';
-import { 
-  EASING, 
-  DURATION, 
+import {
+  EASING,
+  DURATION,
   SPRING,
   cardContainerVariants,
   cardContainerTransition,
@@ -28,7 +28,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
 
     try {
       const response = await api.login(password);
-      
+
       if (!response.token) {
         throw new Error('登录响应无效');
       }
@@ -45,7 +45,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={cardContainerVariants.initial}
         animate={cardContainerVariants.animate}
         transition={cardContainerTransition}
@@ -55,21 +55,21 @@ export default function LoginPage({ adminPath = 'admin' }) {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4">
-              <img 
-                src="/img/favicon.ico" 
-                alt="Logo" 
+              <img
+                src="/img/favicon.ico"
+                alt="Logo"
                 className="w-16 h-16"
               />
             </div>
-            <motion.h1 
+            <motion.h1
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.3 }}
-              className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent"
+              className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 dark:from-primary-400 dark:to-primary-200 bg-clip-text text-transparent"
             >
               {BRAND.siteName}
             </motion.h1>
-            <motion.p 
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.3 }}
@@ -80,8 +80,8 @@ export default function LoginPage({ adminPath = 'admin' }) {
           </div>
 
           {/* 登录表单 */}
-          <motion.form 
-            onSubmit={handleSubmit} 
+          <motion.form
+            onSubmit={handleSubmit}
             className="space-y-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -91,7 +91,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 管理密码
               </label>
-              <motion.div 
+              <motion.div
                 className="relative"
                 whileFocus={{ scale: 1.02 }}
               >
@@ -109,7 +109,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
             </div>
 
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 15 }}
@@ -134,10 +134,10 @@ export default function LoginPage({ adminPath = 'admin' }) {
             >
               {loading ? (
                 <>
-                  <motion.svg 
-                    className="w-5 h-5" 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    fill="none" 
+                  <motion.svg
+                    className="w-5 h-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
                     viewBox="0 0 24 24"
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -157,7 +157,7 @@ export default function LoginPage({ adminPath = 'admin' }) {
           </motion.form>
 
           {/* 返回首页 */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.3 }}

@@ -110,7 +110,7 @@ export default function HostMonitorPanel({ sites = [], displayMode = 'card', def
           </div>
         </div>
         <button
-          className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#333] transition-all duration-300 btn-icon ${expanded ? '' : 'rotate-180'}`}
+          className={`p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-dark-highlight transition-all duration-300 btn-icon ${expanded ? '' : 'rotate-180'}`}
         >
           <ChevronUp className="w-5 h-5" />
         </button>
@@ -272,7 +272,7 @@ function HostListItem({ site, onClick, onDragEnd, canDrag }) {
         {/* 状态标签 */}
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
           isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-            'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400'
+            'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400'
           }`}>
           {isOnline ? '在线' : isOffline ? '离线' : '等待'}
         </span>
@@ -286,7 +286,7 @@ function HostListItem({ site, onClick, onDragEnd, canDrag }) {
       >
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
           isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-            'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400'
+            'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400'
           }`}>
           {isOnline ? '在线' : isOffline ? '离线' : '等待'}
         </span>
@@ -365,7 +365,7 @@ function HostListItemStatic({ site, onClick }) {
 
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
           isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-            'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400'
+            'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400'
           }`}>
           {isOnline ? '在线' : isOffline ? '离线' : '等待'}
         </span>
@@ -375,7 +375,7 @@ function HostListItemStatic({ site, onClick }) {
       <div className="sm:hidden flex items-center gap-2">
         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
           isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-            'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400'
+            'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400'
           }`}>
           {isOnline ? '在线' : isOffline ? '离线' : '等待'}
         </span>
@@ -424,7 +424,7 @@ function HostCard({ site, onClick, index = 0 }) {
 
   // 获取进度条颜色
   const getProgressColor = (value) => {
-    if (value === null || value === undefined) return 'bg-slate-200 dark:bg-[#2a2a2a]';
+    if (value === null || value === undefined) return 'bg-slate-200 dark:bg-dark-layer';
     if (value >= 90) return 'bg-red-500';
     if (value >= 70) return 'bg-amber-500';
     return 'bg-emerald-500';
@@ -450,7 +450,7 @@ function HostCard({ site, onClick, index = 0 }) {
           <div
             className={`p-1.5 rounded-lg ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' :
               isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
-                'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-500'
+                'bg-slate-200/80 dark:bg-dark-layer text-slate-500'
               }`}
           >
             {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
@@ -471,7 +471,7 @@ function HostCard({ site, onClick, index = 0 }) {
               px-2 py-0.5 rounded-full text-xs font-medium
               ${isOnline ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
                 isOffline ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                  'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400'}
+                  'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400'}
             `}
           >
             {isOnline ? '在线' : isOffline ? '离线' : '等待'}
@@ -515,7 +515,7 @@ function HostCard({ site, onClick, index = 0 }) {
           />
         ) : (
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-500">
+            <div className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer text-slate-500">
               <Clock className="w-4 h-4" />
             </div>
             <div className="min-w-0">
@@ -720,7 +720,7 @@ function HostDetailModal({ site, onClose }) {
             <select
               value={hours}
               onChange={(e) => setHours(Number(e.target.value))}
-              className="sm:hidden px-3 py-1.5 text-sm rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
+              className="sm:hidden px-3 py-1.5 text-sm rounded-lg bg-slate-200/80 dark:bg-dark-layer text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
             >
               {[6, 12, 24, 48, 72, 168].map(h => (
                 <option key={h} value={h}>
@@ -736,7 +736,7 @@ function HostDetailModal({ site, onClose }) {
                   onClick={() => setHours(h)}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors ${hours === h
                     ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                    : 'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-[#333]'
+                    : 'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-dark-highlight'
                     }`}
                 >
                   {h < 24 ? `${h}小时` : `${h / 24}天`}
@@ -752,7 +752,7 @@ function HostDetailModal({ site, onClose }) {
               <select
                 value={activeMetric}
                 onChange={(e) => setActiveMetric(e.target.value)}
-                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 text-sm rounded-lg bg-slate-200/80 dark:bg-dark-layer text-slate-700 dark:text-slate-300 border-none outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {metrics.map(metric => (
                   <option key={metric.key} value={metric.key}>
@@ -772,7 +772,7 @@ function HostDetailModal({ site, onClose }) {
                     onClick={() => setActiveMetric(metric.key)}
                     className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${isActive
                       ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-800'
-                      : 'bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-[#333]'
+                      : 'bg-slate-200/80 dark:bg-dark-layer text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-dark-highlight'
                       }`}
                   >
                     {Icon ? (
@@ -843,10 +843,10 @@ function HostDetailModal({ site, onClose }) {
 
           {/* 自定义字段说明 - 手机端默认折叠 */}
           <details className="mt-4 sm:mt-6">
-            <summary className="p-3 sm:p-4 bg-slate-200/80 dark:bg-[#2a2a2a] rounded-xl cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-[#333] transition-colors">
+            <summary className="p-3 sm:p-4 bg-slate-200/80 dark:bg-dark-layer rounded-xl cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-dark-highlight transition-colors">
               💡 自定义字段上传示例
             </summary>
-            <div className="mt-2 p-3 sm:p-4 bg-slate-200/80 dark:bg-[#2a2a2a] rounded-xl">
+            <div className="mt-2 p-3 sm:p-4 bg-slate-200/80 dark:bg-dark-layer rounded-xl">
               <pre className="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-900 p-2 sm:p-3 rounded-lg overflow-x-auto">
                 {`curl -X POST "https://your-worker/api/push/TOKEN" \\
   -H "Content-Type: application/json" \\
@@ -872,7 +872,7 @@ function HostDetailModal({ site, onClose }) {
   }'`}
               </pre>
               <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-2">
-                <strong>icon</strong>: 可选 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Lucide 图标</a>名称（PascalCase），如 <code className="bg-slate-200 dark:bg-[#2a2a2a] px-1 rounded">Gauge</code>、<code className="bg-slate-200 dark:bg-[#2a2a2a] px-1 rounded">Users</code>、<code className="bg-slate-200 dark:bg-[#2a2a2a] px-1 rounded">Zap</code> 等<br />
+                <strong>icon</strong>: 可选 <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="text-primary-500 hover:underline">Lucide 图标</a>名称（PascalCase），如 <code className="bg-slate-200 dark:bg-dark-layer px-1 rounded">Gauge</code>、<code className="bg-slate-200 dark:bg-dark-layer px-1 rounded">Users</code>、<code className="bg-slate-200 dark:bg-dark-layer px-1 rounded">Zap</code> 等<br />
                 <strong>showHistory</strong>: 设为 false 可隐藏历史走势
               </p>
             </div>
@@ -1016,7 +1016,7 @@ function MetricItem({ icon, label, value, unit, getColor, getProgressColor, show
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
-        <div className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] text-slate-500">
+        <div className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer text-slate-500">
           {icon}
         </div>
         <div className="min-w-0 flex-1">
@@ -1027,7 +1027,7 @@ function MetricItem({ icon, label, value, unit, getColor, getProgressColor, show
         </div>
       </div>
       {showProgress && value !== null && value !== undefined && (
-        <div className="h-1.5 bg-slate-200/80 dark:bg-[#2a2a2a] rounded-full overflow-hidden">
+        <div className="h-1.5 bg-slate-200/80 dark:bg-dark-layer rounded-full overflow-hidden">
           <div
             className={`h-full rounded-full transition-all duration-500 ${progressColorClass}`}
             style={{ width: `${Math.min(100, Math.max(0, value))}%` }}

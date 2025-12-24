@@ -178,7 +178,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
           >
             <motion.button
               onClick={() => toggleGroup(group.id)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-[#2a2a2a]/50 hover:bg-slate-200/80 dark:hover:bg-[#2a2a2a] transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 dark:bg-dark-layer/50 hover:bg-slate-200/80 dark:hover:bg-[#2a2a2a] transition-colors"
               whileHover={{ backgroundColor: 'rgba(0,0,0,0.02)' }}
               whileTap={{ scale: 0.99 }}
             >

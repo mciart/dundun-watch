@@ -86,17 +86,17 @@ export default function SettingsPage() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/admin')}
-                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#333] transition-colors"
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-dark-highlight transition-colors"
                 title="返回管理后台"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-emerald-500 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-500 flex items-center justify-center">
                   <SettingsIcon className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-600 dark:from-primary-400 dark:to-primary-400 bg-clip-text text-transparent">
                     全局设置
                   </h1>
                   <p className="text-sm text-slate-500 dark:text-slate-400">

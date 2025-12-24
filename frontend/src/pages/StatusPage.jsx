@@ -166,7 +166,7 @@ export default function StatusPage() {
 
       {/* 头部 - 悬挂式设计 */}
       <div className="sm:sticky top-0 z-50 px-4 sm:px-6 lg:px-8">
-        <header className="max-w-7xl mx-auto backdrop-blur-md bg-white/70 dark:bg-[#1a1a1a]/70 shadow-lg rounded-b-2xl" style={{ border: '1px solid var(--border-color)', borderTop: 'none' }}>
+        <header className="max-w-7xl mx-auto backdrop-blur-md bg-white/70 dark:bg-dark-card/70 shadow-lg rounded-b-2xl border-x border-b border-[--border-color]">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-[auto,1fr,auto] items-center h-16 gap-4">
               {/* Logo */}
@@ -336,7 +336,7 @@ export default function StatusPage() {
       </main>
 
       {/* 页脚 */}
-      <footer className="py-4 mt-auto" style={{ borderTop: '1px solid var(--border-color)' }}>
+      <footer className="py-4 mt-auto border-t border-[--border-color]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-1">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             © {new Date().getFullYear()} {siteSettings.siteName} · 网站监控平台

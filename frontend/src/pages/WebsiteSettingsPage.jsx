@@ -63,7 +63,7 @@ export default function WebsiteSettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-primary-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       {/* 头部 */}
       <header className="sm:sticky top-0 z-50 backdrop-blur-lg bg-white/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -72,13 +72,13 @@ export default function WebsiteSettingsPage() {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate('/admin')}
-                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-[#333] transition-colors"
+                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-dark-highlight transition-colors"
                 title="返回管理后台"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-600 dark:from-primary-400 dark:to-primary-400 bg-clip-text text-transparent">
                   网站设置
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -188,14 +188,14 @@ export default function WebsiteSettingsPage() {
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => navigate('/admin')}
-                className="px-6 py-3 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] hover:bg-slate-300 dark:hover:bg-[#333] text-slate-700 dark:text-slate-300 font-medium transition-colors"
+                className="px-6 py-3 rounded-lg bg-slate-200/80 dark:bg-dark-layer hover:bg-slate-300 dark:hover:bg-dark-highlight text-slate-700 dark:text-slate-300 font-medium transition-colors"
               >
                 取消
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-emerald-500 hover:from-primary-600 hover:to-emerald-600 text-white font-medium transition-all shadow-lg shadow-primary-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 rounded-lg bg-gradient-to-r from-primary-500 to-primary-500 hover:from-primary-600 hover:to-primary-600 text-white font-medium transition-all shadow-lg shadow-primary-500/30 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 {saving ? '保存中...' : '保存设置'}

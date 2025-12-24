@@ -360,7 +360,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                       {SMTP_SECURITY_OPTIONS.find(opt => opt.value === formData.smtpSecurity)?.description}
                     </p>
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a]">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-200/80 dark:bg-dark-layer">
                     <p className="font-medium mb-1">💡 安全性说明：</p>
                     <ul className="space-y-1 list-disc list-inside">
                       <li><strong>SMTPS</strong>：测试 SMTP/TLS 是否正常工作</li>
@@ -562,7 +562,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                       onChange={(e) => setFormData({ ...formData, showUrl: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-[#2a2a2a] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-dark-layer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
               )}
@@ -584,7 +584,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                     onChange={(e) => setFormData({ ...formData, notifyEnabled: e.target.checked })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-[#2a2a2a] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-dark-layer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
                 </label>
               </div>
 
@@ -606,7 +606,7 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                       onChange={(e) => setFormData({ ...formData, inverted: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-[#2a2a2a] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-amber-500"></div>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-dark-layer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-amber-500"></div>
                   </label>
                 </div>
               )}

@@ -65,7 +65,7 @@ export default function Dialog({
         return {
           icon: Info,
           color: 'text-slate-600 dark:text-slate-400',
-          bgColor: 'bg-slate-200/80 dark:bg-[#2a2a2a]'
+          bgColor: 'bg-slate-200/80 dark:bg-dark-layer'
         };
     }
   };

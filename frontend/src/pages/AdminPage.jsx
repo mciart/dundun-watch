@@ -330,7 +330,7 @@ export default function AdminPage() {
 
       {/* 头部 - 悬挂式设计 */}
       <div className="sm:sticky top-0 z-50 px-3 sm:px-6 lg:px-8">
-        <header className="max-w-7xl mx-auto backdrop-blur-md bg-white/70 dark:bg-[#1a1a1a]/70 shadow-lg rounded-b-2xl" style={{ border: '1px solid var(--border-color)', borderTop: 'none' }}>
+        <header className="max-w-7xl mx-auto backdrop-blur-md bg-white/70 dark:bg-dark-card/70 shadow-lg rounded-b-2xl border-x border-b border-[--border-color]">
           <div className="px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2">
               {/* 左侧：Logo 和标题 */}
@@ -343,7 +343,7 @@ export default function AdminPage() {
                   <img src="/img/favicon.ico" alt="Logo" className="w-9 h-9 sm:w-10 sm:h-10" />
                 </div>
                 <div className="min-w-0 hidden sm:block">
-                  <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent truncate">
+                  <h1 className="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-600 dark:from-primary-400 dark:to-primary-400 bg-clip-text text-transparent truncate">
                     管理后台
                   </h1>
                 </div>
@@ -356,7 +356,7 @@ export default function AdminPage() {
                   <select
                     value={activeTab}
                     onChange={(e) => setActiveTab(e.target.value)}
-                    className="w-full appearance-none bg-slate-100 dark:bg-[#2a2a2a] text-slate-700 dark:text-slate-200 py-2 pl-3 pr-8 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
+                    className="w-full appearance-none bg-slate-100 dark:bg-dark-layer text-slate-700 dark:text-slate-200 py-2 pl-3 pr-8 rounded-lg text-sm font-medium border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-500/50"
                   >
                     <option value="sites">站点管理</option>
                     <option value="website">网站设置</option>
@@ -453,7 +453,7 @@ export default function AdminPage() {
               <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                 <a
                   href="/"
-                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] hover:bg-slate-300 dark:hover:bg-[#333] transition-all duration-200 hover:scale-110 active:scale-95"
+                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer hover:bg-slate-300 dark:hover:bg-dark-highlight transition-all duration-200 hover:scale-110 active:scale-95"
                   title="返回首页"
                 >
                   <Home className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300" />
@@ -462,7 +462,7 @@ export default function AdminPage() {
                 <button
                   onClick={handleTriggerCheck}
                   disabled={triggeringCheck || !sites || sites.length === 0}
-                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] hover:bg-slate-300 dark:hover:bg-[#333] transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer hover:bg-slate-300 dark:hover:bg-dark-highlight transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   title={sites && sites.length > 0 ? "立即检查" : "请先添加站点"}
                 >
                   <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300 ${triggeringCheck ? 'animate-spin' : ''}`} />
@@ -470,7 +470,7 @@ export default function AdminPage() {
 
                 <button
                   onClick={handleLogout}
-                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] hover:bg-danger-100 dark:hover:bg-danger-900/30 hover:text-danger-600 dark:hover:text-danger-400 transition-all duration-200 hover:scale-110 active:scale-95"
+                  className="p-2 sm:p-2.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer hover:bg-danger-100 dark:hover:bg-danger-900/30 hover:text-danger-600 dark:hover:text-danger-400 transition-all duration-200 hover:scale-110 active:scale-95"
                   title="退出登录"
                 >
                   <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1003,7 +1003,7 @@ export default function AdminPage() {
                         { key: 'recovered', label: '恢复' },
                         { key: 'cert_warning', label: '证书到期' }
                       ].map(opt => (
-                        <label key={opt.key} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-200/80 dark:bg-[#2a2a2a] text-sm cursor-pointer">
+                        <label key={opt.key} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-200/80 dark:bg-dark-layer text-sm cursor-pointer">
                           <input
                             type="checkbox"
                             checked={Array.isArray(settings.notifications?.events) ? settings.notifications.events.includes(opt.key) : false}
@@ -1022,7 +1022,7 @@ export default function AdminPage() {
                   {/* 企业微信 */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1.5 rounded bg-slate-200/80 dark:bg-[#2a2a2a]"><Link className="w-4 h-4" /></div>
+                      <div className="p-1.5 rounded bg-slate-200/80 dark:bg-dark-layer"><Link className="w-4 h-4" /></div>
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">企业微信机器人</span>
                     </div>
                     <div className="flex items-center gap-3 mb-2">
@@ -1047,7 +1047,7 @@ export default function AdminPage() {
                   {/* 邮件通知 */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="p-1.5 rounded bg-slate-200/80 dark:bg-[#2a2a2a]"><Mail className="w-4 h-4" /></div>
+                      <div className="p-1.5 rounded bg-slate-200/80 dark:bg-dark-layer"><Mail className="w-4 h-4" /></div>
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">邮件通知</span>
                     </div>
                     <div className="flex items-center gap-3 mb-3">
