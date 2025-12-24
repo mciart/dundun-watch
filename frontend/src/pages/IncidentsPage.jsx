@@ -106,14 +106,14 @@ export default function IncidentsPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-        <div 
+        <div
           className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-8 gap-3"
         >
           <div className="flex items-center gap-2 sm:gap-3">
             <div>
               <Link
                 to="/"
-                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-sm sm:text-base hover:shadow-lg transition-all hover:-translate-x-1 active:scale-95"
+                className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-sm sm:text-base hover:shadow-lg transition-all"
               >
                 <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 返回首页
@@ -129,7 +129,7 @@ export default function IncidentsPage() {
                   const value = Number(e.target.value);
                   setSelectedYear(Number.isFinite(value) ? value : null);
                 }}
-                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-xs sm:text-sm focus:outline-none hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-xs sm:text-sm focus:outline-none hover:shadow-lg transition-all"
               >
                 {monthAvailability.years.map((year) => (
                   <option key={year} value={year}>{year} 年</option>
@@ -139,7 +139,7 @@ export default function IncidentsPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-xs sm:text-sm focus:outline-none hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl glass-card text-xs sm:text-sm focus:outline-none hover:shadow-lg transition-all"
             >
               {TYPE_OPTIONS.map(option => (
                 <option key={option.value} value={option.value}>
@@ -151,7 +151,7 @@ export default function IncidentsPage() {
         </div>
 
         {selectedYear && (
-          <div 
+          <div
             className="mb-4 sm:mb-6 flex flex-wrap gap-1.5 sm:gap-2"
           >
             {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => {
@@ -162,13 +162,12 @@ export default function IncidentsPage() {
                 <button
                   key={month}
                   type="button"
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 ${
-                    isActive
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 ${isActive
                       ? 'bg-primary-500 text-white shadow-lg scale-105'
                       : isAvailable
-                        ? 'glass-card hover:shadow-lg hover:scale-105 hover:-translate-y-0.5 active:scale-95'
+                        ? 'glass-card hover:shadow-lg'
                         : 'glass-card opacity-40 cursor-not-allowed'
-                  }`}
+                    }`}
                   onClick={() => isAvailable && setSelectedMonth(month)}
                   disabled={!isAvailable}
                 >
@@ -180,7 +179,7 @@ export default function IncidentsPage() {
         )}
 
         {error && (
-          <div 
+          <div
             className="mb-4 px-4 py-3 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm"
           >
             {error}
@@ -188,7 +187,7 @@ export default function IncidentsPage() {
         )}
 
         {loading && incidents.length === 0 ? (
-          <div 
+          <div
             className="glass-card p-10 text-center text-slate-500 dark:text-slate-400"
           >
             <div className="loading-dots inline-flex">
@@ -199,13 +198,13 @@ export default function IncidentsPage() {
             <p className="mt-3">正在加载异常通知...</p>
           </div>
         ) : filteredIncidents.length === 0 ? (
-          <div 
+          <div
             className="glass-card p-10 text-center text-slate-500 dark:text-slate-400"
           >
             当前筛选条件下暂无异常通知。
           </div>
         ) : (
-          <div 
+          <div
             className="space-y-3 sm:space-y-4"
           >
             {filteredIncidents.map((incident, index) => {
@@ -227,16 +226,16 @@ export default function IncidentsPage() {
               return (
                 <div
                   key={`${incident.id}`}
-                  className="glass-card flex items-start gap-3 sm:gap-4 px-4 sm:px-6 py-3.5 sm:py-5 transition-all duration-200 hover:translate-x-1"
+                  className="glass-card flex items-start gap-3 sm:gap-4 px-4 sm:px-6 py-3.5 sm:py-5 transition-all duration-200 hover:shadow-lg"
                 >
-                  <div 
+                  <div
                     className={`flex-shrink-0 flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl shadow-inner ${palette.bg} ${palette.text}`}
                   >
                     {Icon && <Icon className="w-5 h-5 sm:w-6 sm:h-6" />}
                   </div>
                   <div className="flex-1 min-w-0 space-y-1 sm:space-y-1.5">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <span 
+                      <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold flex-shrink-0 ${palette.bg} ${palette.text}`}
                       >
                         {label}

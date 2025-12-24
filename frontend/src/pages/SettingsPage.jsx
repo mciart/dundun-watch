@@ -176,7 +176,7 @@ export default function SettingsPage() {
                       max="720"
                       value={settings.historyHours}
                       onChange={(e) => setSettings({ ...settings, historyHours: parseInt(e.target.value) })}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-sm w-full max-w-xs"
                     />
                     <div className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
                       <p>• 24 小时 = 1 天（默认）</p>
@@ -215,7 +215,7 @@ export default function SettingsPage() {
                       max="720"
                       value={settings.retentionHours}
                       onChange={(e) => setSettings({ ...settings, retentionHours: parseInt(e.target.value) })}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="input-sm w-full max-w-xs"
                     />
                     <div className="mt-3 space-y-1 text-xs text-slate-500 dark:text-slate-400">
                       <p>• 24 小时 = 1 天</p>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="w-4 h-4" />
                 {saving ? '保存中...' : '保存设置'}

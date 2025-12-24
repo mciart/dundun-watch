@@ -435,7 +435,7 @@ function HostCard({ site, onClick, index = 0 }) {
       onClick={onClick}
       className={`
         glass-card p-4 relative overflow-hidden cursor-pointer
-        transition-transform duration-150 ease-out hover:-translate-y-1 hover:shadow-lg active:scale-[0.98]
+        transition-all duration-150 ease-out hover:shadow-lg
         ${isOffline ? 'border-red-200 dark:border-red-800' : ''}
       `}
     >
@@ -704,7 +704,7 @@ function HostDetailModal({ site, onClose }) {
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-all duration-200 shrink-0 btn-icon hover:rotate-90"
+              className="close-btn shrink-0"
             >
               <X className="w-5 h-5" />
             </button>

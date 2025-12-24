@@ -109,13 +109,12 @@ export default function HistoryModal({ site, onClose }) {
                 {(site.showUrl === true) ? `${site.name} - ${site.url}` : site.name}
               </p>
             </div>
-            <motion.button
+            <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
-              {...closeButtonHover}
+              className="close-btn"
             >
               <X className="w-5 h-5" />
-            </motion.button>
+            </button>
           </div>
 
           {/* 时间范围信息 */}

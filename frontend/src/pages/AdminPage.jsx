@@ -642,7 +642,7 @@ export default function AdminPage() {
                     type="text"
                     value={websiteSettings.siteName}
                     onChange={(e) => setWebsiteSettings({ ...websiteSettings, siteName: e.target.value })}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder={`例如：${BRAND.siteName}`}
                   />
                 </div>
@@ -672,7 +672,7 @@ export default function AdminPage() {
                     type="text"
                     value={websiteSettings.siteSubtitle}
                     onChange={(e) => setWebsiteSettings({ ...websiteSettings, siteSubtitle: e.target.value })}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder={`例如：${BRAND.siteSubtitle}`}
                   />
                 </div>
@@ -702,7 +702,7 @@ export default function AdminPage() {
                     type="text"
                     value={websiteSettings.pageTitle}
                     onChange={(e) => setWebsiteSettings({ ...websiteSettings, pageTitle: e.target.value })}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder="例如：网站监控"
                   />
                 </div>
@@ -823,7 +823,7 @@ export default function AdminPage() {
                 <button
                   onClick={handleSaveWebsiteSettings}
                   disabled={savingWebsite}
-                  className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Settings className="w-4 h-4" />
                   {savingWebsite ? '保存中...' : '保存设置'}
@@ -867,7 +867,7 @@ export default function AdminPage() {
                     max="720"
                     value={settings.historyHours}
                     onChange={(e) => setSettings({ ...settings, historyHours: parseInt(e.target.value) })}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder="例如：24（1天）、168（7天）"
                   />
                 </div>
@@ -899,7 +899,7 @@ export default function AdminPage() {
                     max="720"
                     value={settings.retentionHours}
                     onChange={(e) => setSettings({ ...settings, retentionHours: parseInt(e.target.value) })}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder="例如：720（30天，推荐）"
                   />
                 </div>
@@ -909,7 +909,7 @@ export default function AdminPage() {
                 <button
                   onClick={handleSaveSettings}
                   disabled={saving}
-                  className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Settings className="w-4 h-4" />
                   {saving ? '保存中...' : '保存设置'}
@@ -963,7 +963,7 @@ export default function AdminPage() {
                         setSettings({ ...settings, statusChangeDebounceMinutes: 3 });
                       }
                     }}
-                    className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                    className="input-sm w-full max-w-xs"
                     placeholder="推荐 3 分钟"
                   />
                   <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
@@ -1037,7 +1037,7 @@ export default function AdminPage() {
                     </div>
                     <input
                       type="url"
-                      className="w-full max-w-xl px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                      className="input-sm w-full max-w-xl"
                       placeholder="请输入企业微信机器人 Webhook"
                       value={settings.notifications?.channels?.wecom?.webhook || ''}
                       onChange={(e) => setNotif(n => { n.channels.wecom.webhook = e.target.value; })}
@@ -1063,7 +1063,7 @@ export default function AdminPage() {
                       <select
                         value={settings.notifications?.channels?.email?.emailType || 'smtp'}
                         onChange={(e) => setNotif(n => { n.channels.email.emailType = e.target.value; })}
-                        className="px-3 py-1 text-sm rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                        className="input-sm px-3 py-1 text-sm"
                       >
                         <option value="smtp">SMTP</option>
                         <option value="resend">Resend API</option>
@@ -1085,7 +1085,7 @@ export default function AdminPage() {
                         </div>
                         <input
                           type="password"
-                          className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                          className="input-sm"
                           placeholder="Resend API Key (re_xxxxxxxx)"
                           value={settings.notifications?.channels?.email?.resendApiKey || ''}
                           onChange={(e) => setNotif(n => { n.channels.email.resendApiKey = e.target.value; })}
@@ -1093,14 +1093,14 @@ export default function AdminPage() {
                         <div className="flex flex-col sm:flex-row gap-3">
                           <input
                             type="email"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="收件邮箱"
                             value={settings.notifications?.channels?.email?.to || ''}
                             onChange={(e) => setNotif(n => { n.channels.email.to = e.target.value; })}
                           />
                           <input
                             type="email"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="发件邮箱 (默认: onboarding@resend.dev)"
                             value={settings.notifications?.channels?.email?.from ?? ''}
                             onChange={(e) => setNotif(n => { n.channels.email.from = e.target.value; })}
@@ -1116,14 +1116,14 @@ export default function AdminPage() {
                         <div className="flex flex-col sm:flex-row gap-3">
                           <input
                             type="text"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="SMTP 服务器 (如 smtp.qq.com)"
                             value={settings.notifications?.channels?.email?.smtpHost || ''}
                             onChange={(e) => setNotif(n => { n.channels.email.smtpHost = e.target.value; })}
                           />
                           <input
                             type="number"
-                            className="w-24 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm w-24"
                             placeholder="端口"
                             value={settings.notifications?.channels?.email?.smtpPort || 587}
                             onChange={(e) => setNotif(n => { n.channels.email.smtpPort = parseInt(e.target.value) || 587; })}
@@ -1131,7 +1131,7 @@ export default function AdminPage() {
                           <select
                             value={settings.notifications?.channels?.email?.smtpSecure || 'starttls'}
                             onChange={(e) => setNotif(n => { n.channels.email.smtpSecure = e.target.value; })}
-                            className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm px-3 py-2"
                           >
                             <option value="none">无加密</option>
                             <option value="starttls">STARTTLS</option>
@@ -1141,14 +1141,14 @@ export default function AdminPage() {
                         <div className="flex flex-col sm:flex-row gap-3">
                           <input
                             type="text"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="SMTP 用户名（通常是邮箱地址）"
                             value={settings.notifications?.channels?.email?.smtpUser || ''}
                             onChange={(e) => setNotif(n => { n.channels.email.smtpUser = e.target.value; })}
                           />
                           <input
                             type="password"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="SMTP 密码/授权码"
                             value={settings.notifications?.channels?.email?.smtpPass || ''}
                             onChange={(e) => setNotif(n => { n.channels.email.smtpPass = e.target.value; })}
@@ -1157,14 +1157,14 @@ export default function AdminPage() {
                         <div className="flex flex-col sm:flex-row gap-3">
                           <input
                             type="email"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="收件邮箱"
                             value={settings.notifications?.channels?.email?.to || ''}
                             onChange={(e) => setNotif(n => { n.channels.email.to = e.target.value; })}
                           />
                           <input
                             type="email"
-                            className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                            className="input-sm flex-1"
                             placeholder="发件邮箱"
                             value={settings.notifications?.channels?.email?.from ?? ''}
                             onChange={(e) => setNotif(n => { n.channels.email.from = e.target.value; })}
@@ -1198,7 +1198,7 @@ export default function AdminPage() {
                       <select
                         value={testNotifType}
                         onChange={(e) => setTestNotifType(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                        className="input-sm w-full"
                       >
                         <option value="down">离线</option>
                         <option value="recovered">恢复</option>
@@ -1210,7 +1210,7 @@ export default function AdminPage() {
                       <select
                         value={testNotifSite}
                         onChange={(e) => setTestNotifSite(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none"
+                        className="input-sm w-full"
                       >
                         <option value="">随机选择（仅已启用通知的站点）</option>
                         {sites.filter(site => site.notifyEnabled !== false).map(site => (
@@ -1278,7 +1278,7 @@ export default function AdminPage() {
                 <button
                   onClick={handleSaveSettings}
                   disabled={saving}
-                  className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Settings className="w-4 h-4" />
                   {saving ? '保存中...' : '保存通知设置'}
@@ -1322,7 +1322,7 @@ export default function AdminPage() {
                       type="password"
                       value={passwordForm.oldPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, oldPassword: e.target.value }))}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                      className="input-sm w-full max-w-xs"
                       placeholder="请输入当前密码"
                     />
                   </div>
@@ -1335,7 +1335,7 @@ export default function AdminPage() {
                       type="password"
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                      className="input-sm w-full max-w-xs"
                       placeholder="请输入新密码"
                     />
                   </div>
@@ -1348,7 +1348,7 @@ export default function AdminPage() {
                       type="password"
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      className="w-full max-w-xs px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                      className="input-sm w-full max-w-xs"
                       placeholder="请再次输入新密码"
                     />
                   </div>
@@ -1385,7 +1385,7 @@ export default function AdminPage() {
                         }
                       }}
                       disabled={changingPassword}
-                      className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <KeyRound className="w-4 h-4" />
                       {changingPassword ? '修改中...' : '修改密码'}
@@ -1425,7 +1425,7 @@ export default function AdminPage() {
                         type="text"
                         value={newAdminPath}
                         onChange={(e) => setNewAdminPath(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
-                        className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                        className="input-sm flex-1"
                         placeholder="admin"
                       />
                     </div>
@@ -1465,7 +1465,7 @@ export default function AdminPage() {
                         }
                       }}
                       disabled={changingPath || newAdminPath === adminPath}
-                      className="px-6 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Route className="w-4 h-4" />
                       {changingPath ? '修改中...' : '修改路径'}

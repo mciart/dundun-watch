@@ -129,7 +129,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.siteName}
                 onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500 text-lg font-medium"
+                className="input-sm w-full text-lg font-medium"
                 placeholder="例如：炖炖哨兵"
               />
             </div>
@@ -154,7 +154,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.siteSubtitle}
                 onChange={(e) => setSettings({ ...settings, siteSubtitle: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                className="input-sm w-full"
                 placeholder="例如：慢慢炖，网站不 &quot;糊锅&quot;"
               />
             </div>
@@ -179,7 +179,7 @@ export default function WebsiteSettingsPage() {
                 type="text"
                 value={settings.pageTitle}
                 onChange={(e) => setSettings({ ...settings, pageTitle: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:outline-none focus:border-slate-400 dark:focus:border-slate-500"
+                className="input-sm w-full"
                 placeholder="例如：网站监控"
               />
             </div>

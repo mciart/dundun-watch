@@ -256,15 +256,13 @@ export default function GroupManager({ groups = [], onAdd, onEdit, onDelete }) {
                     </>
                   )}
                 </h2>
-                <motion.button
+                <button
                   onClick={closeModal}
-                  className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
+                  className="close-btn"
                   aria-label="关闭"
-                  {...closeButtonHover}
-                  transition={{ duration: 0.2 }}
                 >
                   <X className="w-5 h-5" />
-                </motion.button>
+                </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">

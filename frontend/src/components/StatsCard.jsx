@@ -26,7 +26,7 @@ export default function StatsCard({ icon: Icon, label, value, color = 'blue' }) 
 
   return (
     <div
-      className="glass-card p-6 group cursor-pointer transition-transform duration-150 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+      className="glass-card p-6 group cursor-pointer transition-all duration-150 ease-out hover:shadow-lg"
     >
       <div className="flex items-center justify-between">
         <div>
@@ -37,7 +37,7 @@ export default function StatsCard({ icon: Icon, label, value, color = 'blue' }) 
             {value}
           </p>
         </div>
-        <div 
+        <div
           className={`w-14 h-14 rounded-2xl ${colors.bg} flex items-center justify-center transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover:rotate-[360deg] group-hover:scale-110 animate-icon-spin`}
         >
           <Icon className={`w-7 h-7 ${colors.icon}`} />

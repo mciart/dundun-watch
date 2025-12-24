@@ -96,14 +96,13 @@ export default function Dialog({
             <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
               {title}
             </h3>
-            <motion.button
+            <button
               onClick={handleCancel}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
+              className="close-btn"
               aria-label="关闭"
-              {...closeButtonHover}
             >
               <X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" />
-            </motion.button>
+            </button>
           </div>
 
           <div className="px-6 py-5 bg-white dark:bg-[#222]">
@@ -141,25 +140,19 @@ export default function Dialog({
             transition={{ delay: 0.2, duration: 0.3 }}
           >
             {isConfirm && (
-              <motion.button
+              <button
                 onClick={handleCancel}
-                className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-[#2a2a2a] border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-50 hover:border-slate-300 dark:hover:bg-[#333] transition-all"
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.2 }}
+                className="flex-1 btn-secondary"
               >
                 {cancelText}
-              </motion.button>
+              </button>
             )}
-            <motion.button
+            <button
               onClick={handleConfirm}
-              className={`${isConfirm ? 'flex-1' : 'w-full'} px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-medium transition-colors shadow-lg shadow-primary-500/30 hover:shadow-xl hover:shadow-primary-500/40`}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.2 }}
+              className={`${isConfirm ? 'flex-1' : 'w-full'} btn-primary flex items-center justify-center`}
             >
               {confirmText}
-            </motion.button>
+            </button>
           </motion.div>
         </motion.div>
       </motion.div>

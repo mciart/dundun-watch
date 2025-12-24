@@ -165,6 +165,27 @@ canvas {
     @apply transition-all duration-200;
   }
 
+  /* 小尺寸输入框/选择框 */
+  .input-sm {
+    @apply px-4 py-2 rounded-lg;
+    @apply bg-white dark:bg-[#2a2a2a];
+    @apply border border-slate-300 dark:border-slate-600;
+    @apply text-slate-900 dark:text-white;
+    @apply focus:outline-none focus:border-slate-400 dark:focus:border-slate-500;
+    @apply transition-all duration-200;
+  }
+
+  /* 关闭按钮通用样式 */
+  .close-btn {
+    @apply p-2 rounded-lg;
+    @apply hover:bg-slate-200 dark:hover:bg-[#333];
+    @apply transition-all duration-200;
+  }
+
+  .close-btn:hover {
+    transform: rotate(90deg);
+  }
+
   .status-online {
     @apply bg-gradient-to-r from-primary-500 to-emerald-500;
     @apply text-white;

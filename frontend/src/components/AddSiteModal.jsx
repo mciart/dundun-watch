@@ -116,13 +116,12 @@ export default function AddSiteModal({ onClose, onSubmit, groups = [] }) {
                 <Plus className="w-6 h-6" />
                 添加监控站点
               </motion.h2>
-              <motion.button
+              <button
                 onClick={onClose}
-                className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-colors"
-                {...closeButtonHover}
+                className="close-btn"
               >
                 <X className="w-5 h-5" />
-              </motion.button>
+              </button>
             </div>
 
 

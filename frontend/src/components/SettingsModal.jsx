@@ -45,7 +45,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
             </h2>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-[#333] transition-all btn-icon hover:rotate-90"
+              className="close-btn"
             >
               <X className="w-5 h-5" />
             </button>
@@ -64,7 +64,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
                 max="720"
                 value={historyHours}
                 onChange={(e) => setHistoryHours(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-sm w-full"
                 required
               />
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -89,7 +89,7 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
                 max="720"
                 value={retentionHours}
                 onChange={(e) => setRetentionHours(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-[#2a2a2a] text-slate-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="input-sm w-full"
                 required
               />
               <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -107,13 +107,13 @@ export default function SettingsModal({ onClose, onSave, currentSettings }) {
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-[#333] transition-colors"
+                className="flex-1 btn-secondary"
               >
                 取消
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white font-medium transition-colors flex items-center justify-center gap-2"
+                className="flex-1 btn-primary flex items-center justify-center gap-2"
               >
                 <Save className="w-4 h-4" />
                 保存设置

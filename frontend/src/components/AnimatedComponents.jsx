@@ -62,11 +62,11 @@ export * from '../utils/animations';
  * 动画列表容器
  * 为子元素提供交错入场动画
  */
-export function AnimatedList({ 
-  children, 
+export function AnimatedList({
+  children,
   className = '',
   staggerDelay = 0.05,
-  ...props 
+  ...props
 }) {
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -96,10 +96,10 @@ export function AnimatedList({
  * 动画列表项
  * 配合 AnimatedList 使用
  */
-export function AnimatedListItem({ 
-  children, 
+export function AnimatedListItem({
+  children,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
@@ -115,20 +115,20 @@ export function AnimatedListItem({
 /**
  * 淡入动画包装器
  */
-export function FadeIn({ 
-  children, 
-  delay = 0, 
+export function FadeIn({
+  children,
+  delay = 0,
   duration = DURATION.normal,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        delay, 
+      transition={{
+        delay,
         duration,
         ease: EASING.bounce
       }}
@@ -142,19 +142,19 @@ export function FadeIn({
 /**
  * 缩放入场动画
  */
-export function ScaleIn({ 
-  children, 
-  delay = 0, 
+export function ScaleIn({
+  children,
+  delay = 0,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ 
-        delay, 
+      transition={{
+        delay,
         duration: DURATION.normal,
         ease: EASING.bounce
       }}
@@ -168,18 +168,18 @@ export function ScaleIn({
 /**
  * 弹跳入场动画
  */
-export function BounceIn({ 
-  children, 
-  delay = 0, 
+export function BounceIn({
+  children,
+  delay = 0,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ 
+      transition={{
         delay,
         ...SPRING.stiff,
       }}
@@ -193,13 +193,13 @@ export function BounceIn({
 /**
  * 滑入动画 (从指定方向)
  */
-export function SlideIn({ 
-  children, 
+export function SlideIn({
+  children,
   direction = 'up', // 'up' | 'down' | 'left' | 'right'
   delay = 0,
   distance = 20,
   className = '',
-  ...props 
+  ...props
 }) {
   const directions = {
     up: { y: distance },
@@ -211,16 +211,16 @@ export function SlideIn({
   return (
     <motion.div
       className={className}
-      initial={{ 
-        opacity: 0, 
+      initial={{
+        opacity: 0,
         ...directions[direction]
       }}
-      animate={{ 
-        opacity: 1, 
-        x: 0, 
-        y: 0 
+      animate={{
+        opacity: 1,
+        x: 0,
+        y: 0
       }}
-      transition={{ 
+      transition={{
         delay,
         duration: DURATION.normal,
         ease: EASING.bounce
@@ -235,16 +235,16 @@ export function SlideIn({
 /**
  * 悬浮效果包装器
  */
-export function HoverScale({ 
-  children, 
+export function HoverScale({
+  children,
   scale = 1.02,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
-      whileHover={{ 
+      whileHover={{
         scale,
         transition: { duration: DURATION.fast, ease: EASING.bounce }
       }}
@@ -259,21 +259,21 @@ export function HoverScale({
 /**
  * Q弹悬浮效果
  */
-export function HoverBounce({ 
-  children, 
+export function HoverBounce({
+  children,
   y = -4,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
-      whileHover={{ 
+      whileHover={{
         y,
         transition: { duration: DURATION.fast, ease: EASING.bounce }
       }}
-      whileTap={{ 
-        y: y / 2, 
+      whileTap={{
+        y: y / 2,
         scale: 0.98,
         transition: { duration: 0.1 }
       }}
@@ -288,10 +288,10 @@ export function HoverBounce({
  * 页面容器动画包装器
  * 用于包裹整个页面内容
  */
-export function AnimatedPage({ 
-  children, 
+export function AnimatedPage({
+  children,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
@@ -310,10 +310,10 @@ export function AnimatedPage({
 /**
  * 卡片容器动画（用于登录、404等独立页面）
  */
-export function AnimatedCardContainer({ 
-  children, 
+export function AnimatedCardContainer({
+  children,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
@@ -331,11 +331,11 @@ export function AnimatedCardContainer({
 /**
  * 模态框背景
  */
-export function ModalBackdrop({ 
-  children, 
+export function ModalBackdrop({
+  children,
   onClick,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
@@ -355,10 +355,10 @@ export function ModalBackdrop({
 /**
  * 模态框内容
  */
-export function ModalContent({ 
-  children, 
+export function ModalContent({
+  children,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
@@ -378,39 +378,38 @@ export function ModalContent({
 /**
  * 关闭按钮（带旋转动画）
  */
-export function CloseButton({ 
-  children, 
+export function CloseButton({
+  children,
   onClick,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
-    <motion.button
+    <button
       className={className}
       onClick={onClick}
-      {...closeButtonHover}
       {...props}
     >
       {children}
-    </motion.button>
+    </button>
   );
 }
 
 /**
  * 旋转入场（Logo、图标）
  */
-export function RotateIn({ 
-  children, 
+export function RotateIn({
+  children,
   delay = 0,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
       className={className}
       initial={{ opacity: 0, scale: 0, rotate: -180 }}
       animate={{ opacity: 1, scale: 1, rotate: 0 }}
-      transition={{ 
+      transition={{
         delay,
         ...SPRING.normal
       }}
@@ -424,11 +423,11 @@ export function RotateIn({
 /**
  * 摇晃动画（错误提示等）
  */
-export function Shake({ 
+export function Shake({
   children,
   trigger = true,
   className = '',
-  ...props 
+  ...props
 }) {
   return (
     <motion.div
