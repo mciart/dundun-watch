@@ -54,29 +54,13 @@ export default function LoginPage({ adminPath = 'admin' }) {
         <div className="glass-card p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <motion.div 
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ 
-                delay: 0.2, 
-                ...SPRING.normal
-              }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-            >
-              <motion.img 
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4">
+              <img 
                 src="/img/favicon.ico" 
                 alt="Logo" 
                 className="w-16 h-16"
-                animate={{ 
-                  rotate: [0, -5, 5, -5, 0],
-                }}
-                transition={{ 
-                  delay: 0.6,
-                  duration: 0.5,
-                  ease: "easeInOut"
-                }}
               />
-            </motion.div>
+            </div>
             <motion.h1 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
