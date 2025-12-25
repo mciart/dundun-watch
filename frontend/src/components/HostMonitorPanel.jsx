@@ -562,8 +562,8 @@ function HostDetailModal({ site, onClose }) {
       { key: 'memory', label: '内存', unit: '%', icon: MemoryStick, color: METRIC_COLORS.memory },
       { key: 'disk', label: '磁盘', unit: '%', icon: HardDrive, color: METRIC_COLORS.disk },
       { key: 'load', label: '负载', unit: '', icon: Activity, color: METRIC_COLORS.load },
-      { key: 'temperature', label: '温度', unit: '°C', icon: Thermometer, color: METRIC_COLORS.temperature },
       { key: 'latency', label: '延迟', unit: 'ms', icon: TrendingUp, color: METRIC_COLORS.network },
+      { key: 'temperature', label: '温度', unit: '°C', icon: Thermometer, color: METRIC_COLORS.temperature },
     ];
 
     // 检查自定义字段
