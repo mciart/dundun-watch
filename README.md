@@ -28,13 +28,13 @@
 |:---:|:---:|
 | <img src="docs/1.png" alt="主页浅色模式" width="400"> | <img src="docs/2.png" alt="主页深色模式" width="400"> |
 
-| 后台站点管理 - 浅色模式 | 后台站点管理 - 深色模式 |
+| 站点管理 - 浅色模式 | 站点管理 - 深色模式 |
 |:---:|:---:|
 | <img src="docs/3.png" alt="后台站点管理浅色模式" width="400"> | <img src="docs/4.png" alt="后台站点管理深色模式" width="400"> |
 
-| 后台设置 - 浅色模式 | 后台通知 - 深色模式 |
+| 后台设置 - 浅色模式 | 通知设置 - 深色模式 |
 |:---:|:---:|
-| <img src="docs/5.png" alt="后台设置浅色模式" width="400"> | <img src="docs/6.png" alt="后台通知深色模式" width="400"> |
+| <img src="docs/5.png" alt="后台设置浅色模式" width="400"> | <img src="docs/6.png" alt="通知设置深色模式" width="400"> |
 
 </div>
 
