@@ -28,6 +28,7 @@ const MONITOR_TYPES = [
   { value: 'dns', label: 'DNS', description: '监控域名 DNS 记录' },
   { value: 'tcp', label: 'TCP 端口', description: '监控端口连通性' },
   { value: 'smtp', label: 'SMTP', description: '监控邮件服务器可用性' },
+  { value: 'grpc', label: 'gRPC', description: '监控 gRPC 服务可用性' },
   { value: 'mysql', label: 'MySQL', description: '监控 MySQL 数据库可用性' },
   { value: 'postgres', label: 'PostgreSQL', description: '监控 PostgreSQL 数据库可用性' },
   { value: 'mongodb', label: 'MongoDB', description: '监控 MongoDB 数据库可用性' },
@@ -83,6 +84,10 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     // 数据库相关
     dbHost: site.dbHost || '',
     dbPort: site.dbPort || '',
+    // gRPC 相关
+    grpcHost: site.grpcHost || '',
+    grpcPort: site.grpcPort || '443',
+    grpcTls: site.grpcTls !== false,
     // Push 相关
     pushTimeoutMinutes: site.pushTimeoutMinutes || 3,
     showInHostPanel: site.showInHostPanel !== false  // 默认为 true
@@ -207,8 +212,9 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                   {formData.monitorType === 'dns' ? '域名 *'
                     : (formData.monitorType === 'tcp' || formData.monitorType === 'smtp') ? '主机名 *'
                       : (formData.monitorType === 'mysql' || formData.monitorType === 'postgres' || formData.monitorType === 'mongodb' || formData.monitorType === 'redis') ? '数据库主机 *'
-                        : formData.monitorType === 'push' ? '主机名称 *'
-                          : '站点 URL *'}
+                        : formData.monitorType === 'grpc' ? 'gRPC 主机 *'
+                          : formData.monitorType === 'push' ? '主机名称 *'
+                            : '站点 URL *'}
                 </label>
                 {formData.monitorType === 'push' ? (
                   <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">
@@ -230,6 +236,15 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     onChange={(e) => setFormData({ ...formData, dbHost: e.target.value })}
                     className="input-field"
                     placeholder="db.example.com"
+                    required
+                  />
+                ) : formData.monitorType === 'grpc' ? (
+                  <input
+                    type="text"
+                    value={formData.grpcHost}
+                    onChange={(e) => setFormData({ ...formData, grpcHost: e.target.value })}
+                    className="input-field"
+                    placeholder="grpc.example.com"
                     required
                   />
                 ) : (
@@ -661,6 +676,81 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     </ul>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-rose-200 dark:border-rose-800">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        反转模式
+                      </label>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        开启后，服务可访问视为故障，不可访问视为正常
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, inverted: !formData.inverted })}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${formData.inverted
+                        ? 'bg-amber-500'
+                        : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.inverted ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* gRPC 服务配置 - 紫色主题 */}
+              {formData.monitorType === 'grpc' && (
+                <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-violet-50/50 dark:bg-violet-900/10 border border-violet-200 dark:border-violet-800">
+                  <div className="flex items-center gap-2 text-violet-700 dark:text-violet-300 text-sm font-medium">
+                    <Server className="w-4 h-4" />
+                    gRPC 服务配置
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      端口
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.grpcPort}
+                      onChange={(e) => setFormData({ ...formData, grpcPort: e.target.value })}
+                      className="input-field"
+                      placeholder="443"
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      留空使用默认端口 443
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        使用 TLS
+                      </label>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        gRPC 通常使用 TLS 加密连接
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, grpcTls: formData.grpcTls === false ? true : false })}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${formData.grpcTls !== false
+                        ? 'bg-violet-500'
+                        : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.grpcTls !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                    </button>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-200/80 dark:bg-dark-layer">
+                    <p className="font-medium mb-1">💡 监控说明：</p>
+                    <ul className="space-y-1 list-disc list-inside">
+                      <li>通过 HTTP/2 发送 gRPC 请求验证服务可用性</li>
+                      <li>支持检测需要认证的 gRPC 服务</li>
+                      <li>不会执行实际的 RPC 调用</li>
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-violet-200 dark:border-violet-800">
                     <div>
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                         反转模式

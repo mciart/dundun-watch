@@ -55,6 +55,16 @@ export async function addSite(request, env) {
           return errorResponse('无效的端口号（必须为 1-65535）', 400);
         }
       }
+    } else if (site.monitorType === 'grpc') {
+      if (!site.grpcHost || !isValidHost(site.grpcHost)) {
+        return errorResponse('无效的 gRPC 主机名', 400);
+      }
+      if (site.grpcPort) {
+        const port = parseInt(site.grpcPort, 10);
+        if (isNaN(port) || port < 1 || port > 65535) {
+          return errorResponse('无效的端口号（必须为 1-65535）', 400);
+        }
+      }
     } else if (isPush) {
       if (!site.name || site.name.trim() === '') {
         return errorResponse('请输入主机名称', 400);
@@ -90,9 +100,13 @@ export async function addSite(request, env) {
       smtpHost: site.smtpHost || '',
       smtpPort: site.smtpPort ? parseInt(site.smtpPort, 10) : 25,
       smtpSecurity: site.smtpSecurity || 'starttls',
-      // 数据库监控相关字段 (MySQL/PostgreSQL)
+      // 数据库监控相关字段 (MySQL/PostgreSQL/MongoDB/Redis)
       dbHost: site.dbHost || '',
       dbPort: site.dbPort ? parseInt(site.dbPort, 10) : null,
+      // gRPC 监控相关字段
+      grpcHost: site.grpcHost || '',
+      grpcPort: site.grpcPort ? parseInt(site.grpcPort, 10) : 443,
+      grpcTls: site.grpcTls !== false,
       showUrl: site.showUrl || false,
       notifyEnabled: site.notifyEnabled === true,  // 默认关闭通知
       inverted: site.inverted === true,  // 反转模式
@@ -162,6 +176,17 @@ export async function updateSite(request, env, siteId) {
           return errorResponse('无效的端口号（必须为 1-65535）', 400);
         }
         updates.dbPort = port;
+      }
+    } else if (newMonitorType === 'grpc') {
+      if (updates.grpcHost && !isValidHost(updates.grpcHost)) {
+        return errorResponse('无效的 gRPC 主机名', 400);
+      }
+      if (updates.grpcPort !== undefined) {
+        const port = parseInt(updates.grpcPort, 10);
+        if (isNaN(port) || port < 1 || port > 65535) {
+          return errorResponse('无效的端口号（必须为 1-65535）', 400);
+        }
+        updates.grpcPort = port;
       }
     } else if (newMonitorType === 'push') {
       if (updates.pushInterval !== undefined) {

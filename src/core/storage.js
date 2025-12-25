@@ -108,6 +108,10 @@ export async function getAllSites(env) {
     // Database (MySQL/PostgreSQL)
     dbHost: row.db_host,
     dbPort: row.db_port,
+    // gRPC
+    grpcHost: row.grpc_host,
+    grpcPort: row.grpc_port,
+    grpcTls: row.grpc_tls !== 0,  // D1 存储为 0/1
     // Push
     pushToken: row.push_token,
     pushInterval: row.push_interval,
@@ -165,6 +169,9 @@ export async function getSite(env, siteId) {
     smtpSecurity: row.smtp_security,
     dbHost: row.db_host,
     dbPort: row.db_port,
+    grpcHost: row.grpc_host,
+    grpcPort: row.grpc_port,
+    grpcTls: row.grpc_tls !== 0,
     pushToken: row.push_token,
     pushInterval: row.push_interval,
     lastHeartbeat: row.last_heartbeat,
@@ -192,9 +199,10 @@ export async function createSite(env, site) {
       tcp_host, tcp_port,
       smtp_host, smtp_port, smtp_security,
       db_host, db_port,
+      grpc_host, grpc_port, grpc_tls,
       push_token, push_interval, last_heartbeat, push_data, show_in_host_panel,
       ssl_cert, ssl_cert_last_check, notify_enabled, inverted, last_message
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     site.id,
     site.name,
@@ -223,6 +231,9 @@ export async function createSite(env, site) {
     site.smtpSecurity || 'starttls',
     site.dbHost || null,
     site.dbPort || null,
+    site.grpcHost || null,
+    site.grpcPort || 443,
+    site.grpcTls !== false ? 1 : 0,
     site.pushToken || null,
     site.pushInterval || 60,
     site.lastHeartbeat || 0,
@@ -255,6 +266,7 @@ export async function updateSite(env, siteId, updates) {
       tcp_host = ?, tcp_port = ?,
       smtp_host = ?, smtp_port = ?, smtp_security = ?,
       db_host = ?, db_port = ?,
+      grpc_host = ?, grpc_port = ?, grpc_tls = ?,
       push_token = ?, push_interval = ?, last_heartbeat = ?, push_data = ?, show_in_host_panel = ?,
       ssl_cert = ?, ssl_cert_last_check = ?, notify_enabled = ?, inverted = ?, last_message = ?
     WHERE id = ?
@@ -285,6 +297,9 @@ export async function updateSite(env, siteId, updates) {
     merged.smtpSecurity || 'starttls',
     merged.dbHost,
     merged.dbPort,
+    merged.grpcHost || null,
+    merged.grpcPort || 443,
+    merged.grpcTls !== false ? 1 : 0,
     merged.pushToken,
     merged.pushInterval,
     merged.lastHeartbeat,

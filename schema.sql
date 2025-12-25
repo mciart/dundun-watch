@@ -45,6 +45,15 @@ CREATE TABLE IF NOT EXISTS sites (
   smtp_port INTEGER DEFAULT 25,
   smtp_security TEXT DEFAULT 'starttls',  -- 'smtps', 'starttls', 'none'
   
+  -- 数据库监控配置 (MySQL/PostgreSQL/MongoDB/Redis)
+  db_host TEXT,
+  db_port INTEGER,
+  
+  -- gRPC 监控配置
+  grpc_host TEXT,
+  grpc_port INTEGER DEFAULT 443,
+  grpc_tls INTEGER DEFAULT 1,  -- 0=不使用TLS, 1=使用TLS
+  
   -- Push 监控配置
   push_token TEXT,
   push_interval INTEGER DEFAULT 60,

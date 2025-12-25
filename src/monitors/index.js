@@ -7,6 +7,7 @@ import { checkMysqlSite } from './mysql.js';
 import { checkPostgresSite } from './postgres.js';
 import { checkMongodbSite } from './mongodb.js';
 import { checkRedisSite } from './redis.js';
+import { checkGrpcSite } from './grpc.js';
 
 export function getMonitorForSite(site) {
   if (site.monitorType === 'dns') return checkDnsSite;
@@ -16,8 +17,9 @@ export function getMonitorForSite(site) {
   if (site.monitorType === 'postgres') return checkPostgresSite;
   if (site.monitorType === 'mongodb') return checkMongodbSite;
   if (site.monitorType === 'redis') return checkRedisSite;
+  if (site.monitorType === 'grpc') return checkGrpcSite;
   if (site.monitorType === 'push') return (site, now) => checkPushSite(site, now, site.pushTimeoutMinutes || 3);
   return checkSite;
 }
 
-export { checkSite, checkTcpSite, checkDnsSite, checkPushSite, checkSmtpSite, checkMysqlSite, checkPostgresSite, checkMongodbSite, checkRedisSite };
+export { checkSite, checkTcpSite, checkDnsSite, checkPushSite, checkSmtpSite, checkMysqlSite, checkPostgresSite, checkMongodbSite, checkRedisSite, checkGrpcSite };

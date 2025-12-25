@@ -18,6 +18,8 @@ export const TIMEOUTS = {
   mongodbTimeout: 15000,
   // Redis 监控超时（毫秒）
   redisTimeout: 10000,
+  // gRPC 监控超时（毫秒）
+  grpcTimeout: 15000,
 };
 
 export const INTERVALS = {
