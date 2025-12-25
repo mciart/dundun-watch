@@ -80,7 +80,7 @@
 | Push/心跳    | Worker URL 路由                   | 被动接收主机心跳，支持 CPU/内存/磁盘/延迟等指标上报        | 完成 |
 | SMTP         | connect()                         | 模拟 SMTP 握手（HELO/EHLO）                                 | 完成 |
 | MySQL      | 官方驱动 + connect()              | 直接从 Worker 连数据库握手（只要数据库公网可达）            | 完成 |
-| PostgreSQL  | 官方驱动 + connect()              | 直接从 Worker 连数据库握手（只要数据库公网可达）            | 进行 |
+| PostgreSQL  | 官方驱动 + connect()              | 直接从 Worker 连数据库握手（只要数据库公网可达）            | 完成 |
 | MongoDB  | 官方驱动 + connect()              | 直接从 Worker 连数据库握手（只要数据库公网可达）            | 进行 |
 | Redis        | connect() + Redis 协议            | 可以实现简单的 PING/PONG 握手                               | 计划 |
 | Browser Engine | Browser Rendering                | Cloudflare 自家的渲染引擎（需在后台开启）                   | 计划 |
