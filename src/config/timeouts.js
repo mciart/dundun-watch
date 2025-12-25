@@ -16,6 +16,8 @@ export const TIMEOUTS = {
   postgresTimeout: 15000,
   // MongoDB 监控超时（毫秒）
   mongodbTimeout: 15000,
+  // Redis 监控超时（毫秒）
+  redisTimeout: 10000,
 };
 
 export const INTERVALS = {

@@ -31,6 +31,7 @@ const MONITOR_TYPES = [
   { value: 'mysql', label: 'MySQL', description: '监控 MySQL 数据库可用性' },
   { value: 'postgres', label: 'PostgreSQL', description: '监控 PostgreSQL 数据库可用性' },
   { value: 'mongodb', label: 'MongoDB', description: '监控 MongoDB 数据库可用性' },
+  { value: 'redis', label: 'Redis', description: '监控 Redis 数据库可用性' },
   { value: 'push', label: 'Push 心跳', description: '被动接收主机心跳' },
 ];
 
@@ -205,7 +206,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   {formData.monitorType === 'dns' ? '域名 *'
                     : (formData.monitorType === 'tcp' || formData.monitorType === 'smtp') ? '主机名 *'
-                      : (formData.monitorType === 'mysql' || formData.monitorType === 'postgres' || formData.monitorType === 'mongodb') ? '数据库主机 *'
+                      : (formData.monitorType === 'mysql' || formData.monitorType === 'postgres' || formData.monitorType === 'mongodb' || formData.monitorType === 'redis') ? '数据库主机 *'
                         : formData.monitorType === 'push' ? '主机名称 *'
                           : '站点 URL *'}
                 </label>
@@ -222,7 +223,7 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     placeholder="smtp.example.com"
                     required
                   />
-                ) : (formData.monitorType === 'mysql' || formData.monitorType === 'postgres' || formData.monitorType === 'mongodb') ? (
+                ) : (formData.monitorType === 'mysql' || formData.monitorType === 'postgres' || formData.monitorType === 'mongodb' || formData.monitorType === 'redis') ? (
                   <input
                     type="text"
                     value={formData.dbHost}
@@ -606,6 +607,60 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                     </ul>
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-emerald-200 dark:border-emerald-800">
+                    <div>
+                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        反转模式
+                      </label>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        开启后，服务可访问视为故障，不可访问视为正常
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, inverted: !formData.inverted })}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${formData.inverted
+                        ? 'bg-amber-500'
+                        : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${formData.inverted ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Redis 数据库配置 - 红色主题 */}
+              {formData.monitorType === 'redis' && (
+                <div className="grid grid-cols-1 gap-4 p-4 rounded-xl bg-rose-50/50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800">
+                  <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300 text-sm font-medium">
+                    <Server className="w-4 h-4" />
+                    Redis 数据库配置
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      端口
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.dbPort}
+                      onChange={(e) => setFormData({ ...formData, dbPort: e.target.value })}
+                      className="input-field"
+                      placeholder="6379"
+                    />
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      留空使用默认端口 6379
+                    </p>
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 p-3 rounded-lg bg-slate-200/80 dark:bg-dark-layer">
+                    <p className="font-medium mb-1">💡 监控说明：</p>
+                    <ul className="space-y-1 list-disc list-inside">
+                      <li>通过 TCP 连接验证 Redis 服务是否可达</li>
+                      <li>会发送 PING 命令验证 Redis 协议响应</li>
+                      <li>不会发送密码，不会执行任何命令</li>
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-rose-200 dark:border-rose-800">
                     <div>
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
                         反转模式

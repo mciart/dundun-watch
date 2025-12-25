@@ -45,7 +45,7 @@ export async function addSite(request, env) {
       if (site.smtpSecurity && !validSecurityModes.includes(site.smtpSecurity)) {
         return errorResponse('无效的SMTP安全模式', 400);
       }
-    } else if (site.monitorType === 'mysql' || site.monitorType === 'postgres' || site.monitorType === 'mongodb') {
+    } else if (site.monitorType === 'mysql' || site.monitorType === 'postgres' || site.monitorType === 'mongodb' || site.monitorType === 'redis') {
       if (!site.dbHost || !isValidHost(site.dbHost)) {
         return errorResponse('无效的数据库主机名', 400);
       }
@@ -152,7 +152,7 @@ export async function updateSite(request, env, siteId) {
       if (updates.smtpSecurity && !validSecurityModes.includes(updates.smtpSecurity)) {
         return errorResponse('无效的SMTP安全模式', 400);
       }
-    } else if (newMonitorType === 'mysql' || newMonitorType === 'postgres' || newMonitorType === 'mongodb') {
+    } else if (newMonitorType === 'mysql' || newMonitorType === 'postgres' || newMonitorType === 'mongodb' || newMonitorType === 'redis') {
       if (updates.dbHost && !isValidHost(updates.dbHost)) {
         return errorResponse('无效的数据库主机名', 400);
       }
