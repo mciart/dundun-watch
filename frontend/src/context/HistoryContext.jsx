@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 import { api } from '../utils/api';
 
 const HistoryContext = createContext();
@@ -6,34 +6,23 @@ const HistoryContext = createContext();
 export function HistoryProvider({ children }) {
   const [historyCache, setHistoryCache] = useState({});
   const [loading, setLoading] = useState(false);
-  const fetchPromiseRef = useRef(null);
+  const [cacheVersion, setCacheVersion] = useState(0);
 
-  // 实时获取历史数据（聚合表优化后，N 站点只读 N 行，无需缓存）
+  // 获取历史数据 - 每次调用都直接请求，不做并发防护
   const fetchAllHistory = useCallback(async (hours = 24) => {
-    // 防止并发请求
-    if (fetchPromiseRef.current) {
-      return fetchPromiseRef.current;
-    }
-
     setLoading(true);
-    
-    const promise = api.getAllHistory(hours)
-      .then(data => {
-        setHistoryCache(data);
-        fetchPromiseRef.current = null;
-        return data;
-      })
-      .catch(error => {
-        console.error('❌ 批量获取历史数据失败:', error);
-        fetchPromiseRef.current = null;
-        return {};
-      })
-      .finally(() => {
-        setLoading(false);
-      });
 
-    fetchPromiseRef.current = promise;
-    return promise;
+    try {
+      const data = await api.getAllHistory(hours);
+      setHistoryCache(data);
+      setCacheVersion(v => v + 1); // 强制触发组件更新
+      return data;
+    } catch (error) {
+      console.error('❌ 批量获取历史数据失败:', error);
+      return {};
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const getHistory = useCallback((siteId) => {
@@ -42,11 +31,12 @@ export function HistoryProvider({ children }) {
 
   const clearCache = useCallback(() => {
     setHistoryCache({});
-    fetchPromiseRef.current = null;
+    setCacheVersion(0);
   }, []);
 
   const value = {
     historyCache,
+    cacheVersion,
     loading,
     fetchAllHistory,
     getHistory,

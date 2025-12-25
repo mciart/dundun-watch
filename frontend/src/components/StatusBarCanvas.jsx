@@ -24,7 +24,7 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
   const hoveredIndexRef = useRef(null);
   const touchActiveRef = useRef(false);
 
-  const { getHistory: getCachedHistory, historyCache } = useHistory();
+  const { getHistory: getCachedHistory, historyCache, cacheVersion } = useHistory();
 
   const getBlockColors = useCallback((record, isDark = false) => {
     if (!record || record.status === 'empty') {
@@ -239,14 +239,14 @@ export default function StatusBarCanvas({ siteId, onAverageResponseTime }) {
   }, [measureVisible]);
 
 
-  // 加载历史数据 - 只在 siteId 变化或 historyCache 有新数据时更新
+  // 加载历史数据 - 使用 cacheVersion 确保数据更新时能触发重绘
   useEffect(() => {
     const cachedData = getCachedHistory(siteId);
     const historyList = Array.isArray(cachedData?.history) ? cachedData.history : [];
     const realHistory = historyList.slice(0, CONFIG.MAX_HISTORY).reverse();
     setHistory(realHistory);
     setLoading(false);
-  }, [siteId, getCachedHistory, historyCache]);
+  }, [siteId, getCachedHistory, historyCache, cacheVersion]);
 
 
   useEffect(() => {
