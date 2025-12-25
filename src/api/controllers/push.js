@@ -173,105 +173,57 @@ function generateBashScript(endpoint) {
 # 调试模式: DEBUG=1 /path/to/heartbeat.sh
 
 TARGET_HOST="${targetHost}"
-DEBUG="\${DEBUG:-0}"
 
-log() { [ "\$DEBUG" = "1" ] && echo "[DEBUG] \$1" >&2; }
-
-# 获取 CPU 使用率 (使用 /proc/stat 两次采样)
+# 获取 CPU 使用率 (基于负载)
 get_cpu() {
-  # 读取第一次采样
-  local stat1=$(head -1 /proc/stat 2>/dev/null)
-  if [ -z "\$stat1" ]; then
-    log "CPU: 读取失败"
-    echo "0"
-    return
-  fi
-  local idle1=$(echo "\$stat1" | awk '{print \$5}')
-  local total1=$(echo "\$stat1" | awk '{print \$2+\$3+\$4+\$5+\$6+\$7+\$8}')
-  
-  sleep 0.5
-  
-  # 读取第二次采样
-  local stat2=$(head -1 /proc/stat 2>/dev/null)
-  local idle2=$(echo "\$stat2" | awk '{print \$5}')
-  local total2=$(echo "\$stat2" | awk '{print \$2+\$3+\$4+\$5+\$6+\$7+\$8}')
-  
-  # 计算使用率
-  local idle_diff=\$((idle2 - idle1))
-  local total_diff=\$((total2 - total1))
-  
-  if [ "\$total_diff" -gt 0 ] 2>/dev/null; then
-    local usage=$(awk "BEGIN {printf \\"%.1f\\", (1 - \$idle_diff / \$total_diff) * 100}")
-    log "CPU: \$usage%"
-    echo "\$usage"
+  LOAD=$(awk '{print \$1}' /proc/loadavg 2>/dev/null)
+  CORES=$(nproc 2>/dev/null || echo 1)
+  if [ -n "\$LOAD" ] && [ "\$CORES" -gt 0 ] 2>/dev/null; then
+    awk "BEGIN {printf \\"%.1f\\", (\$LOAD / \$CORES) * 100}"
   else
-    log "CPU: 计算失败"
     echo "0"
   fi
 }
 
 # 获取内存使用率
 get_memory() {
-  local mem=$(awk '/MemTotal/{t=\$2} /MemAvailable/{a=\$2} END{if(t>0) printf "%.1f", (t-a)/t*100}' /proc/meminfo 2>/dev/null)
-  if [ -n "\$mem" ]; then
-    log "内存: \$mem%"
-    echo "\$mem"
-  else
-    log "内存: 获取失败"
-    echo "0"
-  fi
+  awk '/MemTotal/{t=\$2} /MemAvailable/{a=\$2} END{if(t>0) printf "%.1f", (t-a)/t*100}' /proc/meminfo 2>/dev/null || echo "0"
 }
 
 # 获取磁盘使用率
 get_disk() {
-  local disk=$(df -P / 2>/dev/null | awk 'NR==2 {gsub(/%/,""); print \$5}')
-  if [ -n "\$disk" ] && [ "\$disk" -ge 0 ] 2>/dev/null; then
-    log "磁盘: \$disk%"
-    echo "\$disk"
-  else
-    log "磁盘: 获取失败"
-    echo "0"
-  fi
+  df -P / 2>/dev/null | awk 'NR==2 {gsub(/%/,""); print \$5}' || echo "0"
 }
 
 # 获取系统负载
 get_load() {
-  local load=$(awk '{print \$1}' /proc/loadavg 2>/dev/null)
-  [ -n "\$load" ] && log "负载: \$load" && echo "\$load" || echo "0"
+  awk '{print \$1}' /proc/loadavg 2>/dev/null || echo "0"
 }
 
-# 获取运行时间（秒）
+# 获取运行时间
 get_uptime() {
-  local up=$(awk '{print int(\$1)}' /proc/uptime 2>/dev/null)
-  [ -n "\$up" ] && log "运行: \$up秒" && echo "\$up" || echo "0"
+  awk '{print int(\$1)}' /proc/uptime 2>/dev/null || echo "0"
 }
 
-# 获取 CPU 温度
+# 获取温度
 get_temperature() {
   if [ -f /sys/class/thermal/thermal_zone0/temp ]; then
-    local temp=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
-    if [ -n "\$temp" ] && [ "\$temp" -gt 0 ] 2>/dev/null; then
-      log "温度: \$((temp/1000))°C"
-      echo \$((temp/1000))
-      return
-    fi
+    TEMP=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null)
+    [ -n "\$TEMP" ] && [ "\$TEMP" -gt 0 ] 2>/dev/null && echo \$((TEMP/1000))
   fi
 }
 
 # 获取延迟
 get_latency() {
-  local latency=$(curl -o /dev/null -s -w '%{time_connect}' --connect-timeout 5 "https://\$TARGET_HOST" 2>/dev/null)
-  if [ -n "\$latency" ] && [ "\$latency" != "0.000000" ]; then
-    local ms=$(echo "\$latency" | awk '{printf "%.0f", \$1 * 1000}')
-    log "延迟: \${ms}ms"
-    echo "\$ms"
+  LATENCY=$(curl -o /dev/null -s -w '%{time_connect}' --connect-timeout 5 "https://\$TARGET_HOST" 2>/dev/null)
+  if [ -n "\$LATENCY" ] && [ "\$LATENCY" != "0.000000" ]; then
+    echo "\$LATENCY" | awk '{printf "%.0f", \$1 * 1000}'
   else
     echo "0"
   fi
 }
 
 # 收集数据
-log "=== 收集系统信息 ==="
 CPU=\$(get_cpu)
 MEM=\$(get_memory)
 DISK=\$(get_disk)
@@ -280,20 +232,17 @@ UPTIME=\$(get_uptime)
 TEMP=\$(get_temperature)
 LATENCY=\$(get_latency)
 
+# 调试输出
+if [ "\${DEBUG:-0}" = "1" ]; then
+  echo "CPU=\$CPU MEM=\$MEM DISK=\$DISK LOAD=\$LOAD UPTIME=\$UPTIME TEMP=\$TEMP LATENCY=\$LATENCY" >&2
+fi
+
 # 构建 JSON
 JSON='{"cpu":'\$CPU',"memory":'\$MEM',"disk":'\$DISK',"load":'\$LOAD',"uptime":'\$UPTIME',"latency":'\$LATENCY
 [ -n "\$TEMP" ] && JSON=\$JSON',"temperature":'\$TEMP'}' || JSON=\$JSON'}'
 
-log "发送: \$JSON"
-
 # 发送心跳
-RESP=\$(curl -s -X POST "${endpoint}" -H "Content-Type: application/json" -d "\$JSON" 2>&1)
-if [ \$? -eq 0 ]; then
-  log "成功: \$RESP"
-else
-  echo "ERROR: 发送失败" >&2
-  exit 1
-fi`;
+curl -s -X POST "${endpoint}" -H "Content-Type: application/json" -d "\$JSON"`;
 }
 
 function generatePythonScript(endpoint) {
