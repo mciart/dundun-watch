@@ -28,9 +28,9 @@
 |:---:|:---:|
 | <img src="docs/1.png" alt="主页浅色模式" width="400"> | <img src="docs/2.png" alt="主页深色模式" width="400"> |
 
-| 站点管理 - 浅色模式 | 站点管理 - 深色模式 |
+| 站点管理 - 浅色模式 | 主机监控（详情） - 深色模式 |
 |:---:|:---:|
-| <img src="docs/3.png" alt="后台站点管理浅色模式" width="400"> | <img src="docs/4.png" alt="后台站点管理深色模式" width="400"> |
+| <img src="docs/3.png" alt="后台站点管理浅色模式" width="400"> | <img src="docs/4.png" alt="主机监控（详情）深色模式" width="400"> |
 
 | 后台设置 - 浅色模式 | 通知设置 - 深色模式 |
 |:---:|:---:|
