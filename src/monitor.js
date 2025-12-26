@@ -130,26 +130,43 @@ export async function handleMonitor(env, ctx, options = {}) {
   // 增加检测统计
   await db.incrementStats(env, 'checks', sites.length);
 
-  // 每小时清理一次旧数据
+  // 每小时清理一次旧数据（异步执行，不阻塞主流程）
   const retentionHours = settings.retentionHours || 720;
   const lastCleanup = await db.getConfig(env, 'lastCleanup') || 0;
   if (now - lastCleanup >= 60 * 60 * 1000) {
-    console.log('🧹 清理旧历史记录...');
-    await db.cleanupOldHistory(env, retentionHours);
-    // Push 历史保留 7 天
-    await db.cleanupOldPushHistory(env, 168);
+    console.log('🧹 触发异步清理旧历史记录...');
+    // 先标记已清理，避免重复触发
     await db.setConfig(env, 'lastCleanup', now);
+    // 异步执行清理，不阻塞主流程
+    ctx && ctx.waitUntil((async () => {
+      try {
+        await db.cleanupOldHistory(env, retentionHours);
+        await db.cleanupOldPushHistory(env, 168);
+        console.log('✅ 异步清理完成');
+      } catch (error) {
+        console.error('❌ 异步清理失败:', error.message);
+      }
+    })());
   }
 
-  // SSL 证书检测 - 每小时检测一次，或强制检测
+  // SSL 证书检测 - 每小时检测一次，或强制检测（异步执行）
   const lastSslCheck = await db.getConfig(env, 'lastSslCheck') || 0;
   const shouldCheckSSL = forceSSL || (now - lastSslCheck >= 60 * 60 * 1000);
   if (shouldCheckSSL) {
     const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
     if (httpSites.length > 0) {
-      console.log('🔒 开始检测SSL证书...' + (forceSSL ? '（手动触发）' : ''));
-      await checkSSLCertificates(env, ctx, httpSites, settings);
+      console.log('🔒 触发异步SSL证书检测...' + (forceSSL ? '（手动触发）' : ''));
+      // 先标记已检测，避免重复触发
       await db.setConfig(env, 'lastSslCheck', now);
+      // 异步执行 SSL 检测，不阻塞主流程
+      ctx && ctx.waitUntil((async () => {
+        try {
+          await checkSSLCertificates(env, ctx, httpSites, settings);
+          console.log('✅ 异步SSL检测完成');
+        } catch (error) {
+          console.error('❌ 异步SSL检测失败:', error.message);
+        }
+      })());
     }
   }
 
