@@ -105,6 +105,7 @@ export async function handleMonitor(env, ctx, options = {}) {
     const pushTimeout = (site.pushInterval || 60) * 2 * 1000; // 超时时间为间隔的2倍
     if (site.lastHeartbeat && now - site.lastHeartbeat > pushTimeout) {
       if (site.status !== 'offline') {
+        const previousStatus = site.status;
         statusUpdates.push({
           siteId: site.id,
           status: 'offline',
@@ -113,6 +114,13 @@ export async function handleMonitor(env, ctx, options = {}) {
           message: '心跳超时'
         });
         console.log(`⚠️ Push 站点 ${site.name} 心跳超时`);
+
+        // 发送离线通知
+        await handleStatusChange(env, ctx, site, previousStatus, 'offline', {
+          status: 'offline',
+          message: '心跳超时',
+          responseTime: 0
+        }, settings);
       }
     }
   }
