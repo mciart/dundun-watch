@@ -138,11 +138,14 @@ export async function handleMonitor(env, ctx, options = {}) {
   // 增加检测统计
   await db.incrementStats(env, 'checks', sites.length);
 
-  // 每小时清理一次旧数据（异步执行，不阻塞主流程）
+  // 每小时清理一次旧数据（在整点执行，与 SSL 检测错开）
   const retentionHours = settings.retentionHours || 720;
   const lastCleanup = await db.getConfig(env, 'lastCleanup') || 0;
   const cleanupInterval = 60 * 60 * 1000; // 1 小时
-  if (now - lastCleanup >= cleanupInterval) {
+  const minuteNow = new Date(now).getMinutes();
+  // 在整点附近执行（0-2 分钟窗口）
+  const isTopOfHour = minuteNow >= 0 && minuteNow <= 2;
+  if (isTopOfHour && now - lastCleanup >= cleanupInterval) {
     console.log('🧹 触发异步清理旧历史记录...');
     await db.setConfig(env, 'lastCleanup', now);
     ctx && ctx.waitUntil((async () => {
@@ -156,10 +159,13 @@ export async function handleMonitor(env, ctx, options = {}) {
     })());
   }
 
-  // 每小时检测一次 SSL 证书（异步执行，不阻塞主流程）
+  // 每小时检测一次 SSL 证书（错开 30 分钟执行，避免与清理操作同时触发）
   const lastSslCheck = await db.getConfig(env, 'lastSslCheck') || 0;
   const sslCheckInterval = 60 * 60 * 1000; // 1 小时
-  if (now - lastSslCheck >= sslCheckInterval) {
+  const currentMinute = new Date(now).getMinutes();
+  // 在 30 分左右执行（29-31 分钟窗口）
+  const isHalfHour = currentMinute >= 29 && currentMinute <= 31;
+  if (isHalfHour && now - lastSslCheck >= sslCheckInterval) {
     const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
     if (httpSites.length > 0) {
       console.log('🔒 触发异步SSL证书检测...');
