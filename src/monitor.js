@@ -138,10 +138,11 @@ export async function handleMonitor(env, ctx, options = {}) {
   // 增加检测统计
   await db.incrementStats(env, 'checks', sites.length);
 
-  // 每小时清理一次旧数据（异步执行，不阻塞主流程）
+  // 每 6 小时清理一次旧数据（降低频率以节省 CPU 配额）
   const retentionHours = settings.retentionHours || 720;
   const lastCleanup = await db.getConfig(env, 'lastCleanup') || 0;
-  if (now - lastCleanup >= 60 * 60 * 1000) {
+  const cleanupInterval = 6 * 60 * 60 * 1000; // 6 小时
+  if (now - lastCleanup >= cleanupInterval) {
     console.log('🧹 触发异步清理旧历史记录...');
     // 先标记已清理，避免重复触发
     await db.setConfig(env, 'lastCleanup', now);
@@ -157,9 +158,10 @@ export async function handleMonitor(env, ctx, options = {}) {
     })());
   }
 
-  // SSL 证书检测 - 每小时检测一次，或强制检测（异步执行）
+  // SSL 证书检测 - 每 4 小时检测一次，或强制检测（异步执行）
   const lastSslCheck = await db.getConfig(env, 'lastSslCheck') || 0;
-  const shouldCheckSSL = forceSSL || (now - lastSslCheck >= 60 * 60 * 1000);
+  const sslCheckInterval = 4 * 60 * 60 * 1000; // 4 小时
+  const shouldCheckSSL = forceSSL || (now - lastSslCheck >= sslCheckInterval);
   if (shouldCheckSSL) {
     const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
     if (httpSites.length > 0) {
