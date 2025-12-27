@@ -90,6 +90,12 @@ export async function handleMonitor(env, ctx, options = {}) {
     message: result.message
   }]);
 
+  // 内联 SSL 证书检测（仅对 HTTPS 站点，跟随轮流检测避免 CPU 峰值）
+  if (site.url && site.url.startsWith('https') && site.monitorType !== 'push') {
+    // 异步检测 SSL，不阻塞主流程
+    ctx && ctx.waitUntil(checkSingleSiteSSL(env, ctx, site, settings));
+  }
+
   // 更新检测索引（下次检测下一个站点）
   const nextIndex = (checkIndex + 1) % sitesToCheck.length;
   await db.setConfig(env, 'checkIndex', nextIndex);
@@ -152,27 +158,7 @@ export async function handleMonitor(env, ctx, options = {}) {
     })());
   }
 
-  // 每小时检测一次 SSL 证书（错开 30 分钟执行，避免与清理操作同时触发）
-  const lastSslCheck = await db.getConfig(env, 'lastSslCheck') || 0;
-  const sslCheckInterval = 60 * 60 * 1000; // 1 小时
-  const currentMinute = new Date(now).getMinutes();
-  // 在 30 分左右执行（29-31 分钟窗口）
-  const isHalfHour = currentMinute >= 29 && currentMinute <= 31;
-  if (isHalfHour && now - lastSslCheck >= sslCheckInterval) {
-    const httpSites = sites.filter(s => s.monitorType !== 'dns' && s.monitorType !== 'tcp' && s.monitorType !== 'push');
-    if (httpSites.length > 0) {
-      console.log('🔒 触发异步SSL证书检测...');
-      await db.setConfig(env, 'lastSslCheck', now);
-      ctx && ctx.waitUntil((async () => {
-        try {
-          await checkSSLCertificates(env, ctx, httpSites, settings);
-          console.log('✅ 异步SSL检测完成');
-        } catch (error) {
-          console.error('❌ 异步SSL检测失败:', error.message);
-        }
-      })());
-    }
-  }
+  // SSL 检测已改为内联模式，跟随每个站点轮流检测，避免批量检测导致的 CPU 峰值
 
   const elapsed = Date.now() - startTime;
   console.log(`=== 监控完成，耗时 ${elapsed}ms，检查了 ${sites.length} 个站点 ===`);
@@ -238,6 +224,49 @@ async function handlePushSitesTimeout(env, ctx, sites, settings, now) {
         }, settings);
       }
     }
+  }
+}
+
+/**
+ * 检测单个站点的 SSL 证书（内联模式，跟随轮流检测）
+ */
+async function checkSingleSiteSSL(env, ctx, site, settings) {
+  try {
+    if (!site.url || !site.url.startsWith('https')) return;
+
+    const domain = new URL(site.url).hostname;
+    console.log(`🔒 检测 SSL: ${site.name} (${domain})`);
+
+    const response = await fetch('https://zssl.com/api/ssl/check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domains: [domain], IPVersion: 'default' })
+    });
+
+    const data = await response.json();
+
+    if (data.results && data.results[0]?.result === 'success' && data.results[0]?.data) {
+      const certData = data.results[0].data;
+      const certInfo = {
+        valid: true,
+        daysLeft: certData.DaysLeft,
+        issuer: certData.Issuer,
+        validFrom: certData.ValidFrom,
+        validTo: certData.ValidTo,
+        algorithm: certData.Algorithm
+      };
+
+      // 检查是否需要告警
+      await handleCertAlert(env, ctx, site, certInfo, settings);
+
+      // 更新站点的证书信息
+      await db.updateSite(env, site.id, {
+        sslCert: certInfo,
+        sslCertLastCheck: Date.now()
+      });
+    }
+  } catch (error) {
+    console.log(`SSL检测 ${site.name} 失败:`, error.message);
   }
 }
 

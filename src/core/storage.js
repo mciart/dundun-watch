@@ -526,13 +526,6 @@ export async function cleanupAggregatedHistory(env, retentionHours = 720) {
     'DELETE FROM history WHERE created_at < ?'
   ).bind(cutoff).run();
 
-  // 尝试清理旧表数据（迁移过渡期）
-  try {
-    await env.DB.prepare('DELETE FROM history_aggregated').run();
-  } catch (e) {
-    // 旧表可能不存在，忽略错误
-  }
-
   const deletedCount = result.meta?.changes || 0;
   console.log(`🧹 已清理 ${deletedCount} 条旧历史记录`);
   return deletedCount;
@@ -1165,9 +1158,6 @@ export async function clearAllData(env) {
     env.DB.prepare("DELETE FROM groups WHERE id != 'default'"),
     env.DB.prepare("DELETE FROM config WHERE key NOT IN ('admin_password', 'admin_path')")
   ]);
-
-  // 尝试清理旧表
-  try { await env.DB.prepare('DELETE FROM history_aggregated').run(); } catch (e) { }
 
   console.log('✅ 所有数据已清除');
 }

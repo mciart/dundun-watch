@@ -121,8 +121,7 @@ CREATE TABLE IF NOT EXISTS certificate_alerts (
   FOREIGN KEY (site_id) REFERENCES sites(id) ON DELETE CASCADE
 );
 
--- [新增] 历史记录表 (替代 history_aggregated)
--- 采用单行单记录模式，写入复杂度 O(1)，极大降低 CPU 消耗
+-- 历史记录表（关系型存储，写入复杂度 O(1)）
 CREATE TABLE IF NOT EXISTS history (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   site_id TEXT NOT NULL,
