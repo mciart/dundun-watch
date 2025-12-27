@@ -137,31 +137,30 @@ export async function handleMonitor(env, ctx, options = {}) {
   // 增加检测统计（只计算当前检测的这一个站点）
   await db.incrementStats(env, 'checks', 1);
 
-  // 每小时清理一次旧数据（在整点执行，与 SSL 检测错开）
-  const retentionHours = settings.retentionHours || 720;
-  const lastCleanup = await db.getConfig(env, 'lastCleanup') || 0;
-  const cleanupInterval = 60 * 60 * 1000; // 1 小时
-  const minuteNow = new Date(now).getMinutes();
-  // 在整点附近执行（0-2 分钟窗口）
-  const isTopOfHour = minuteNow >= 0 && minuteNow <= 2;
-  if (isTopOfHour && now - lastCleanup >= cleanupInterval) {
-    console.log('🧹 触发异步清理旧历史记录...');
-    await db.setConfig(env, 'lastCleanup', now);
-    ctx && ctx.waitUntil((async () => {
-      try {
-        await db.cleanupOldHistory(env, retentionHours);
-        await db.cleanupOldPushHistory(env, 168);
-        console.log('✅ 异步清理完成');
-      } catch (error) {
-        console.error('❌ 异步清理失败:', error.message);
-      }
-    })());
-  }
-
-  // SSL 检测已改为内联模式，跟随每个站点轮流检测，避免批量检测导致的 CPU 峰值
+  // 历史数据清理已移至独立 cron（0 * * * *），避免占用主监控 CPU
 
   const elapsed = Date.now() - startTime;
   console.log(`=== 监控完成，耗时 ${elapsed}ms，检查了 ${sites.length} 个站点 ===`);
+}
+
+/**
+ * 历史数据清理（独立 cron 触发，独立 CPU 配额）
+ * 每小时整点执行（0 * * * *）
+ */
+export async function handleCleanup(env, ctx) {
+  console.log('=== 开始历史数据清理（独立 Cron）===');
+
+  await db.initDatabase(env);
+  const settings = await db.getSettings(env);
+  const retentionHours = settings.retentionHours || 720;
+
+  try {
+    const cleaned = await db.cleanupOldHistory(env, retentionHours);
+    await db.cleanupOldPushHistory(env, 168);
+    console.log(`✅ 清理完成，已删除 ${cleaned} 条历史记录`);
+  } catch (error) {
+    console.error('❌ 清理失败:', error.message);
+  }
 }
 
 /**

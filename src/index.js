@@ -34,11 +34,17 @@ export default {
       const scheduledTime = new Date(event.scheduledTime);
       const cronExpr = event.cron || '';
 
-      console.log('Cron 触发时间 (UTC):', scheduledTime.toISOString());
-      console.log('Cron 表达式:', cronExpr);
-      console.log('Cron 触发时间 (北京):', new Date(scheduledTime.getTime() + 8 * 60 * 60 * 1000).toLocaleString('zh-CN'));
+      console.log(cronExpr, '');
 
-      await handleMonitor(env, ctx);
+      // 根据 cron 表达式分发到不同处理器
+      if (cronExpr === '0 * * * *') {
+        // 每小时整点：历史数据清理（独立 CPU 配额）
+        const { handleCleanup } = await import('./monitor');
+        await handleCleanup(env, ctx);
+      } else {
+        // 默认（每分钟）：站点检测
+        await handleMonitor(env, ctx);
+      }
     } catch (error) {
       console.error('Cron 执行错误:', error);
     }

@@ -19,9 +19,12 @@ binding = "DB"
 database_name = "dundun-sentinel-db"
 database_id = "YOUR_D1_DATABASE_ID"
 
-# 定时任务：每分钟检测一次
+# 定时任务
 [triggers]
-crons = ["* * * * *"]
+crons = [
+  "* * * * *",    # 每分钟：站点检测（轮流模式）
+  "0 * * * *"     # 每小时整点：历史数据清理（独立 CPU 配额）
+]
 
 # 本地开发配置
 [vars]
