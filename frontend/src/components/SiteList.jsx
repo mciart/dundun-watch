@@ -1,12 +1,12 @@
 import { useMemo, useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import { Edit, Trash2, ExternalLink, TrendingUp, ChevronDown, ChevronRight, GripVertical, RefreshCw } from 'lucide-react';
 import { formatTimeAgo, formatResponseTime, getStatusText, getStatusBgColor, getLucideIcon } from '../utils/helpers';
 import { EASING, DURATION } from '../utils/animations';
 import { CHART_COLORS } from '../config';
 
 // 提取一个内部组件来处理单个分组的拖拽逻辑
-const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete }) => {
+const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete, onRefresh, refreshingId }) => {
   const [items, setItems] = useState(sites);
 
   // 当外部 sites 数据更新（如状态改变）时，同步更新内部状态
@@ -39,11 +39,10 @@ const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete })
             <GripVertical className="w-4 h-4" />
           </div>
 
-          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
-            site.status === 'online' ? 'bg-emerald-500' :
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${site.status === 'online' ? 'bg-emerald-500' :
             site.status === 'offline' ? 'bg-red-500' :
-            site.status === 'slow' ? 'bg-amber-500' : 'bg-slate-400'
-          }`} />
+              site.status === 'slow' ? 'bg-amber-500' : 'bg-slate-400'
+            }`} />
 
           <div className="flex-1 min-w-0">
             <div className="font-medium text-slate-900 dark:text-slate-100 truncate">
@@ -55,7 +54,7 @@ const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete })
               rel="noopener noreferrer"
               className="text-xs text-slate-500 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 flex items-center gap-1 truncate"
               // 防止点击链接时触发拖拽，虽然 GripVertical 已经隔离了，但这是好习惯
-              onPointerDown={(e) => e.stopPropagation()} 
+              onPointerDown={(e) => e.stopPropagation()}
             >
               {site.url.length > 50 ? site.url.substring(0, 50) + '...' : site.url}
               <ExternalLink className="w-3 h-3 flex-shrink-0" />
@@ -79,6 +78,20 @@ const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete })
           </div>
 
           <div className="flex items-center gap-1">
+            <motion.button
+              onClick={() => onRefresh && onRefresh(site.id)}
+              disabled={refreshingId === site.id}
+              className={`p-1.5 rounded-lg transition-colors ${refreshingId === site.id
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50'
+                }`}
+              title="刷新"
+              whileHover={refreshingId !== site.id ? { scale: 1.1 } : {}}
+              whileTap={refreshingId !== site.id ? { scale: 0.9 } : {}}
+              transition={{ duration: 0.2 }}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshingId === site.id ? 'animate-spin' : ''}`} />
+            </motion.button>
             <motion.button
               onClick={() => onEdit(site)}
               className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
@@ -106,7 +119,7 @@ const SortableSiteGroup = ({ sites, groupId, onReorderSites, onEdit, onDelete })
   );
 };
 
-export default function SiteList({ sites, groups = [], onEdit, onDelete, onReorder }) {
+export default function SiteList({ sites, groups = [], onEdit, onDelete, onReorder, onRefresh, refreshingId }) {
   const [expandedGroups, setExpandedGroups] = useState(() => {
     const initial = {};
     groups.forEach(g => { initial[g.id] = true; });
@@ -127,7 +140,7 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
     const result = {};
     sortedGroups.forEach(g => { result[g.id] = []; });
     if (!result['default']) result['default'] = [];
-    
+
     sites.forEach(site => {
       const gid = site.groupId || 'default';
       if (!result[gid]) result[gid] = [];
@@ -165,12 +178,12 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
       {sortedGroups.map(group => {
         const sitesInGroup = groupedSites[group.id] || [];
         if (sitesInGroup.length === 0) return null;
-        
+
         const isExpanded = expandedGroups[group.id] !== false;
 
         return (
-          <motion.div 
-            key={group.id} 
+          <motion.div
+            key={group.id}
             className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -212,12 +225,14 @@ export default function SiteList({ sites, groups = [], onEdit, onDelete, onReord
                   className="overflow-hidden"
                 >
                   {/* 使用提取的 SortableSiteGroup 组件 */}
-                  <SortableSiteGroup 
+                  <SortableSiteGroup
                     sites={sitesInGroup}
                     groupId={group.id}
-                    onReorderSites={onReorder} // 直接透传 onReorder
+                    onReorderSites={onReorder}
                     onEdit={onEdit}
                     onDelete={onDelete}
+                    onRefresh={onRefresh}
+                    refreshingId={refreshingId}
                   />
                 </motion.div>
               )}

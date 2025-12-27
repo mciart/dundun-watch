@@ -123,6 +123,7 @@ export async function getAllSites(env) {
     // SSL
     sslCert: row.ssl_cert ? JSON.parse(row.ssl_cert) : null,
     sslCertLastCheck: row.ssl_cert_last_check,
+    sslCheckEnabled: row.ssl_check_enabled !== 0,
     // 通知
     notifyEnabled: !!row.notify_enabled,
     // 反转模式
@@ -183,6 +184,7 @@ export async function getSite(env, siteId) {
     showInHostPanel: !!row.show_in_host_panel,
     sslCert: row.ssl_cert ? JSON.parse(row.ssl_cert) : null,
     sslCertLastCheck: row.ssl_cert_last_check,
+    sslCheckEnabled: row.ssl_check_enabled !== 0,
     notifyEnabled: !!row.notify_enabled,
     inverted: !!row.inverted,
     lastMessage: row.last_message
@@ -238,8 +240,9 @@ export async function createSite(env, site) {
       grpc_host, grpc_port, grpc_tls,
       mqtt_host, mqtt_port,
       push_token, push_interval, last_heartbeat, push_data, show_in_host_panel,
-      ssl_cert, ssl_cert_last_check, notify_enabled, inverted, last_message
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ssl_cert, ssl_cert_last_check, ssl_check_enabled,
+      notify_enabled, inverted, last_message
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     site.id,
     site.name,
@@ -280,6 +283,7 @@ export async function createSite(env, site) {
     site.showInHostPanel ? 1 : 0,
     site.sslCert ? JSON.stringify(site.sslCert) : null,
     site.sslCertLastCheck || 0,
+    site.sslCheckEnabled !== false && site.sslCheckEnabled !== 0 ? 1 : 0,
     site.notifyEnabled ? 1 : 0,
     site.inverted ? 1 : 0,
     site.lastMessage || null
@@ -308,7 +312,8 @@ export async function updateSite(env, siteId, updates) {
       grpc_host = ?, grpc_port = ?, grpc_tls = ?,
       mqtt_host = ?, mqtt_port = ?,
       push_token = ?, push_interval = ?, last_heartbeat = ?, push_data = ?, show_in_host_panel = ?,
-      ssl_cert = ?, ssl_cert_last_check = ?, notify_enabled = ?, inverted = ?, last_message = ?
+      ssl_cert = ?, ssl_cert_last_check = ?, ssl_check_enabled = ?,
+      notify_enabled = ?, inverted = ?, last_message = ?
     WHERE id = ?
   `).bind(
     merged.name,
@@ -349,6 +354,7 @@ export async function updateSite(env, siteId, updates) {
     merged.showInHostPanel ? 1 : 0,
     merged.sslCert ? JSON.stringify(merged.sslCert) : null,
     merged.sslCertLastCheck,
+    merged.sslCheckEnabled !== false && merged.sslCheckEnabled !== 0 ? 1 : 0,
     merged.notifyEnabled ? 1 : 0,
     merged.inverted ? 1 : 0,
     merged.lastMessage,
@@ -1096,6 +1102,12 @@ async function runMigrations(env) {
   if (!sitesCols.has('db_port')) {
     migrations.push(env.DB.prepare('ALTER TABLE sites ADD COLUMN db_port INTEGER'));
     console.log('  + 添加 sites.db_port 列');
+  }
+
+  // 检查 ssl_check_enabled 列（SSL 检测开关）
+  if (!sitesCols.has('ssl_check_enabled')) {
+    migrations.push(env.DB.prepare('ALTER TABLE sites ADD COLUMN ssl_check_enabled INTEGER DEFAULT 1'));
+    console.log('  + 添加 sites.ssl_check_enabled 列');
   }
 
   // 检查 incidents 表缺失的列

@@ -68,6 +68,7 @@ CREATE TABLE IF NOT EXISTS sites (
   -- SSL 证书信息
   ssl_cert TEXT,  -- JSON
   ssl_cert_last_check INTEGER DEFAULT 0,
+  ssl_check_enabled INTEGER DEFAULT 1,  -- 0=关闭SSL检测, 1=启用SSL检测
   
   -- 通知设置
   notify_enabled INTEGER DEFAULT 0,  -- 0=关闭, 1=启用

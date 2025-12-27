@@ -205,4 +205,10 @@ export const api = {
     request('/api/incidents/clear', {
       method: 'POST',
     }),
+
+  // 手动检测单个站点
+  checkSite: (siteId) =>
+    request(`/api/sites/${siteId}/check`, {
+      method: 'POST',
+    }),
 };

@@ -94,7 +94,9 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
     mqttPort: site.mqttPort || '1883',
     // Push 相关
     pushTimeoutMinutes: site.pushTimeoutMinutes || 3,
-    showInHostPanel: site.showInHostPanel !== false  // 默认为 true
+    showInHostPanel: site.showInHostPanel !== false,  // 默认为 true
+    // SSL 检测开关 - HTTP(S) 站点可选
+    sslCheckEnabled: site.sslCheckEnabled !== false && site.sslCheckEnabled !== 0  // 默认开启
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -1133,6 +1135,29 @@ export default function EditSiteModal({ site, onClose, onSubmit, groups = [] }) 
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-dark-layer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
                 </label>
               </div>
+
+              {/* SSL 证书检测开关 - 仅 HTTP(S) 站点显示 */}
+              {formData.monitorType === 'http' && formData.url && formData.url.startsWith('https') && (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      SSL 证书检测
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      开启后会定期检测 SSL 证书有效期并在到期前发送警告
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.sslCheckEnabled}
+                      onChange={(e) => setFormData({ ...formData, sslCheckEnabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-dark-layer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-primary-600"></div>
+                  </label>
+                </div>
+              )}
 
               {/* 反转模式选项 - 仅非 Push 和非 SMTP 类型显示（SMTP 在配置面板中已有） */}
               {formData.monitorType !== 'push' && formData.monitorType !== 'smtp' && (

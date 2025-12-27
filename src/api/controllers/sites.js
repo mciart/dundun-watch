@@ -130,7 +130,9 @@ export async function addSite(request, env) {
       pushInterval: isPush ? (site.pushInterval || 60) : 60,
       showInHostPanel: isPush ? (site.showInHostPanel !== false) : false,
       lastHeartbeat: 0,
-      pushData: null
+      pushData: null,
+      // SSL 检测开关（HTTP(S) 站点默认开启）
+      sslCheckEnabled: site.sslCheckEnabled !== false ? 1 : 0
     };
 
     await db.createSite(env, newSite);
@@ -255,6 +257,11 @@ export async function updateSite(request, env, siteId) {
       updates.sslCertLastCheck = 0;
     }
 
+    // 显式处理 sslCheckEnabled 字段
+    if (updates.sslCheckEnabled !== undefined) {
+      updates.sslCheckEnabled = updates.sslCheckEnabled === true || updates.sslCheckEnabled === 1 ? 1 : 0;
+    }
+
     await db.updateSite(env, siteId, updates);
 
     const updatedSite = await db.getSite(env, siteId);
@@ -318,5 +325,107 @@ export async function getHistory(request, env, siteId) {
     return jsonResponse({ siteId, history, stats: calculateStats(history) });
   } catch (error) {
     return errorResponse('获取历史失败: ' + error.message, 500);
+  }
+}
+
+/**
+ * 手动检测单个站点
+ * POST /api/sites/:id/check
+ */
+export async function checkSite(request, env, siteId) {
+  try {
+    const site = await db.getSite(env, siteId);
+    if (!site) {
+      return errorResponse('站点不存在', 404);
+    }
+
+    // 动态导入监控模块
+    const { getMonitorForSite } = await import('../../monitors/index.js');
+    const checker = getMonitorForSite(site);
+    const now = Date.now();
+
+    // 执行检测
+    const result = await checker(site, now);
+
+    // 处理反转模式
+    if (site.inverted && result) {
+      if (result.status === 'online' || result.status === 'slow') {
+        result.status = 'offline';
+        result.message = `[反转] ${result.message || '服务可访问'}`;
+      } else if (result.status === 'offline') {
+        result.status = 'online';
+        result.message = `[反转] ${result.message || '服务不可访问'}`;
+      }
+    }
+
+    // 更新站点状态
+    await db.batchUpdateSiteStatus(env, [{
+      siteId: site.id,
+      status: result.status,
+      responseTime: result.responseTime,
+      lastCheck: now,
+      message: result.message || null
+    }]);
+
+    // 写入历史记录
+    await db.batchAddHistory(env, [{
+      siteId: site.id,
+      timestamp: now,
+      status: result.status,
+      statusCode: result.statusCode,
+      responseTime: result.responseTime,
+      message: result.message
+    }]);
+
+    // 如果启用了 SSL 检测，检测 SSL 证书
+    let sslResult = null;
+    if (site.url && site.url.startsWith('https') && site.sslCheckEnabled !== false && site.sslCheckEnabled !== 0) {
+      try {
+        const domain = new URL(site.url).hostname;
+        const sslResponse = await fetch('https://zssl.com/api/ssl/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domains: [domain], IPVersion: 'default' })
+        });
+        const sslData = await sslResponse.json();
+
+        if (sslData.results && sslData.results[0]?.result === 'success' && sslData.results[0]?.data) {
+          const certData = sslData.results[0].data;
+          sslResult = {
+            valid: true,
+            daysLeft: certData.DaysLeft,
+            issuer: certData.Issuer,
+            validFrom: certData.ValidFrom,
+            validTo: certData.ValidTo,
+            algorithm: certData.Algorithm
+          };
+
+          // 更新站点的证书信息
+          await db.updateSite(env, site.id, {
+            sslCert: sslResult,
+            sslCertLastCheck: now
+          });
+        }
+      } catch (e) {
+        console.log('SSL 检测失败:', e.message);
+      }
+    }
+
+    // 获取更新后的站点数据
+    const updatedSite = await db.getSite(env, siteId);
+
+    return jsonResponse({
+      success: true,
+      site: updatedSite,
+      result: {
+        status: result.status,
+        responseTime: result.responseTime,
+        statusCode: result.statusCode,
+        message: result.message,
+        ssl: sslResult
+      }
+    });
+  } catch (error) {
+    return errorResponse('检测失败: ' + error.message, 500);
   }
 }

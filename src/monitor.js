@@ -90,8 +90,8 @@ export async function handleMonitor(env, ctx, options = {}) {
     message: result.message
   }]);
 
-  // 内联 SSL 证书检测（仅对 HTTPS 站点，跟随轮流检测避免 CPU 峰值）
-  if (site.url && site.url.startsWith('https') && site.monitorType !== 'push') {
+  // 内联 SSL 证书检测（仅对 HTTPS 站点且启用 SSL 检测的情况）
+  if (site.url && site.url.startsWith('https') && site.monitorType !== 'push' && site.sslCheckEnabled !== false && site.sslCheckEnabled !== 0) {
     // 异步检测 SSL，不阻塞主流程
     ctx && ctx.waitUntil(checkSingleSiteSSL(env, ctx, site, settings));
   }
@@ -231,6 +231,8 @@ async function handlePushSitesTimeout(env, ctx, sites, settings, now) {
  */
 async function checkSingleSiteSSL(env, ctx, site, settings) {
   try {
+    // 检查是否启用 SSL 检测
+    if (site.sslCheckEnabled === false || site.sslCheckEnabled === 0) return;
     if (!site.url || !site.url.startsWith('https')) return;
 
     const domain = new URL(site.url).hostname;

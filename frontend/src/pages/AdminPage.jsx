@@ -71,6 +71,7 @@ export default function AdminPage() {
   const [adminPath, setAdminPath] = useState('');
   const [newAdminPath, setNewAdminPath] = useState('');
   const [changingPath, setChangingPath] = useState(false);
+  const [refreshingSiteId, setRefreshingSiteId] = useState(null);
   const navigate = useNavigate();
   const { dialog, closeDialog, showAlert, showConfirm, showSuccess, showError } = useDialog();
 
@@ -280,6 +281,22 @@ export default function AdminPage() {
       loadSites(false); // 修复点 5: 排序后静默更新（最关键的一点）
     } catch (error) {
       showError('排序失败: ' + error.message);
+    }
+  };
+
+  // 手动刷新单个站点
+  const handleRefreshSite = async (siteId) => {
+    try {
+      setRefreshingSiteId(siteId);
+      const result = await api.checkSite(siteId);
+      if (result.success) {
+        // 更新本地站点数据
+        setSites(prev => prev.map(s => s.id === siteId ? result.site : s));
+      }
+    } catch (error) {
+      showError('检测失败: ' + error.message);
+    } finally {
+      setRefreshingSiteId(null);
     }
   };
 
@@ -598,6 +615,8 @@ export default function AdminPage() {
                     onEdit={setEditingSite}
                     onDelete={handleDeleteSite}
                     onReorder={handleReorderSites}
+                    onRefresh={handleRefreshSite}
+                    refreshingId={refreshingSiteId}
                   />
                 )}
               </motion.div>

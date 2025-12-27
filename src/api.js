@@ -121,6 +121,12 @@ export async function handleAPI(request, env, ctx) {
     return await sitesController.updateSite(request, env, siteId);
   }
 
+  // 手动检测单个站点
+  if (path.match(/^\/api\/sites\/[^/]+\/check$/) && request.method === 'POST') {
+    const siteId = path.split('/')[3];
+    return await sitesController.checkSite(request, env, siteId);
+  }
+
   // 删除站点
   if (path.startsWith('/api/sites/') && request.method === 'DELETE') {
     const siteId = path.split('/')[3];
