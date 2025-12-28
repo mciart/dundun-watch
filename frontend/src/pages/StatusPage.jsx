@@ -75,20 +75,9 @@ export default function StatusPage() {
       // 动态计算历史小时数：轮询模式下每站点每小时检测次数 = 60 / 站点数
       // 进度条约需要 50 个记录，所以需要 50 * 站点数 / 60 小时
       const siteCount = sitesList.length || 1;
-      const minHoursForBar = Math.ceil((50 * siteCount) / 60);
-      let historyHours = Math.max(minHoursForBar, 1); // 最少 1 小时
+      const historyHours = Math.max(Math.ceil((50 * siteCount) / 60), 1);
 
-      try {
-        const savedSettings = localStorage.getItem('monitorSettings');
-        if (savedSettings) {
-          const storeSettings = JSON.parse(savedSettings);
-          if (storeSettings && typeof storeSettings.historyHours === 'number') {
-            historyHours = storeSettings.historyHours; // 用户设置优先
-          }
-        }
-      } catch (error) {
-        console.warn('monitorSettings 解析失败，使用默认历史范围', error);
-      }
+      console.log(`[StatusPage] 动态计算历史小时数: ${historyHours}h (${siteCount} 站点)`);
       fetchAllHistory(historyHours);
     } catch (error) {
       console.error('加载仪表盘失败:', error);
